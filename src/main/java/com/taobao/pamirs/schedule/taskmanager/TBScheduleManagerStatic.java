@@ -7,7 +7,6 @@ import org.apache.zookeeper.data.Stat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.taobao.pamirs.schedule.ScheduleUtil;
 import com.taobao.pamirs.schedule.TaskItemDefine;
 import com.taobao.pamirs.schedule.strategy.TBScheduleManagerFactory;
 

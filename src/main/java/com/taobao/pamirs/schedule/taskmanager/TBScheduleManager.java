@@ -1,7 +1,5 @@
 package com.taobao.pamirs.schedule.taskmanager;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Timer;

@@ -3,7 +3,6 @@ package com.taobao.pamirs.schedule.taskmanager;
 import java.lang.reflect.Array;
 import java.sql.Timestamp;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 

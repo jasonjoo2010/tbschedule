@@ -8,7 +8,6 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
 
-import org.apache.commons.lang.StringUtils;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.ZooKeeper;
