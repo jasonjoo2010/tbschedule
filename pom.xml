@@ -102,5 +102,30 @@
       </plugin> 
     </plugins> 
   </build>  
+<distributionManagement>
+                <repository>
+                        <id>nexus-releases</id>
+                        <name>nexus Release Repository</name>
+                        <url>http://nexus.dayima.org/nexus/content/repositories/releases/</url>
+                </repository>
+                <snapshotRepository>
+                        <id>nexus-snapshots</id>
+                        <name>Nexus Snapshot Repository</name>
+                        <url>http://nexus.dayima.org/nexus/content/repositories/snapshots/</url>
+                </snapshotRepository>
+        </distributionManagement>
+
+        <repositories>
+                <repository>
+                        <id>nexus-releases</id>
+                        <name>nexus Release Repository</name>
+                        <url>http://nexus.dayima.org/nexus/content/repositories/public/</url>
+                </repository>
+                <repository>
+                        <id>dayima-releases</id>
+                        <name>nexus Release Repository</name>
+                        <url>http://nexus.dayima.org/nexus/content/repositories/releases/</url>
+                </repository>
+        </repositories>
   <contributors><contributor><properties><provider>kongxuan.zlj@taobao.com</provider><codeName>schedule</codeName><codeUrl>"http://svn.develop.taobao.net/repos/schedule/trunk/schedule@92</codeUrl><description>contributors added by SCM Plugin, please don't modify it!</description></properties></contributor></contributors>
 </project>
