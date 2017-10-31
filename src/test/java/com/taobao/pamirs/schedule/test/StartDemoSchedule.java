@@ -9,7 +9,7 @@ import org.unitils.spring.annotation.SpringBeanByName;
 import com.taobao.pamirs.schedule.strategy.TBScheduleManagerFactory;
 
 /**
- * µ÷¶È²âÊÔ
+ * è°ƒåº¦æµ‹è¯•
  * @author xuannan
  *
  */

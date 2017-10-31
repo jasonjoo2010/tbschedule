@@ -12,7 +12,7 @@ import com.taobao.pamirs.schedule.IScheduleTaskDealSingle;
 import com.taobao.pamirs.schedule.TaskItemDefine;
 
 /**
- * 单个任务处理实现
+ * 鍗曚釜浠诲姟澶勭悊瀹炵幇
  * 
  * @author xuannan
  * 
@@ -37,7 +37,7 @@ public class DemoTaskBean implements IScheduleTaskDealSingle<Long> {
 		List<Long> result = new ArrayList<Long>();
 		int num = fetchNum / queryCondition.size();
 		Random random = new Random(System.currentTimeMillis());
-		String message = "获取数据...[ownSign=" + ownSign + ",taskParameter=\"" + taskParameter +"\"]:";
+		String message = "鑾峰彇鏁版嵁...[ownSign=" + ownSign + ",taskParameter=\"" + taskParameter +"\"]:";
 		boolean isFirst = true;
 		for (TaskItemDefine s : queryCondition) {
 			long taskItem = Integer.parseInt(s.getTaskItemId()) * 10000000L;
@@ -57,7 +57,7 @@ public class DemoTaskBean implements IScheduleTaskDealSingle<Long> {
 
 	public boolean execute(Long task, String ownSign) throws Exception {
 		Thread.sleep(50);
-		log.info("处理任务["+ownSign+"]:" + task);
+		log.info("澶勭悊浠诲姟["+ownSign+"]:" + task);
 		return true;
 	}
 }
