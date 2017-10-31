@@ -5,7 +5,7 @@ import org.apache.commons.lang.builder.ToStringBuilder;
 public class ScheduleStrategy {
 	public enum Kind{Schedule,Java,Bean}
 	/**
-	 * ÈÎÎñÀàĞÍ
+	 * ä»»åŠ¡ç±»å‹
 	 */
 	private String strategyName;
 
@@ -13,21 +13,21 @@ public class ScheduleStrategy {
 
 	private int numOfSingleServer;
 	/**
-	 * Ö¸¶¨ĞèÒªÖ´ĞĞµ÷¶ÈµÄ»úÆ÷ÊıÁ¿
+	 * æŒ‡å®šéœ€è¦æ‰§è¡Œè°ƒåº¦çš„æœºå™¨æ•°é‡
 	 */
 	private int assignNum;
 	
 	private Kind kind; 
 	
 	/**
-	 * Schedule Name,Class Name¡¢Bean Name
+	 * Schedule Name,Class Nameã€Bean Name
 	 */
 	private String taskName; 
 	
 	private String taskParameter;
 	
     /**
-     * ·şÎñ×´Ì¬: pause,resume
+     * æœåŠ¡çŠ¶æ€: pause,resume
      */
     private String sts = STS_RESUME;
 	

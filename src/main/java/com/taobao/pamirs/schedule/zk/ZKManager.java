@@ -38,7 +38,7 @@ public class ZKManager{
 	}
 	
 	/**
-	 * ÖØÁ¬zookeeper
+	 * é‡è¿zookeeper
 	 * @throws Exception
 	 */
 	public synchronized void  reConnection() throws Exception{
@@ -76,18 +76,18 @@ public class ZKManager{
 	
 	private void sessionEvent(CountDownLatch connectionLatch, WatchedEvent event) {
 		if (event.getState() == KeeperState.SyncConnected) {
-			log.info("ÊÕµ½ZKÁ¬½Ó³É¹¦ÊÂ¼ş£¡");
+			log.info("æ”¶åˆ°ZKè¿æ¥æˆåŠŸäº‹ä»¶ï¼");
 			connectionLatch.countDown();
 		} else if (event.getState() == KeeperState.Expired ) {
-			log.error("»á»°³¬Ê±£¬µÈ´ıÖØĞÂ½¨Á¢ZKÁ¬½Ó...");
+			log.error("ä¼šè¯è¶…æ—¶ï¼Œç­‰å¾…é‡æ–°å»ºç«‹ZKè¿æ¥...");
 			try {
 				reConnection();
 			} catch (Exception e) {
 				log.error(e.getMessage(),e);
 			}
-		} // Disconnected£ºZookeeper»á×Ô¶¯´¦ÀíDisconnected×´Ì¬ÖØÁ¬
+		} // Disconnectedï¼šZookeeperä¼šè‡ªåŠ¨å¤„ç†DisconnectedçŠ¶æ€é‡è¿
 		else if (event.getState() == KeeperState.Disconnected ) {
-			log.info("tb_hj_schedule Disconnected£¬µÈ´ıÖØĞÂ½¨Á¢ZKÁ¬½Ó...");
+			log.info("tb_hj_schedule Disconnectedï¼Œç­‰å¾…é‡æ–°å»ºç«‹ZKè¿æ¥...");
 			try {
 				reConnection();
 			} catch (Exception e) {
@@ -95,7 +95,7 @@ public class ZKManager{
 			}
 		}
 		else if (event.getState() == KeeperState.NoSyncConnected ) {
-			log.info("tb_hj_schedule NoSyncConnected£¬µÈ´ıÖØĞÂ½¨Á¢ZKÁ¬½Ó...");
+			log.info("tb_hj_schedule NoSyncConnectedï¼Œç­‰å¾…é‡æ–°å»ºç«‹ZKè¿æ¥...");
 			try {
 				reConnection();
 			} catch (Exception e) {
@@ -103,13 +103,13 @@ public class ZKManager{
 			}
 		}
 		else{
-			log.info("tb_hj_schedule »á»°ÓĞÆäËû×´Ì¬µÄÖµ£¬event.getState() ="+event.getState() +", event  value="+event.toString());
+			log.info("tb_hj_schedule ä¼šè¯æœ‰å…¶ä»–çŠ¶æ€çš„å€¼ï¼Œevent.getState() ="+event.getState() +", event  value="+event.toString());
 			connectionLatch.countDown();
 		}
 	}
 	
 	public void close() throws InterruptedException {
-		log.info("¹Ø±ÕzookeeperÁ¬½Ó");
+		log.info("å…³é—­zookeeperè¿æ¥");
 		if(zk == null) {
  		    return;
 		}
@@ -136,16 +136,16 @@ public class ZKManager{
 		return zk != null && zk.getState() == States.CONNECTED;
 	}
 	public void initial() throws Exception {
-		//µ±zk×´Ì¬Õı³£ºó²ÅÄÜµ÷ÓÃ
+		//å½“zkçŠ¶æ€æ­£å¸¸åæ‰èƒ½è°ƒç”¨
 		if(zk.exists(this.getRootPath(), false) == null){
 			ZKTools.createPath(zk, this.getRootPath(), CreateMode.PERSISTENT, acl);
 			if(isCheckParentPath == true){
 			  checkParent(zk,this.getRootPath());
 			}
-			//ÉèÖÃ°æ±¾ĞÅÏ¢
+			//è®¾ç½®ç‰ˆæœ¬ä¿¡æ¯
 			zk.setData(this.getRootPath(),Version.getVersion().getBytes(),-1);
 		}else{
-			//ÏÈĞ£Ñé¸¸Ç×½Úµã£¬±¾ÉíÊÇ·ñÒÑ¾­ÊÇscheduleµÄÄ¿Â¼
+			//å…ˆæ ¡éªŒçˆ¶äº²èŠ‚ç‚¹ï¼Œæœ¬èº«æ˜¯å¦å·²ç»æ˜¯scheduleçš„ç›®å½•
 			if(isCheckParentPath == true){
 			   checkParent(zk,this.getRootPath());
 			}
@@ -155,9 +155,9 @@ public class ZKManager{
 			}else{
 				String dataVersion = new String(value);
 				if(Version.isCompatible(dataVersion)==false){
-					throw new Exception("TBSchedule³ÌĞò°æ±¾ "+ Version.getVersion() +" ²»¼æÈİZookeeperÖĞµÄÊı¾İ°æ±¾ " + dataVersion );
+					throw new Exception("TBScheduleç¨‹åºç‰ˆæœ¬ "+ Version.getVersion() +" ä¸å…¼å®¹Zookeeperä¸­çš„æ•°æ®ç‰ˆæœ¬ " + dataVersion );
 				}
-				log.info("µ±Ç°µÄ³ÌĞò°æ±¾:" + Version.getVersion() + " Êı¾İ°æ±¾: " + dataVersion);
+				log.info("å½“å‰çš„ç¨‹åºç‰ˆæœ¬:" + Version.getVersion() + " æ•°æ®ç‰ˆæœ¬: " + dataVersion);
 			}
 		}
 	}

@@ -1,16 +1,16 @@
 package com.taobao.pamirs.schedule;
 
 /**
- * µ¥¸öÈÎÎñ´¦ÀíµÄ½Ó¿Ú
+ * å•ä¸ªä»»åŠ¡å¤„ç†çš„æ¥å£
  * @author xuannan
  *
- * @param <T>ÈÎÎñÀàĞÍ
+ * @param <T>ä»»åŠ¡ç±»å‹
  */
 public interface IScheduleTaskDealSingle<T> extends IScheduleTaskDeal<T> {
   /**
-   * Ö´ĞĞµ¥¸öÈÎÎñ
+   * æ‰§è¡Œå•ä¸ªä»»åŠ¡
    * @param task Object
-   * @param ownSign µ±Ç°»·¾³Ãû³Æ
+   * @param ownSign å½“å‰ç¯å¢ƒåç§°
    * @throws Exception
    */
   public boolean execute(T task,String ownSign) throws Exception;

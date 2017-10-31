@@ -22,7 +22,7 @@ public class ScheduleWatcher implements Watcher {
 	}
 	public void process(WatchedEvent event) {
 		if(log.isInfoEnabled()){
-			log.info("ÒÑ¾­´¥·¢ÁË" + event.getType() + ":"+ event.getState() + "ÊÂ¼ş£¡" + event.getPath());
+			log.info("å·²ç»è§¦å‘äº†" + event.getType() + ":"+ event.getState() + "äº‹ä»¶ï¼" + event.getPath());
 		}
 		if(event.getType() == Event.EventType.NodeChildrenChanged){
 			String path = event.getPath();
@@ -40,34 +40,34 @@ public class ScheduleWatcher implements Watcher {
 					  }
 				  }
 			  }else{
-				  log.info("ÒÑ¾­´¥·¢ÁË" + event.getType() + ":"+ event.getState() + "ÊÂ¼ş£¡" + event.getPath());
+				  log.info("å·²ç»è§¦å‘äº†" + event.getType() + ":"+ event.getState() + "äº‹ä»¶ï¼" + event.getPath());
 			  }
 		}else if(event.getState()== KeeperState.AuthFailed){
-			log.info("tb_hj_schedule zk status =KeeperState.AuthFailed£¡");
+			log.info("tb_hj_schedule zk status =KeeperState.AuthFailedï¼");
 		}else if(event.getState()== KeeperState.ConnectedReadOnly){
-			log.info("tb_hj_schedule zk status =KeeperState.ConnectedReadOnly£¡");
+			log.info("tb_hj_schedule zk status =KeeperState.ConnectedReadOnlyï¼");
 		}else if(event.getState()== KeeperState.Disconnected){
-			log.info("tb_hj_schedule zk status =KeeperState.Disconnected£¡");
+			log.info("tb_hj_schedule zk status =KeeperState.Disconnectedï¼");
 			try {
 				manager.reConnection();
 			} catch (Exception e) {
 				log.error(e.getMessage(),e);
 			}
 		}else if(event.getState()== KeeperState.NoSyncConnected){
-			log.info("tb_hj_schedule zk status =KeeperState.NoSyncConnected£¡µÈ´ıÖØĞÂ½¨Á¢ZKÁ¬½Ó.. ");
+			log.info("tb_hj_schedule zk status =KeeperState.NoSyncConnectedï¼ç­‰å¾…é‡æ–°å»ºç«‹ZKè¿æ¥.. ");
 			try {
 				manager.reConnection();
 			} catch (Exception e) {
 				log.error(e.getMessage(),e);
 			}
 		}else if (event.getState()== KeeperState.SaslAuthenticated){
-			log.info("tb_hj_schedule zk status =KeeperState.SaslAuthenticated£¡");
+			log.info("tb_hj_schedule zk status =KeeperState.SaslAuthenticatedï¼");
 		}else if(event.getState() == KeeperState.Unknown){
-			log.info("tb_hj_schedule zk status =KeeperState.Unknown£¡");
+			log.info("tb_hj_schedule zk status =KeeperState.Unknownï¼");
 		}else if (event.getState() == KeeperState.SyncConnected) {
-			log.info("ÊÕµ½ZKÁ¬½Ó³É¹¦ÊÂ¼ş£¡");
+			log.info("æ”¶åˆ°ZKè¿æ¥æˆåŠŸäº‹ä»¶ï¼");
 		} else if (event.getState() == KeeperState.Expired) {
-			log.error("»á»°³¬Ê±£¬µÈ´ıÖØĞÂ½¨Á¢ZKÁ¬½Ó...");
+			log.error("ä¼šè¯è¶…æ—¶ï¼Œç­‰å¾…é‡æ–°å»ºç«‹ZKè¿æ¥...");
 			try {
 				manager.reConnection();
 			} catch (Exception e) {

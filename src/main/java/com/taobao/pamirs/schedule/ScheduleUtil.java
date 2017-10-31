@@ -8,7 +8,7 @@ import java.util.Date;
 
 
 /**
- * µ÷¶È´¦Àí¹¤¾ßÀà
+ * è°ƒåº¦å¤„ç†å·¥å…·ç±»
  * @author xuannan
  *
  */
@@ -77,23 +77,23 @@ public class ScheduleUtil {
 	}	
 	
 	/**
-	 * ·ÖÅäÈÎÎñÊıÁ¿
-	 * @param serverNum ×ÜµÄ·şÎñÆ÷ÊıÁ¿
-	 * @param taskItemNum ÈÎÎñÏîÊıÁ¿
-	 * @param maxNumOfOneServer Ã¿¸öserver×î´óÈÎÎñÏîÊıÄ¿
-	 * @param maxNum ×ÜµÄÈÎÎñÊıÁ¿
+	 * åˆ†é…ä»»åŠ¡æ•°é‡
+	 * @param serverNum æ€»çš„æœåŠ¡å™¨æ•°é‡
+	 * @param taskItemNum ä»»åŠ¡é¡¹æ•°é‡
+	 * @param maxNumOfOneServer æ¯ä¸ªserveræœ€å¤§ä»»åŠ¡é¡¹æ•°ç›®
+	 * @param maxNum æ€»çš„ä»»åŠ¡æ•°é‡
 	 * @return
 	 */
 	public static int[] assignTaskNumber(int serverNum,int taskItemNum,int maxNumOfOneServer){
 		int[] taskNums = new int[serverNum];
 		int numOfSingle = taskItemNum / serverNum;
 		int otherNum = taskItemNum % serverNum;
-		//20150323 É¾³ı, ÈÎÎñ·ÖÆ¬±£Ö¤·ÖÅäµ½ËùÓĞµÄÏß³Ì×éÊıÉÏ¡£ ¿ªÊ¼
+		//20150323 åˆ é™¤, ä»»åŠ¡åˆ†ç‰‡ä¿è¯åˆ†é…åˆ°æ‰€æœ‰çš„çº¿ç¨‹ç»„æ•°ä¸Šã€‚ å¼€å§‹
 //		if (maxNumOfOneServer >0 && numOfSingle >= maxNumOfOneServer) {
 //			numOfSingle = maxNumOfOneServer;
 //			otherNum = 0;
 //		}
-		//20150323 É¾³ı, ÈÎÎñ·ÖÆ¬±£Ö¤·ÖÅäµ½ËùÓĞµÄÏß³Ì×éÊıÉÏ¡£ ½áÊø
+		//20150323 åˆ é™¤, ä»»åŠ¡åˆ†ç‰‡ä¿è¯åˆ†é…åˆ°æ‰€æœ‰çš„çº¿ç¨‹ç»„æ•°ä¸Šã€‚ ç»“æŸ
 		for (int i = 0; i < taskNums.length; i++) {
 			if (i < otherNum) {
 				taskNums[i] = numOfSingle + 1;

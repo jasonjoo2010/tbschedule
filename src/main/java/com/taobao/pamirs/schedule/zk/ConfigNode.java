@@ -1,7 +1,7 @@
 package com.taobao.pamirs.schedule.zk;
 
 /**
- * ÅäÖÃĞÅÏ¢
+ * é…ç½®ä¿¡æ¯
  * 
  * @author gjavac@gmail.com
  * @since 2012-2-12
@@ -61,10 +61,10 @@ public class ConfigNode {
 
 	public String toString() {
 		StringBuffer buffer = new StringBuffer();
-		buffer.append("ÅäÖÃ¸ùÄ¿Â¼£º").append(rootPath).append("\n");
-		buffer.append("ÅäÖÃÀàĞÍ£º").append(configType).append("\n");
-		buffer.append("ÈÎÎñÃû³Æ£º").append(name).append("\n");
-		buffer.append("ÅäÖÃµÄÖµ£º").append(value).append("\n");
+		buffer.append("é…ç½®æ ¹ç›®å½•ï¼š").append(rootPath).append("\n");
+		buffer.append("é…ç½®ç±»å‹ï¼š").append(configType).append("\n");
+		buffer.append("ä»»åŠ¡åç§°ï¼š").append(name).append("\n");
+		buffer.append("é…ç½®çš„å€¼ï¼š").append(value).append("\n");
 		return buffer.toString();
 	}
 }

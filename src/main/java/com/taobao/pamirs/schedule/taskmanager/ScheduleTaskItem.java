@@ -1,7 +1,7 @@
 package com.taobao.pamirs.schedule.taskmanager;
 
 /**
- * ÈÎÎñ¶ÓÁĞÀàĞÍ
+ * ä»»åŠ¡é˜Ÿåˆ—ç±»å‹
  * @author xuannan
  *
  */
@@ -10,27 +10,27 @@ public class ScheduleTaskItem {
 		ACTIVTE, FINISH, HALT
 	}
 	/**
-	 * ´¦ÀíÈÎÎñÀàĞÍ
+	 * å¤„ç†ä»»åŠ¡ç±»å‹
 	 */
 	private String taskType;
 
 	/**
-	 * Ô­Ê¼ÈÎÎñÀàĞÍ
+	 * åŸå§‹ä»»åŠ¡ç±»å‹
 	 */
 	private String baseTaskType;
 
 	/**
-	 * Íê³É×´Ì¬
+	 * å®ŒæˆçŠ¶æ€
 	 */
 	private TaskItemSts sts = TaskItemSts.ACTIVTE;
 	
 	/**
-	 * ÈÎÎñ´¦ÀíĞèÒªµÄ²ÎÊı
+	 * ä»»åŠ¡å¤„ç†éœ€è¦çš„å‚æ•°
 	 */
 	private String dealParameter="";
 	
 	/**
-	 * ÈÎÎñ´¦ÀíÇé¿ö,ÓÃÓÚÈÎÎñ´¦ÀíÆ÷»áĞ´Ò»Ğ©ĞÅÏ¢
+	 * ä»»åŠ¡å¤„ç†æƒ…å†µ,ç”¨äºä»»åŠ¡å¤„ç†å™¨ä¼šå†™ä¸€äº›ä¿¡æ¯
 	 */
 	private String dealDesc="";
 	
@@ -45,25 +45,25 @@ public class ScheduleTaskItem {
 	}
 
 /**
-   * ¶ÓÁĞµÄ»·¾³±êÊ¶
+   * é˜Ÿåˆ—çš„ç¯å¢ƒæ ‡è¯†
    */
   private String ownSign;
   
   /**
-   * ÈÎÎñ¶ÓÁĞID
+   * ä»»åŠ¡é˜Ÿåˆ—ID
    */
   private String taskItem;
   /**
-   * ³ÖÓĞµ±Ç°ÈÎÎñ¶ÓÁĞµÄÈÎÎñ´¦ÀíÆ÷
+   * æŒæœ‰å½“å‰ä»»åŠ¡é˜Ÿåˆ—çš„ä»»åŠ¡å¤„ç†å™¨
    */
   private String currentScheduleServer;
   /**
-   * ÕıÔÚÉêÇë´ËÈÎÎñ¶ÓÁĞµÄÈÎÎñ´¦ÀíÆ÷
+   * æ­£åœ¨ç”³è¯·æ­¤ä»»åŠ¡é˜Ÿåˆ—çš„ä»»åŠ¡å¤„ç†å™¨
    */
   private String requestScheduleServer;
   
   /**
-   * Êı¾İ°æ±¾ºÅ
+   * æ•°æ®ç‰ˆæœ¬å·
    */
   private long version;
 

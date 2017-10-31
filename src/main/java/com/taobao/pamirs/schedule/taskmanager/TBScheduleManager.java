@@ -24,19 +24,19 @@ import com.taobao.pamirs.schedule.strategy.TBScheduleManagerFactory;
 
 
 /**
- * 1¡¢ÈÎÎñµ÷¶È·ÖÅäÆ÷µÄÄ¿±ê£º	ÈÃËùÓĞµÄÈÎÎñ²»ÖØ¸´£¬²»ÒÅÂ©µÄ±»¿ìËÙ´¦Àí¡£
- * 2¡¢Ò»¸öManagerÖ»¹ÜÀíÒ»ÖÖÈÎÎñÀàĞÍµÄÒ»×é¹¤×÷Ïß³Ì¡£
- * 3¡¢ÔÚÒ»¸öJVMÀïÃæ¿ÉÄÜ´æÔÚ¶à¸ö´¦ÀíÏàÍ¬ÈÎÎñÀàĞÍµÄManager£¬Ò²¿ÉÄÜ´æÔÚ´¦Àí²»Í¬ÈÎÎñÀàĞÍµÄManager¡£
- * 4¡¢ÔÚ²»Í¬µÄJVMÀïÃæ¿ÉÒÔ´æÔÚ´¦ÀíÏàÍ¬ÈÎÎñµÄManager 
- * 5¡¢µ÷¶ÈµÄManager¿ÉÒÔ¶¯Ì¬µÄËæÒâÔö¼ÓºÍÍ£Ö¹
+ * 1ã€ä»»åŠ¡è°ƒåº¦åˆ†é…å™¨çš„ç›®æ ‡ï¼š	è®©æ‰€æœ‰çš„ä»»åŠ¡ä¸é‡å¤ï¼Œä¸é—æ¼çš„è¢«å¿«é€Ÿå¤„ç†ã€‚
+ * 2ã€ä¸€ä¸ªManageråªç®¡ç†ä¸€ç§ä»»åŠ¡ç±»å‹çš„ä¸€ç»„å·¥ä½œçº¿ç¨‹ã€‚
+ * 3ã€åœ¨ä¸€ä¸ªJVMé‡Œé¢å¯èƒ½å­˜åœ¨å¤šä¸ªå¤„ç†ç›¸åŒä»»åŠ¡ç±»å‹çš„Managerï¼Œä¹Ÿå¯èƒ½å­˜åœ¨å¤„ç†ä¸åŒä»»åŠ¡ç±»å‹çš„Managerã€‚
+ * 4ã€åœ¨ä¸åŒçš„JVMé‡Œé¢å¯ä»¥å­˜åœ¨å¤„ç†ç›¸åŒä»»åŠ¡çš„Manager 
+ * 5ã€è°ƒåº¦çš„Managerå¯ä»¥åŠ¨æ€çš„éšæ„å¢åŠ å’Œåœæ­¢
  * 
- * Ö÷ÒªµÄÖ°Ôğ£º
- * 1¡¢¶¨Ê±Ïò¼¯ÖĞµÄÊı¾İÅäÖÃÖĞĞÄ¸üĞÂµ±Ç°µ÷¶È·şÎñÆ÷µÄĞÄÌø×´Ì¬
- * 2¡¢ÏòÊı¾İÅäÖÃÖĞĞÄ»ñÈ¡ËùÓĞ·şÎñÆ÷µÄ×´Ì¬À´ÖØĞÂ¼ÆËãÈÎÎñµÄ·ÖÅä¡£ÕâÃ´×öµÄÄ¿±êÊÇ±ÜÃâ¼¯ÖĞÈÎÎñµ÷¶ÈÖĞĞÄµÄµ¥µãÎÊÌâ¡£
- * 3¡¢ÔÚÃ¿¸öÅú´ÎÊı¾İ´¦ÀíÍê±Ïºó£¬¼ì²éÊÇ·ñÓĞÆäËü´¦Àí·şÎñÆ÷ÉêÇë×Ô¼º°Ñ³ÖµÄÈÎÎñ¶ÓÁĞ£¬Èç¹ûÓĞ£¬ÔòÊÍ·Å¸øÏà¹Ø´¦Àí·şÎñÆ÷¡£
+ * ä¸»è¦çš„èŒè´£ï¼š
+ * 1ã€å®šæ—¶å‘é›†ä¸­çš„æ•°æ®é…ç½®ä¸­å¿ƒæ›´æ–°å½“å‰è°ƒåº¦æœåŠ¡å™¨çš„å¿ƒè·³çŠ¶æ€
+ * 2ã€å‘æ•°æ®é…ç½®ä¸­å¿ƒè·å–æ‰€æœ‰æœåŠ¡å™¨çš„çŠ¶æ€æ¥é‡æ–°è®¡ç®—ä»»åŠ¡çš„åˆ†é…ã€‚è¿™ä¹ˆåšçš„ç›®æ ‡æ˜¯é¿å…é›†ä¸­ä»»åŠ¡è°ƒåº¦ä¸­å¿ƒçš„å•ç‚¹é—®é¢˜ã€‚
+ * 3ã€åœ¨æ¯ä¸ªæ‰¹æ¬¡æ•°æ®å¤„ç†å®Œæ¯•åï¼Œæ£€æŸ¥æ˜¯å¦æœ‰å…¶å®ƒå¤„ç†æœåŠ¡å™¨ç”³è¯·è‡ªå·±æŠŠæŒçš„ä»»åŠ¡é˜Ÿåˆ—ï¼Œå¦‚æœæœ‰ï¼Œåˆ™é‡Šæ”¾ç»™ç›¸å…³å¤„ç†æœåŠ¡å™¨ã€‚
  *  
- * ÆäËü£º
- * 	 Èç¹ûµ±Ç°·şÎñÆ÷ÔÚ´¦Àíµ±Ç°ÈÎÎñµÄÊ±ºò³¬Ê±£¬ĞèÒªÇå³ıµ±Ç°¶ÓÁĞ£¬²¢ÊÍ·ÅÒÑ¾­°Ñ³ÖµÄÈÎÎñ¡£²¢Ïò¿ØÖÆÖ÷¶¯ÖĞĞÄ±¨¾¯¡£
+ * å…¶å®ƒï¼š
+ * 	 å¦‚æœå½“å‰æœåŠ¡å™¨åœ¨å¤„ç†å½“å‰ä»»åŠ¡çš„æ—¶å€™è¶…æ—¶ï¼Œéœ€è¦æ¸…é™¤å½“å‰é˜Ÿåˆ—ï¼Œå¹¶é‡Šæ”¾å·²ç»æŠŠæŒçš„ä»»åŠ¡ã€‚å¹¶å‘æ§åˆ¶ä¸»åŠ¨ä¸­å¿ƒæŠ¥è­¦ã€‚
  * 
  * @author xuannan
  *
@@ -45,29 +45,29 @@ import com.taobao.pamirs.schedule.strategy.TBScheduleManagerFactory;
 abstract class TBScheduleManager implements IStrategyTask {
 	private static transient Logger log = LoggerFactory.getLogger(TBScheduleManager.class);
 	/**
-	 * ÓÃ»§±êÊ¶²»Í¬Ïß³ÌµÄĞòºÅ
+	 * ç”¨æˆ·æ ‡è¯†ä¸åŒçº¿ç¨‹çš„åºå·
 	 */
 	private static int nextSerialNumber = 0;
  
 	/**
-	 * µ±Ç°Ïß³Ì×é±àºÅ
+	 * å½“å‰çº¿ç¨‹ç»„ç¼–å·
 	 */
 	protected int currentSerialNumber=0;
 	/**
-	 * µ÷¶ÈÈÎÎñÀàĞÍĞÅÏ¢
+	 * è°ƒåº¦ä»»åŠ¡ç±»å‹ä¿¡æ¯
 	 */
 	protected ScheduleTaskType taskTypeInfo;
 	/**
-	 * µ±Ç°µ÷¶È·şÎñµÄĞÅÏ¢
+	 * å½“å‰è°ƒåº¦æœåŠ¡çš„ä¿¡æ¯
 	 */
 	protected ScheduleServer currenScheduleServer;
 	/**
-	 * ¶ÓÁĞ´¦ÀíÆ÷
+	 * é˜Ÿåˆ—å¤„ç†å™¨
 	 */
 	IScheduleTaskDeal  taskDealBean;
 	
     /**
-     * ¶àÏß³ÌÈÎÎñ´¦ÀíÆ÷
+     * å¤šçº¿ç¨‹ä»»åŠ¡å¤„ç†å™¨
      */
 	IScheduleProcessor processor;
     StatisticsInfo statisticsInfo = new StatisticsInfo();
@@ -75,13 +75,13 @@ abstract class TBScheduleManager implements IStrategyTask {
     boolean isPauseSchedule = true;
     String pauseMessage="";
     /**
-     *  µ±Ç°´¦ÀíÈÎÎñ¶ÓÁĞÇåµ¥
-     *  ArrayListÊµÏÖ²»ÊÇÍ¬²½µÄ¡£Òò¶àÏß³Ì²Ù×÷ĞŞ¸Ä¸ÃÁĞ±í£¬»áÔì³ÉConcurrentModificationException
+     *  å½“å‰å¤„ç†ä»»åŠ¡é˜Ÿåˆ—æ¸…å•
+     *  ArrayListå®ç°ä¸æ˜¯åŒæ­¥çš„ã€‚å› å¤šçº¿ç¨‹æ“ä½œä¿®æ”¹è¯¥åˆ—è¡¨ï¼Œä¼šé€ æˆConcurrentModificationException
      */
     protected List<TaskItemDefine> currentTaskItemList = new CopyOnWriteArrayList<TaskItemDefine>();
     /**
-     * ×î½üÒ»ÆğÖØĞÂ×°ÔØµ÷¶ÈÈÎÎñµÄÊ±¼ä¡£
-     * µ±Ç°Êµ¼Ê  - ÉÏ´Ë×°ÔØÊ±¼ä  > intervalReloadTaskItemList£¬ÔòÏòÅäÖÃÖĞĞÄÇëÇó×îĞÂµÄÈÎÎñ·ÖÅäÇé¿ö
+     * æœ€è¿‘ä¸€èµ·é‡æ–°è£…è½½è°ƒåº¦ä»»åŠ¡çš„æ—¶é—´ã€‚
+     * å½“å‰å®é™…  - ä¸Šæ­¤è£…è½½æ—¶é—´  > intervalReloadTaskItemListï¼Œåˆ™å‘é…ç½®ä¸­å¿ƒè¯·æ±‚æœ€æ–°çš„ä»»åŠ¡åˆ†é…æƒ…å†µ
      */
     protected long lastReloadTaskItemListTime=0;    
     protected boolean isNeedReloadTaskItem = true;
@@ -89,7 +89,7 @@ abstract class TBScheduleManager implements IStrategyTask {
     
     private String mBeanName;
     /**
-     * ÏòÅäÖÃÖĞĞÄ¸üĞÂĞÅÏ¢µÄ¶¨Ê±Æ÷
+     * å‘é…ç½®ä¸­å¿ƒæ›´æ–°ä¿¡æ¯çš„å®šæ—¶å™¨
      */
     private Timer heartBeatTimer;
 
@@ -101,7 +101,7 @@ abstract class TBScheduleManager implements IStrategyTask {
     protected Lock registerLock = new ReentrantLock();
     
     /**
-     * ÔËĞĞÆÚĞÅÏ¢ÊÇ·ñ³õÊ¼»¯³É¹¦
+     * è¿è¡ŒæœŸä¿¡æ¯æ˜¯å¦åˆå§‹åŒ–æˆåŠŸ
      */
     protected boolean isRuntimeInfoInitial = false;
     
@@ -112,20 +112,20 @@ abstract class TBScheduleManager implements IStrategyTask {
 		this.scheduleCenter = aScheduleCenter;
 		this.taskTypeInfo = this.scheduleCenter.loadTaskTypeBaseInfo(baseTaskType);
     	log.info("create TBScheduleManager for taskType:"+baseTaskType);
-		//Çå³ıÒÑ¾­¹ıÆÚ1ÌìµÄTASK,OWN_SIGNµÄ×éºÏ¡£³¬¹ıÒ»ÌìÃ»ÓĞ»î¶¯serverµÄÊÓÎª¹ıÆÚ
-		this.scheduleCenter.clearExpireTaskTypeRunningInfo(baseTaskType,ScheduleUtil.getLocalIP() + "Çå³ı¹ıÆÚOWN_SIGNĞÅÏ¢",this.taskTypeInfo.getExpireOwnSignInterval());
+		//æ¸…é™¤å·²ç»è¿‡æœŸ1å¤©çš„TASK,OWN_SIGNçš„ç»„åˆã€‚è¶…è¿‡ä¸€å¤©æ²¡æœ‰æ´»åŠ¨serverçš„è§†ä¸ºè¿‡æœŸ
+		this.scheduleCenter.clearExpireTaskTypeRunningInfo(baseTaskType,ScheduleUtil.getLocalIP() + "æ¸…é™¤è¿‡æœŸOWN_SIGNä¿¡æ¯",this.taskTypeInfo.getExpireOwnSignInterval());
 		
 		Object dealBean = aFactory.getBean(this.taskTypeInfo.getDealBeanName());
 		if (dealBean == null) {
-			throw new Exception( "SpringBean " + this.taskTypeInfo.getDealBeanName() + " ²»´æÔÚ");
+			throw new Exception( "SpringBean " + this.taskTypeInfo.getDealBeanName() + " ä¸å­˜åœ¨");
 		}
 		if (dealBean instanceof IScheduleTaskDeal == false) {
-			throw new Exception( "SpringBean " + this.taskTypeInfo.getDealBeanName() + " Ã»ÓĞÊµÏÖ IScheduleTaskDeal½Ó¿Ú");
+			throw new Exception( "SpringBean " + this.taskTypeInfo.getDealBeanName() + " æ²¡æœ‰å®ç° IScheduleTaskDealæ¥å£");
 		}
     	this.taskDealBean = (IScheduleTaskDeal)dealBean;
 
     	if(this.taskTypeInfo.getJudgeDeadInterval() < this.taskTypeInfo.getHeartBeatRate() * 5){
-    		throw new Exception("Êı¾İÅäÖÃ´æÔÚÎÊÌâ£¬ËÀÍöµÄÊ±¼ä¼ä¸ô£¬ÖÁÉÙÒª´óÓÚĞÄÌøÏß³ÌµÄ5±¶¡£µ±Ç°ÅäÖÃÊı¾İ£ºJudgeDeadInterval = "
+    		throw new Exception("æ•°æ®é…ç½®å­˜åœ¨é—®é¢˜ï¼Œæ­»äº¡çš„æ—¶é—´é—´éš”ï¼Œè‡³å°‘è¦å¤§äºå¿ƒè·³çº¿ç¨‹çš„5å€ã€‚å½“å‰é…ç½®æ•°æ®ï¼šJudgeDeadInterval = "
     				+ this.taskTypeInfo.getJudgeDeadInterval() 
     				+ ",HeartBeatRate = " + this.taskTypeInfo.getHeartBeatRate());
     	}
@@ -140,7 +140,7 @@ abstract class TBScheduleManager implements IStrategyTask {
     	initial();
 	}  
 	/**
-	 * ¶ÔÏó´´½¨Ê±ĞèÒª×öµÄ³õÊ¼»¯¹¤×÷
+	 * å¯¹è±¡åˆ›å»ºæ—¶éœ€è¦åšçš„åˆå§‹åŒ–å·¥ä½œ
 	 * 
 	 * @throws Exception
 	 */
@@ -154,7 +154,7 @@ abstract class TBScheduleManager implements IStrategyTask {
 	}
 	
 	public void initialTaskParameter(String strategyName,String taskParameter){
-	   //Ã»ÓĞÊµÏÖµÄ·½·¨£¬ĞèÒªµÄ²ÎÊıÖ±½Ó´ÓÈÎÎñÅäÖÃÖĞ¶ÁÈ¡	
+	   //æ²¡æœ‰å®ç°çš„æ–¹æ³•ï¼Œéœ€è¦çš„å‚æ•°ç›´æ¥ä»ä»»åŠ¡é…ç½®ä¸­è¯»å–	
 	}
 	private static synchronized int serialNumber() {
 	        return nextSerialNumber++;
@@ -164,17 +164,17 @@ abstract class TBScheduleManager implements IStrategyTask {
 		return this.currentSerialNumber;
 	}
 	/**
-	 * Çå³ıÄÚ´æÖĞËùÓĞµÄÒÑ¾­È¡µÃµÄÊı¾İºÍÈÎÎñ¶ÓÁĞ,ÔÚĞÄÌ¬¸üĞÂÊ§°Ü£¬»òÕß·¢ÏÖ×¢²áÖĞĞÄµÄµ÷¶ÈĞÅÏ¢±»É¾³ı
+	 * æ¸…é™¤å†…å­˜ä¸­æ‰€æœ‰çš„å·²ç»å–å¾—çš„æ•°æ®å’Œä»»åŠ¡é˜Ÿåˆ—,åœ¨å¿ƒæ€æ›´æ–°å¤±è´¥ï¼Œæˆ–è€…å‘ç°æ³¨å†Œä¸­å¿ƒçš„è°ƒåº¦ä¿¡æ¯è¢«åˆ é™¤
 	 */
 	public void clearMemoInfo(){
 		try {
-			// Çå³ıÄÚ´æÖĞËùÓĞµÄÒÑ¾­È¡µÃµÄÊı¾İºÍÈÎÎñ¶ÓÁĞ,ÔÚĞÄÌ¬¸üĞÂÊ§°Ü£¬»òÕß·¢ÏÖ×¢²áÖĞĞÄµÄµ÷¶ÈĞÅÏ¢±»É¾³ı
+			// æ¸…é™¤å†…å­˜ä¸­æ‰€æœ‰çš„å·²ç»å–å¾—çš„æ•°æ®å’Œä»»åŠ¡é˜Ÿåˆ—,åœ¨å¿ƒæ€æ›´æ–°å¤±è´¥ï¼Œæˆ–è€…å‘ç°æ³¨å†Œä¸­å¿ƒçš„è°ƒåº¦ä¿¡æ¯è¢«åˆ é™¤
 			this.currentTaskItemList.clear();
 			if (this.processor != null) {
 				this.processor.clearAllHasFetchData();
 			}
 		} finally {
-			//ÉèÖÃÄÚ´æÀïÃæµÄÈÎÎñÊı¾İĞèÒªÖØĞÂ×°ÔØ
+			//è®¾ç½®å†…å­˜é‡Œé¢çš„ä»»åŠ¡æ•°æ®éœ€è¦é‡æ–°è£…è½½
 			this.isNeedReloadTaskItem = true;
 		}
 
@@ -185,18 +185,18 @@ abstract class TBScheduleManager implements IStrategyTask {
 		try{
 			if (this.isStopSchedule == true) {
 				if(log.isDebugEnabled()){
-					log.debug("Íâ²¿ÃüÁîÖÕÖ¹µ÷¶È,²»ÔÚ×¢²áµ÷¶È·şÎñ£¬±ÜÃâÒÅÁôÀ¬»øÊı¾İ£º" + currenScheduleServer.getUuid());
+					log.debug("å¤–éƒ¨å‘½ä»¤ç»ˆæ­¢è°ƒåº¦,ä¸åœ¨æ³¨å†Œè°ƒåº¦æœåŠ¡ï¼Œé¿å…é—ç•™åƒåœ¾æ•°æ®ï¼š" + currenScheduleServer.getUuid());
 				}
 				return;
 			}
-		//ÏÈ·¢ËÍĞÄÌøĞÅÏ¢
+		//å…ˆå‘é€å¿ƒè·³ä¿¡æ¯
 		if(startErrorInfo == null){
 			this.currenScheduleServer.setDealInfoDesc(this.pauseMessage + ":" + this.statisticsInfo.getDealDescription());
 		}else{
 		    this.currenScheduleServer.setDealInfoDesc(startErrorInfo);
 		}
 		if(	this.scheduleCenter.refreshScheduleServer(this.currenScheduleServer) == false){
-			//¸üĞÂĞÅÏ¢Ê§°Ü£¬Çå³ıÄÚ´æÊı¾İºóÖØĞÂ×¢²á
+			//æ›´æ–°ä¿¡æ¯å¤±è´¥ï¼Œæ¸…é™¤å†…å­˜æ•°æ®åé‡æ–°æ³¨å†Œ
 			this.clearMemoInfo();
 			this.scheduleCenter.registerScheduleServer(this.currenScheduleServer);
 		}
@@ -209,11 +209,11 @@ abstract class TBScheduleManager implements IStrategyTask {
 
 
 	/**
-	 * ¿ªÊ¼µÄÊ±ºò£¬¼ÆËãµÚÒ»´ÎÖ´ĞĞÊ±¼ä
+	 * å¼€å§‹çš„æ—¶å€™ï¼Œè®¡ç®—ç¬¬ä¸€æ¬¡æ‰§è¡Œæ—¶é—´
 	 * @throws Exception
 	 */
     public void computerStart() throws Exception{
-    	//Ö»ÓĞµ±´æÔÚ¿ÉÖ´ĞĞ¶ÓÁĞºóÔÙ¿ªÊ¼Æô¶¯¶ÓÁĞ
+    	//åªæœ‰å½“å­˜åœ¨å¯æ‰§è¡Œé˜Ÿåˆ—åå†å¼€å§‹å¯åŠ¨é˜Ÿåˆ—
    	
     	boolean isRunNow = false;
     	if(this.taskTypeInfo.getPermitRunStartTime() == null){
@@ -234,7 +234,7 @@ abstract class TBScheduleManager implements IStrategyTask {
 			this.currenScheduleServer.setNextRunStartTime(ScheduleUtil.transferDataToString(firstStartTime));	
 			if( this.taskTypeInfo.getPermitRunEndTime() == null
     		   || this.taskTypeInfo.getPermitRunEndTime().equals("-1")){
-				this.currenScheduleServer.setNextRunEndTime("µ±²»ÄÜ»ñÈ¡µ½Êı¾İµÄÊ±ºòpause");				
+				this.currenScheduleServer.setNextRunEndTime("å½“ä¸èƒ½è·å–åˆ°æ•°æ®çš„æ—¶å€™pause");				
 			}else{
 				try {
 					String tmpEndStr = this.taskTypeInfo.getPermitRunEndTime();
@@ -251,31 +251,31 @@ abstract class TBScheduleManager implements IStrategyTask {
 		    						firstEndTime);
 					this.currenScheduleServer.setNextRunEndTime(ScheduleUtil.transferDataToString(firstEndTime));
 				} catch (Exception e) {
-					log.error("¼ÆËãµÚÒ»´ÎÖ´ĞĞÊ±¼ä³öÏÖÒì³£:" + currenScheduleServer.getUuid(), e);
-					throw new Exception("¼ÆËãµÚÒ»´ÎÖ´ĞĞÊ±¼ä³öÏÖÒì³£:" + currenScheduleServer.getUuid(), e);
+					log.error("è®¡ç®—ç¬¬ä¸€æ¬¡æ‰§è¡Œæ—¶é—´å‡ºç°å¼‚å¸¸:" + currenScheduleServer.getUuid(), e);
+					throw new Exception("è®¡ç®—ç¬¬ä¸€æ¬¡æ‰§è¡Œæ—¶é—´å‡ºç°å¼‚å¸¸:" + currenScheduleServer.getUuid(), e);
 				}
 			}
     	}
     	if(isRunNow == true){
-    		this.resume("¿ªÆô·şÎñÁ¢¼´Æô¶¯");
+    		this.resume("å¼€å¯æœåŠ¡ç«‹å³å¯åŠ¨");
     	}
     	this.rewriteScheduleInfo();
     	
     }
 	/**
-	 * µ±ProcessÃ»ÓĞ»ñÈ¡µ½Êı¾İµÄÊ±ºòµ÷ÓÃ£¬¾ö¶¨ÊÇ·ñÔİÊ±Í£Ö¹·şÎñÆ÷
+	 * å½“Processæ²¡æœ‰è·å–åˆ°æ•°æ®çš„æ—¶å€™è°ƒç”¨ï¼Œå†³å®šæ˜¯å¦æš‚æ—¶åœæ­¢æœåŠ¡å™¨
 	 * @throws Exception
 	 */
 	public boolean isContinueWhenData() throws Exception{
 		if(isPauseWhenNoData() == true){
-			this.pause("Ã»ÓĞÊı¾İ,ÔİÍ£µ÷¶È");
+			this.pause("æ²¡æœ‰æ•°æ®,æš‚åœè°ƒåº¦");
 			return false;
 		}else{
 			return true;
 		}
 	}
 	public boolean isPauseWhenNoData(){
-		//Èç¹û»¹Ã»ÓĞ·ÖÅäµ½ÈÎÎñ¶ÓÁĞÔò²»ÄÜÍË³ö
+		//å¦‚æœè¿˜æ²¡æœ‰åˆ†é…åˆ°ä»»åŠ¡é˜Ÿåˆ—åˆ™ä¸èƒ½é€€å‡º
 		if(this.currentTaskItemList.size() >0 && this.taskTypeInfo.getPermitRunStartTime() != null){
 			if(this.taskTypeInfo.getPermitRunEndTime() == null
 		       || this.taskTypeInfo.getPermitRunEndTime().equals("-1")){
@@ -288,7 +288,7 @@ abstract class TBScheduleManager implements IStrategyTask {
 		}
 	}	
 	/**
-	 * ³¬¹ıÔËĞĞµÄÔËĞĞÊ±¼ä£¬ÔİÊ±Í£Ö¹µ÷¶È
+	 * è¶…è¿‡è¿è¡Œçš„è¿è¡Œæ—¶é—´ï¼Œæš‚æ—¶åœæ­¢è°ƒåº¦
 	 * @throws Exception 
 	 */
 	public void pause(String message) throws Exception{
@@ -296,7 +296,7 @@ abstract class TBScheduleManager implements IStrategyTask {
 			this.isPauseSchedule = true;
 			this.pauseMessage = message;
 			if (log.isDebugEnabled()) {
-				log.debug("ÔİÍ£µ÷¶È £º" + this.currenScheduleServer.getUuid()+":" + this.statisticsInfo.getDealDescription());
+				log.debug("æš‚åœè°ƒåº¦ ï¼š" + this.currenScheduleServer.getUuid()+":" + this.statisticsInfo.getDealDescription());
 			}
 			if (this.processor != null) {
 				this.processor.stopSchedule();
@@ -305,13 +305,13 @@ abstract class TBScheduleManager implements IStrategyTask {
 		}
 	}
 	/**
-	 * ´¦ÔÚÁË¿ÉÖ´ĞĞµÄÊ±¼äÇø¼ä£¬»Ö¸´ÔËĞĞ
+	 * å¤„åœ¨äº†å¯æ‰§è¡Œçš„æ—¶é—´åŒºé—´ï¼Œæ¢å¤è¿è¡Œ
 	 * @throws Exception 
 	 */
 	public void resume(String message) throws Exception{
 		if (this.isPauseSchedule == true) {
 			if(log.isDebugEnabled()){
-				log.debug("»Ö¸´µ÷¶È:" + this.currenScheduleServer.getUuid());
+				log.debug("æ¢å¤è°ƒåº¦:" + this.currenScheduleServer.getUuid());
 			}
 			this.isPauseSchedule = false;
 			this.pauseMessage = message;
@@ -331,14 +331,14 @@ abstract class TBScheduleManager implements IStrategyTask {
 		}
 	}	
 	/**
-	 * µ±·şÎñÆ÷Í£Ö¹µÄÊ±ºò£¬µ÷ÓÃ´Ë·½·¨Çå³ıËùÓĞÎ´´¦ÀíÈÎÎñ£¬Çå³ı·şÎñÆ÷µÄ×¢²áĞÅÏ¢¡£
-	 * Ò²¿ÉÄÜÊÇ¿ØÖÆÖĞĞÄ·¢ÆğµÄÖÕÖ¹Ö¸Áî¡£
-	 * ĞèÒª×¢ÒâµÄÊÇ£¬Õâ¸ö·½·¨±ØĞëÔÚµ±Ç°ÈÎÎñ´¦ÀíÍê±Ïºó²ÅÄÜÖ´ĞĞ
+	 * å½“æœåŠ¡å™¨åœæ­¢çš„æ—¶å€™ï¼Œè°ƒç”¨æ­¤æ–¹æ³•æ¸…é™¤æ‰€æœ‰æœªå¤„ç†ä»»åŠ¡ï¼Œæ¸…é™¤æœåŠ¡å™¨çš„æ³¨å†Œä¿¡æ¯ã€‚
+	 * ä¹Ÿå¯èƒ½æ˜¯æ§åˆ¶ä¸­å¿ƒå‘èµ·çš„ç»ˆæ­¢æŒ‡ä»¤ã€‚
+	 * éœ€è¦æ³¨æ„çš„æ˜¯ï¼Œè¿™ä¸ªæ–¹æ³•å¿…é¡»åœ¨å½“å‰ä»»åŠ¡å¤„ç†å®Œæ¯•åæ‰èƒ½æ‰§è¡Œ
 	 * @throws Exception 
 	 */
 	public void stop(String strategyName) throws Exception{
 		if(log.isInfoEnabled()){
-			log.info("Í£Ö¹·şÎñÆ÷ £º" + this.currenScheduleServer.getUuid());
+			log.info("åœæ­¢æœåŠ¡å™¨ ï¼š" + this.currenScheduleServer.getUuid());
 		}
 		this.isPauseSchedule = false;
 		if (this.processor != null) {
@@ -349,7 +349,7 @@ abstract class TBScheduleManager implements IStrategyTask {
 	}
 	
 	/**
-	 * Ö»Ó¦¸ÃÔÚProcessorÖĞµ÷ÓÃ
+	 * åªåº”è¯¥åœ¨Processorä¸­è°ƒç”¨
 	 * @throws Exception
 	 */
 	protected void unRegisterScheduleServer() throws Exception{
@@ -359,16 +359,16 @@ abstract class TBScheduleManager implements IStrategyTask {
 				this.processor = null;
 			}
 			if (this.isPauseSchedule == true) {
-				// ÊÇÔİÍ£µ÷¶È£¬²»×¢ÏúManager×Ô¼º
+				// æ˜¯æš‚åœè°ƒåº¦ï¼Œä¸æ³¨é”€Managerè‡ªå·±
 				return;
 			}
 			if (log.isDebugEnabled()) {
-				log.debug("×¢Ïú·şÎñÆ÷ £º" + this.currenScheduleServer.getUuid());
+				log.debug("æ³¨é”€æœåŠ¡å™¨ ï¼š" + this.currenScheduleServer.getUuid());
 			}
 			this.isStopSchedule = true;
-			// È¡ÏûĞÄÌøTIMER
+			// å–æ¶ˆå¿ƒè·³TIMER
 			this.heartBeatTimer.cancel();
-			// ´ÓÅäÖÃÖĞĞÄ×¢Ïú×Ô¼º
+			// ä»é…ç½®ä¸­å¿ƒæ³¨é”€è‡ªå·±
 			this.scheduleCenter.unRegisterScheduleServer(
 					this.currenScheduleServer.getTaskType(),
 					this.currenScheduleServer.getUuid());
@@ -385,7 +385,7 @@ abstract class TBScheduleManager implements IStrategyTask {
 		return statisticsInfo;
 	}
 	/**
-	 * ´òÓ¡¸ø¶¨ÈÎÎñÀàĞÍµÄÈÎÎñ·ÖÅäÇé¿ö
+	 * æ‰“å°ç»™å®šä»»åŠ¡ç±»å‹çš„ä»»åŠ¡åˆ†é…æƒ…å†µ
 	 * @param taskType
 	 */
 	public void printScheduleServerInfo(String taskType){
@@ -436,15 +436,15 @@ class PauseOrResumeScheduleTask extends java.util.TimerTask {
 	public void run() {
 		try {
 			Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
-			this.cancel();//È¡Ïûµ÷¶ÈÈÎÎñ
+			this.cancel();//å–æ¶ˆè°ƒåº¦ä»»åŠ¡
 			Date current = new Date(System.currentTimeMillis());
 			CronExpression cexp = new CronExpression(this.cronTabExpress);
 			Date nextTime = cexp.getNextValidTimeAfter(current);
 			if(this.type == TYPE_PAUSE){
-				manager.pause("µ½´ïÖÕÖ¹Ê±¼ä,pauseµ÷¶È");
+				manager.pause("åˆ°è¾¾ç»ˆæ­¢æ—¶é—´,pauseè°ƒåº¦");
 				this.manager.getScheduleServer().setNextRunEndTime(ScheduleUtil.transferDataToString(nextTime));
 			}else{
-				manager.resume("µ½´ï¿ªÊ¼Ê±¼ä,resumeµ÷¶È");
+				manager.resume("åˆ°è¾¾å¼€å§‹æ—¶é—´,resumeè°ƒåº¦");
 				this.manager.getScheduleServer().setNextRunStartTime(ScheduleUtil.transferDataToString(nextTime));
 			}
 			this.timer.schedule(new PauseOrResumeScheduleTask(this.manager,this.timer,this.type,this.cronTabExpress) , nextTime);
@@ -455,12 +455,12 @@ class PauseOrResumeScheduleTask extends java.util.TimerTask {
 }
 
 class StatisticsInfo{
-	private AtomicLong fetchDataNum = new AtomicLong(0);//¶ÁÈ¡´ÎÊı
-	private AtomicLong fetchDataCount = new AtomicLong(0);//¶ÁÈ¡µÄÊı¾İÁ¿
-	private AtomicLong dealDataSucess = new AtomicLong(0);//´¦Àí³É¹¦µÄÊı¾İÁ¿
-	private AtomicLong dealDataFail = new AtomicLong(0);//´¦ÀíÊ§°ÜµÄÊı¾İÁ¿
-	private AtomicLong dealSpendTime = new AtomicLong(0);//´¦Àí×ÜºÄÊ±,Ã»ÓĞ×öÍ¬²½£¬¿ÉÄÜ´æÔÚÒ»¶¨µÄÎó²î
-	private AtomicLong otherCompareCount = new AtomicLong(0);//ÌØÊâ±È½ÏµÄ´ÎÊı
+	private AtomicLong fetchDataNum = new AtomicLong(0);//è¯»å–æ¬¡æ•°
+	private AtomicLong fetchDataCount = new AtomicLong(0);//è¯»å–çš„æ•°æ®é‡
+	private AtomicLong dealDataSucess = new AtomicLong(0);//å¤„ç†æˆåŠŸçš„æ•°æ®é‡
+	private AtomicLong dealDataFail = new AtomicLong(0);//å¤„ç†å¤±è´¥çš„æ•°æ®é‡
+	private AtomicLong dealSpendTime = new AtomicLong(0);//å¤„ç†æ€»è€—æ—¶,æ²¡æœ‰åšåŒæ­¥ï¼Œå¯èƒ½å­˜åœ¨ä¸€å®šçš„è¯¯å·®
+	private AtomicLong otherCompareCount = new AtomicLong(0);//ç‰¹æ®Šæ¯”è¾ƒçš„æ¬¡æ•°
 	
 	public void addFetchDataNum(long value){
 		this.fetchDataNum.addAndGet(value);

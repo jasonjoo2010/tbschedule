@@ -37,13 +37,13 @@ public class ConsoleManager {
 		scheduleManagerFactory.start = false;
 		
 		if(file.exists() == true){
-			//Console²»Æô¶¯µ÷¶ÈÄÜÁ¦
+			//Consoleä¸å¯åŠ¨è°ƒåº¦èƒ½åŠ›
 			Properties p = new Properties();
 			FileReader reader = new FileReader(file);
 			p.load(reader);
 			reader.close();
 			scheduleManagerFactory.init(p);
-			log.info("¼ÓÔØScheduleÅäÖÃÎÄ¼ş£º" +configFile );
+			log.info("åŠ è½½Scheduleé…ç½®æ–‡ä»¶ï¼š" +configFile );
 			return true;
 		}else{
 			return false;
@@ -86,7 +86,7 @@ public class ConsoleManager {
 			p.store(writer, "");
 			writer.close();
 		} catch (Exception ex) {
-			throw new Exception("²»ÄÜĞ´ÈëÅäÖÃĞÅÏ¢µ½ÎÄ¼ş£º" + configFile,ex);
+			throw new Exception("ä¸èƒ½å†™å…¥é…ç½®ä¿¡æ¯åˆ°æ–‡ä»¶ï¼š" + configFile,ex);
 		}
 			if(scheduleManagerFactory == null){
 				initial();

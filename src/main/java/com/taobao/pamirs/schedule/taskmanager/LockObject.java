@@ -10,7 +10,7 @@ class LockObject {
 	public void waitCurrentThread() throws Exception {
 		synchronized (m_waitOnObject) {
 			// System.out.println(Thread.currentThread().getName() + ":" +
-			// "ĞİÃßµ±Ç°Ïß³Ì");
+			// "ä¼‘çœ å½“å‰çº¿ç¨‹");
 			this.m_waitOnObject.wait();
 		}
 	}
@@ -18,7 +18,7 @@ class LockObject {
 	public void notifyOtherThread() throws Exception {
 		synchronized (m_waitOnObject) {
 			// System.out.println(Thread.currentThread().getName() + ":" +
-			// "»½ĞÑËùÓĞµÈ´ıÏß³Ì");
+			// "å”¤é†’æ‰€æœ‰ç­‰å¾…çº¿ç¨‹");
 			this.m_waitOnObject.notifyAll();
 		}
 	}
@@ -36,7 +36,7 @@ class LockObject {
 	}
 
 	/**
-	 * ½µµÍÏß³ÌÊıÁ¿£¬Èç¹ûÊÇ×îºóÒ»¸öÏß³Ì£¬Ôò²»ÄÜĞİÃß
+	 * é™ä½çº¿ç¨‹æ•°é‡ï¼Œå¦‚æœæ˜¯æœ€åä¸€ä¸ªçº¿ç¨‹ï¼Œåˆ™ä¸èƒ½ä¼‘çœ 
 	 * 
 	 * @return boolean
 	 */

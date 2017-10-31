@@ -6,7 +6,7 @@ import java.util.List;
 import org.apache.commons.lang.builder.ToStringBuilder;
 
 /**
- * µ÷¶ÈÈÎÎñÀàĞÍ
+ * è°ƒåº¦ä»»åŠ¡ç±»å‹
  * @author xuannan
  *
  */
@@ -17,70 +17,70 @@ public class ScheduleTaskType implements java.io.Serializable {
 	 */
 	private static final long serialVersionUID = 1L;
 	/**
-	 * ÈÎÎñÀàĞÍ
+	 * ä»»åŠ¡ç±»å‹
 	 */
 	private String baseTaskType;
     /**
-     * ÏòÅäÖÃÖĞĞÄ¸üĞÂĞÄÌøĞÅÏ¢µÄÆµÂÊ
+     * å‘é…ç½®ä¸­å¿ƒæ›´æ–°å¿ƒè·³ä¿¡æ¯çš„é¢‘ç‡
      */
-    private long heartBeatRate = 5*1000;//1·ÖÖÓ
+    private long heartBeatRate = 5*1000;//1åˆ†é’Ÿ
     
     /**
-     * ÅĞ¶ÏÒ»¸ö·şÎñÆ÷ËÀÍöµÄÖÜÆÚ¡£ÎªÁË°²È«£¬ÖÁÉÙÊÇĞÄÌøÖÜÆÚµÄÁ½±¶ÒÔÉÏ
+     * åˆ¤æ–­ä¸€ä¸ªæœåŠ¡å™¨æ­»äº¡çš„å‘¨æœŸã€‚ä¸ºäº†å®‰å…¨ï¼Œè‡³å°‘æ˜¯å¿ƒè·³å‘¨æœŸçš„ä¸¤å€ä»¥ä¸Š
      */
-    private long judgeDeadInterval = 1*60*1000;//2·ÖÖÓ
+    private long judgeDeadInterval = 1*60*1000;//2åˆ†é’Ÿ
     
     /**
-     * µ±Ã»ÓĞÊı¾İµÄÊ±ºò£¬ĞİÃßµÄÊ±¼ä
+     * å½“æ²¡æœ‰æ•°æ®çš„æ—¶å€™ï¼Œä¼‘çœ çš„æ—¶é—´
      * 
      */
     private int sleepTimeNoData = 500;
     
     /**
-     * ÔÚÃ¿´ÎÊı¾İ´¦ÀíÍíºóĞİÃßµÄÊ±¼ä
+     * åœ¨æ¯æ¬¡æ•°æ®å¤„ç†æ™šåä¼‘çœ çš„æ—¶é—´
      */
     private int sleepTimeInterval = 0;
     
     /**
-     * Ã¿´Î»ñÈ¡Êı¾İµÄÊıÁ¿
+     * æ¯æ¬¡è·å–æ•°æ®çš„æ•°é‡
      */
     private int fetchDataNumber = 500;
     
     /**
-     * ÔÚÅú´¦ÀíµÄÊ±ºò£¬Ã¿´Î´¦ÀíµÄÊı¾İÁ¿
+     * åœ¨æ‰¹å¤„ç†çš„æ—¶å€™ï¼Œæ¯æ¬¡å¤„ç†çš„æ•°æ®é‡
      */
     private int executeNumber =1;
     
     private int threadNumber = 5;
     
     /**
-     * µ÷¶ÈÆ÷ÀàĞÍ
+     * è°ƒåº¦å™¨ç±»å‹
      */
     private String processorType="SLEEP" ;
     /**
-     * ÔÊĞíÖ´ĞĞµÄ¿ªÊ¼Ê±¼ä
+     * å…è®¸æ‰§è¡Œçš„å¼€å§‹æ—¶é—´
      */
     private String permitRunStartTime;
     /**
-     * ÔÊĞíÖ´ĞĞµÄ¿ªÊ¼Ê±¼ä
+     * å…è®¸æ‰§è¡Œçš„å¼€å§‹æ—¶é—´
      */
     private String permitRunEndTime;
     
     /**
-     * Çå³ı¹ıÆÚ»·¾³ĞÅÏ¢µÄÊ±¼ä¼ä¸ô,ÒÔÌìÎªµ¥Î»
+     * æ¸…é™¤è¿‡æœŸç¯å¢ƒä¿¡æ¯çš„æ—¶é—´é—´éš”,ä»¥å¤©ä¸ºå•ä½
      */
     private double expireOwnSignInterval = 1;
     
     /**
-     * ´¦ÀíÈÎÎñµÄBeanName
+     * å¤„ç†ä»»åŠ¡çš„BeanName
      */
     private String dealBeanName;
     /**
-     * ÈÎÎñbeanµÄ²ÎÊı£¬ÓÉÓÃ»§×Ô¶¨Òå¸ñÊ½µÄ×Ö·û´®
+     * ä»»åŠ¡beançš„å‚æ•°ï¼Œç”±ç”¨æˆ·è‡ªå®šä¹‰æ ¼å¼çš„å­—ç¬¦ä¸²
      */
     private String taskParameter;
     
-    //ÈÎÎñÀàĞÍ£º¾²Ì¬static,¶¯Ì¬dynamic
+    //ä»»åŠ¡ç±»å‹ï¼šé™æ€static,åŠ¨æ€dynamic
     private String taskKind = TASKKIND_STATIC;
     
     public static String TASKKIND_STATIC="static";
@@ -88,21 +88,21 @@ public class ScheduleTaskType implements java.io.Serializable {
  
     
     /**
-     * ÈÎÎñÏîÊı×é
+     * ä»»åŠ¡é¡¹æ•°ç»„
      */
     private String[] taskItems;
     
     /**
-     * Ã¿¸öÏß³Ì×éÄÜ´¦ÀíµÄ×î´óÈÎÎñÏîÄ¿ÊéÄ¿
+     * æ¯ä¸ªçº¿ç¨‹ç»„èƒ½å¤„ç†çš„æœ€å¤§ä»»åŠ¡é¡¹ç›®ä¹¦ç›®
      */
     private int maxTaskItemsOfOneThreadGroup = 0;
     /**
-     * °æ±¾ºÅ
+     * ç‰ˆæœ¬å·
      */
     private long version;
     
     /**
-     * ·şÎñ×´Ì¬: pause,resume
+     * æœåŠ¡çŠ¶æ€: pause,resume
      */
     private String sts = STS_RESUME;
 	
@@ -124,7 +124,7 @@ public class ScheduleTaskType implements java.io.Serializable {
     					break;
     				}
     			}
-    			index = index + 1; //Ìø¹ı¶ººÅ
+    			index = index + 1; //è·³è¿‡é€—å·
     			start = index;
     		}else if(str.charAt(index)==','){
     			list.add(str.substring(start,index).trim());
@@ -135,7 +135,7 @@ public class ScheduleTaskType implements java.io.Serializable {
     					break;
     				}
     			}
-    			index = index + 1; //Ìø¹ı¶ººÅ
+    			index = index + 1; //è·³è¿‡é€—å·
     			start = index;
     		}else{
     			index = index + 1;

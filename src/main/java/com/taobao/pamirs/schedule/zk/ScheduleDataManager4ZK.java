@@ -65,7 +65,7 @@ public class ScheduleDataManager4ZK implements IScheduleDataManager {
         zkBaseTime = tempStat.getCtime();
         ZKTools.deleteTree(getZooKeeper(), tempPath);
         if(Math.abs(this.zkBaseTime - this.loclaBaseTime) > 5000){
-        	log.error("Çë×¢Òâ£¬Zookeeper·şÎñÆ÷Ê±¼äÓë±¾µØÊ±¼äÏà²î £º " + Math.abs(this.zkBaseTime - this.loclaBaseTime) +" ms");
+        	log.error("è¯·æ³¨æ„ï¼ŒZookeeperæœåŠ¡å™¨æ—¶é—´ä¸æœ¬åœ°æ—¶é—´ç›¸å·® ï¼š " + Math.abs(this.zkBaseTime - this.loclaBaseTime) +" ms");
         }	
 	}	
 	
@@ -75,21 +75,21 @@ public class ScheduleDataManager4ZK implements IScheduleDataManager {
 
 	public void createBaseTaskType(ScheduleTaskType baseTaskType) throws Exception {
 		if(baseTaskType.getBaseTaskType().indexOf("$") > 0){
-			throw new Exception("µ÷¶ÈÈÎÎñ" + baseTaskType.getBaseTaskType() +"Ãû³Æ²»ÄÜ°üÀ¨ÌØÊâ×Ö·û $");
+			throw new Exception("è°ƒåº¦ä»»åŠ¡" + baseTaskType.getBaseTaskType() +"åç§°ä¸èƒ½åŒ…æ‹¬ç‰¹æ®Šå­—ç¬¦ $");
 		}
 		String zkPath =	this.PATH_BaseTaskType + "/"+ baseTaskType.getBaseTaskType();
 		String valueString = this.gson.toJson(baseTaskType);
 		if ( this.getZooKeeper().exists(zkPath, false) == null) {
 			this.getZooKeeper().create(zkPath, valueString.getBytes(), this.zkManager.getAcl(),CreateMode.PERSISTENT);
 		} else {
-			throw new Exception("µ÷¶ÈÈÎÎñ" + baseTaskType.getBaseTaskType() + "ÒÑ¾­´æÔÚ,Èç¹ûÈ·ÈÏĞèÒªÖØ½¨£¬ÇëÏÈµ÷ÓÃdeleteTaskType(String baseTaskType)É¾³ı");
+			throw new Exception("è°ƒåº¦ä»»åŠ¡" + baseTaskType.getBaseTaskType() + "å·²ç»å­˜åœ¨,å¦‚æœç¡®è®¤éœ€è¦é‡å»ºï¼Œè¯·å…ˆè°ƒç”¨deleteTaskType(String baseTaskType)åˆ é™¤");
 		}
 	}
 
 	public void updateBaseTaskType(ScheduleTaskType baseTaskType)
 			throws Exception {
 		if(baseTaskType.getBaseTaskType().indexOf("$") > 0){
-			throw new Exception("µ÷¶ÈÈÎÎñ" + baseTaskType.getBaseTaskType() +"Ãû³Æ²»ÄÜ°üÀ¨ÌØÊâ×Ö·û $");
+			throw new Exception("è°ƒåº¦ä»»åŠ¡" + baseTaskType.getBaseTaskType() +"åç§°ä¸èƒ½åŒ…æ‹¬ç‰¹æ®Šå­—ç¬¦ $");
 		}
 		String zkPath =	this.PATH_BaseTaskType + "/"+ baseTaskType.getBaseTaskType();
 		String valueString = this.gson.toJson(baseTaskType);
@@ -104,7 +104,7 @@ public class ScheduleDataManager4ZK implements IScheduleDataManager {
 
 	public void initialRunningInfo4Dynamic(String baseTaskType, String ownSign)throws Exception {
 		 String taskType = ScheduleUtil.getTaskTypeByBaseAndOwnSign(baseTaskType, ownSign);
-		 //Çå³ıËùÓĞµÄÀÏĞÅÏ¢£¬Ö»ÓĞleaderÄÜÖ´ĞĞ´Ë²Ù×÷
+		 //æ¸…é™¤æ‰€æœ‰çš„è€ä¿¡æ¯ï¼Œåªæœ‰leaderèƒ½æ‰§è¡Œæ­¤æ“ä½œ
 		 String zkPath = this.PATH_BaseTaskType+"/"+ baseTaskType +"/" + taskType;
 		 if(this.getZooKeeper().exists(zkPath, false) == null){
 			 this.getZooKeeper().create(zkPath,null, this.zkManager.getAcl(),CreateMode.PERSISTENT);
@@ -114,24 +114,24 @@ public class ScheduleDataManager4ZK implements IScheduleDataManager {
 			throws Exception {
 		  
 		 String taskType = ScheduleUtil.getTaskTypeByBaseAndOwnSign(baseTaskType, ownSign);
-		 //Çå³ıËùÓĞµÄÀÏĞÅÏ¢£¬Ö»ÓĞleaderÄÜÖ´ĞĞ´Ë²Ù×÷
+		 //æ¸…é™¤æ‰€æœ‰çš„è€ä¿¡æ¯ï¼Œåªæœ‰leaderèƒ½æ‰§è¡Œæ­¤æ“ä½œ
 		 String zkPath = this.PATH_BaseTaskType+"/"+ baseTaskType +"/" + taskType+"/" + this.PATH_TaskItem;
 		 try {
 			 ZKTools.deleteTree(this.getZooKeeper(),zkPath);
 		 } catch (Exception e) {
-				//ĞèÒª´¦Àízookeeper session¹ıÆÚÒì³£
+				//éœ€è¦å¤„ç†zookeeper sessionè¿‡æœŸå¼‚å¸¸
 				if (e instanceof KeeperException
 						&& ((KeeperException) e).code().intValue() == KeeperException.Code.SESSIONEXPIRED.intValue()) {
-					log.warn("delete : zookeeper sessionÒÑ¾­¹ıÆÚ£¬ĞèÒªÖØĞÂÁ¬½Ózookeeper");
+					log.warn("delete : zookeeper sessionå·²ç»è¿‡æœŸï¼Œéœ€è¦é‡æ–°è¿æ¥zookeeper");
 					zkManager.reConnection();
 					ZKTools.deleteTree(this.getZooKeeper(),zkPath);
 				}
 		 }
-		 //´´½¨Ä¿Â¼
+		 //åˆ›å»ºç›®å½•
 		 this.getZooKeeper().create(zkPath,null, this.zkManager.getAcl(),CreateMode.PERSISTENT);
-		 //´´½¨¾²Ì¬ÈÎÎñ
+		 //åˆ›å»ºé™æ€ä»»åŠ¡
 		 this.createScheduleTaskItem(baseTaskType, ownSign,this.loadTaskTypeBaseInfo(baseTaskType).getTaskItems());
-		 //±ê¼ÇĞÅÏ¢³õÊ¼»¯³É¹¦
+		 //æ ‡è®°ä¿¡æ¯åˆå§‹åŒ–æˆåŠŸ
 		 setInitialRunningInfoSucuss(baseTaskType,taskType,uuid);
 	}
 	
@@ -182,7 +182,7 @@ public class ScheduleDataManager4ZK implements IScheduleDataManager {
     	return stat.getVersion();
     }
 	/**
-	 * ¸ù¾İ»ù´¡ÅäÖÃÀïÃæµÄÈÎÎñÏîÀ´´´½¨¸÷¸öÓòÀïÃæµÄÈÎÎñÏî
+	 * æ ¹æ®åŸºç¡€é…ç½®é‡Œé¢çš„ä»»åŠ¡é¡¹æ¥åˆ›å»ºå„ä¸ªåŸŸé‡Œé¢çš„ä»»åŠ¡é¡¹
 	 * @param baseTaskType
 	 * @param ownSign
 	 * @param baseTaskItems
@@ -209,7 +209,7 @@ public class ScheduleDataManager4ZK implements IScheduleDataManager {
 		createScheduleTaskItem(taskItems);
 	}	
 	/**
-	 * ´´½¨ÈÎÎñÏî£¬×¢ÒâÆäÖĞµÄ CurrentSeverºÍRequestServer²»»áÆğ×÷ÓÃ
+	 * åˆ›å»ºä»»åŠ¡é¡¹ï¼Œæ³¨æ„å…¶ä¸­çš„ CurrentSeverå’ŒRequestServerä¸ä¼šèµ·ä½œç”¨
 	 * @param taskItems
 	 * @throws Exception
 	 */
@@ -244,7 +244,7 @@ public class ScheduleDataManager4ZK implements IScheduleDataManager {
 	}
 
 	/**
-	 * É¾³ıÈÎÎñÏî
+	 * åˆ é™¤ä»»åŠ¡é¡¹
 	 * @param taskType
 	 * @param taskItem
 	 * @throws Exception 
@@ -264,7 +264,7 @@ public class ScheduleDataManager4ZK implements IScheduleDataManager {
 		}
 		List<String> taskItems = this.getZooKeeper().getChildren(zkPath, false);
 //		 Collections.sort(taskItems);
-//		20150323 ÓĞĞ©ÈÎÎñ·ÖÆ¬£¬ÒµÎñ·½ÆäÊµÊÇÓÃÊı×ÖµÄ×Ö·û´®ÅÅĞòµÄ¡£ÓÅÏÈÒÔÊı×Ö½øĞĞÅÅĞò£¬·ñÔòÒÔ×Ö·û´®ÅÅĞò
+//		20150323 æœ‰äº›ä»»åŠ¡åˆ†ç‰‡ï¼Œä¸šåŠ¡æ–¹å…¶å®æ˜¯ç”¨æ•°å­—çš„å­—ç¬¦ä¸²æ’åºçš„ã€‚ä¼˜å…ˆä»¥æ•°å­—è¿›è¡Œæ’åºï¼Œå¦åˆ™ä»¥å­—ç¬¦ä¸²æ’åº
 		Collections.sort(taskItems,new Comparator<String>(){
 			public int compare(String u1, String u2) {
 				if(StringUtils.isNumeric(u1) && StringUtils.isNumeric(u2)){
@@ -337,7 +337,7 @@ public class ScheduleDataManager4ZK implements IScheduleDataManager {
 
 	@Override
 	public void clearTaskType(String baseTaskType) throws Exception {
-		//Çå³ıËùÓĞµÄRuntime TaskType		
+		//æ¸…é™¤æ‰€æœ‰çš„Runtime TaskType		
 		String zkPath =this.PATH_BaseTaskType+"/" + baseTaskType; 
 		List<String> list = this.getZooKeeper().getChildren(zkPath,false);
 		for (String name : list) {
@@ -408,7 +408,7 @@ public class ScheduleDataManager4ZK implements IScheduleDataManager {
 			}
 		}
 		Collections.sort(result,new ScheduleServerComparator(orderStr));
-		//ÅÅĞò
+		//æ’åº
 		return result;
 	}
 
@@ -416,7 +416,7 @@ public class ScheduleDataManager4ZK implements IScheduleDataManager {
 	public List<ScheduleServer> selectHistoryScheduleServer(
 			String baseTaskType, String ownSign, String ip, String orderStr)
 			throws Exception {
-		throw new Exception("Ã»ÓĞÊµÏÖµÄ·½·¨");
+		throw new Exception("æ²¡æœ‰å®ç°çš„æ–¹æ³•");
 	}
 
 	@Override
@@ -427,7 +427,7 @@ public class ScheduleDataManager4ZK implements IScheduleDataManager {
 		 
 		 List<String> taskItems = this.getZooKeeper().getChildren(zkPath, false);
 //		 Collections.sort(taskItems);
-//		 ÓĞĞ©ÈÎÎñ·ÖÆ¬£¬ÒµÎñ·½ÆäÊµÊÇÓÃÊı×ÖµÄ×Ö·û´®ÅÅĞòµÄ¡£ÓÅÏÈÒÔ×Ö·û´®·½Ê½½øĞĞÅÅĞò
+//		 æœ‰äº›ä»»åŠ¡åˆ†ç‰‡ï¼Œä¸šåŠ¡æ–¹å…¶å®æ˜¯ç”¨æ•°å­—çš„å­—ç¬¦ä¸²æ’åºçš„ã€‚ä¼˜å…ˆä»¥å­—ç¬¦ä¸²æ–¹å¼è¿›è¡Œæ’åº
 		Collections.sort(taskItems,new Comparator<String>(){
 			public int compare(String u1, String u2) {
 				if(StringUtils.isNumeric(u1) && StringUtils.isNumeric(u2)){
@@ -485,7 +485,7 @@ public class ScheduleDataManager4ZK implements IScheduleDataManager {
 				isModify = true;
 			}
 		 }
-		 if(isModify == true){ //ÉèÖÃĞèÒªËùÓĞµÄ·şÎñÆ÷ÖØĞÂ×°ÔØÈÎÎñ
+		 if(isModify == true){ //è®¾ç½®éœ€è¦æ‰€æœ‰çš„æœåŠ¡å™¨é‡æ–°è£…è½½ä»»åŠ¡
 			 this.updateReloadTaskItemFlag(taskType);
 		 }
 	}
@@ -527,7 +527,7 @@ public class ScheduleDataManager4ZK implements IScheduleDataManager {
 					result++;
 				}
 			} catch (Exception e) {
-				// µ±ÓĞ¶àÌ¨·şÎñÆ÷Ê±£¬´æÔÚ²¢·¢ÇåÀíµÄ¿ÉÄÜ£¬ºöÂÔÒì³£
+				// å½“æœ‰å¤šå°æœåŠ¡å™¨æ—¶ï¼Œå­˜åœ¨å¹¶å‘æ¸…ç†çš„å¯èƒ½ï¼Œå¿½ç•¥å¼‚å¸¸
 				result++;
 			}
 		}
@@ -662,22 +662,22 @@ public class ScheduleDataManager4ZK implements IScheduleDataManager {
 			List<String> taskServerList) throws Exception {
 		 if(this.isLeader(currentUuid,taskServerList)==false){
 			 if(log.isDebugEnabled()){
-			   log.debug(currentUuid +":²»ÊÇ¸ºÔğÈÎÎñ·ÖÅäµÄLeader,Ö±½Ó·µ»Ø");
+			   log.debug(currentUuid +":ä¸æ˜¯è´Ÿè´£ä»»åŠ¡åˆ†é…çš„Leader,ç›´æ¥è¿”å›");
 			 }
 			 return;
 		 }
 		 if(log.isDebugEnabled()){
-			   log.debug(currentUuid +":¿ªÊ¼ÖØĞÂ·ÖÅäÈÎÎñ......");
+			   log.debug(currentUuid +":å¼€å§‹é‡æ–°åˆ†é…ä»»åŠ¡......");
 		 }		
 		 if(taskServerList.size()<=0){
-			 //ÔÚ·şÎñÆ÷¶¯Ì¬µ÷ÕûµÄÊ±ºò£¬¿ÉÄÜ³öÏÖ·şÎñÆ÷ÁĞ±íÎª¿ÕµÄÇå¿Õ
+			 //åœ¨æœåŠ¡å™¨åŠ¨æ€è°ƒæ•´çš„æ—¶å€™ï¼Œå¯èƒ½å‡ºç°æœåŠ¡å™¨åˆ—è¡¨ä¸ºç©ºçš„æ¸…ç©º
 			 return;
 		 }
 		 String baseTaskType = ScheduleUtil.splitBaseTaskTypeFromTaskType(taskType);
 		 String zkPath = this.PATH_BaseTaskType + "/" + baseTaskType + "/" + taskType + "/" + this.PATH_TaskItem;
 		 List<String> children = this.getZooKeeper().getChildren(zkPath, false);
 //		 Collections.sort(children);
-//	     20150323 ÓĞĞ©ÈÎÎñ·ÖÆ¬£¬ÒµÎñ·½ÆäÊµÊÇÓÃÊı×ÖµÄ×Ö·û´®ÅÅĞòµÄ¡£ÓÅÏÈÒÔÊı×Ö½øĞĞÅÅĞò£¬·ñÔòÒÔ×Ö·û´®ÅÅĞò
+//	     20150323 æœ‰äº›ä»»åŠ¡åˆ†ç‰‡ï¼Œä¸šåŠ¡æ–¹å…¶å®æ˜¯ç”¨æ•°å­—çš„å­—ç¬¦ä¸²æ’åºçš„ã€‚ä¼˜å…ˆä»¥æ•°å­—è¿›è¡Œæ’åºï¼Œå¦åˆ™ä»¥å­—ç¬¦ä¸²æ’åº
 		 Collections.sort(children,new Comparator<String>(){
 			 public int compare(String u1, String u2) {
 					if(StringUtils.isNumeric(u1) && StringUtils.isNumeric(u2)){
@@ -699,7 +699,7 @@ public class ScheduleDataManager4ZK implements IScheduleDataManager {
 		 int[] taskNums = ScheduleUtil.assignTaskNumber(taskServerList.size(), children.size(), maxNumOfOneServer);
 		 int point =0;
 		 int count = 0;
-		 String NO_SERVER_DEAL = "Ã»ÓĞ·ÖÅäµ½·şÎñÆ÷"; 
+		 String NO_SERVER_DEAL = "æ²¡æœ‰åˆ†é…åˆ°æœåŠ¡å™¨"; 
 		 for(int i=0;i <children.size();i++){
 			String name = children.get(i);
 			if(point <taskServerList.size() && i >= count + taskNums[point]){
@@ -717,15 +717,15 @@ public class ScheduleDataManager4ZK implements IScheduleDataManager {
 				this.getZooKeeper().setData(zkPath + "/" + name + "/cur_server",serverName.getBytes(),-1);
 				this.getZooKeeper().setData(zkPath + "/" + name + "/req_server",null,-1);
 			}else if(new String(curServerValue).equals(serverName)==true && reqServerValue == null ){
-				//²»ĞèÒª×öÈÎºÎÊÂÇé
+				//ä¸éœ€è¦åšä»»ä½•äº‹æƒ…
 				unModifyCount = unModifyCount + 1;
 			}else{
 				this.getZooKeeper().setData(zkPath + "/" + name + "/req_server",serverName.getBytes(),-1);
 			}
 		 }	
 		 
-		 if(unModifyCount < children.size()){ //ÉèÖÃĞèÒªËùÓĞµÄ·şÎñÆ÷ÖØĞÂ×°ÔØÈÎÎñ
-			 log.info("ÉèÖÃĞèÒªËùÓĞµÄ·şÎñÆ÷ÖØĞÂ×°ÔØÈÎÎñ:updateReloadTaskItemFlag......"+taskType+ "  ,currentUuid "+currentUuid );
+		 if(unModifyCount < children.size()){ //è®¾ç½®éœ€è¦æ‰€æœ‰çš„æœåŠ¡å™¨é‡æ–°è£…è½½ä»»åŠ¡
+			 log.info("è®¾ç½®éœ€è¦æ‰€æœ‰çš„æœåŠ¡å™¨é‡æ–°è£…è½½ä»»åŠ¡:updateReloadTaskItemFlag......"+taskType+ "  ,currentUuid "+currentUuid );
 
 			 this.updateReloadTaskItemFlag(taskType);
 		 }
@@ -741,15 +741,15 @@ public class ScheduleDataManager4ZK implements IScheduleDataManager {
 			List<String> serverList) throws Exception {
 		 if(this.isLeader(currentUuid,serverList)==false){
 			 if(log.isDebugEnabled()){
-			   log.debug(currentUuid +":²»ÊÇ¸ºÔğÈÎÎñ·ÖÅäµÄLeader,Ö±½Ó·µ»Ø");
+			   log.debug(currentUuid +":ä¸æ˜¯è´Ÿè´£ä»»åŠ¡åˆ†é…çš„Leader,ç›´æ¥è¿”å›");
 			 }
 			 return;
 		 }
 		 if(log.isDebugEnabled()){
-			   log.debug(currentUuid +":¿ªÊ¼ÖØĞÂ·ÖÅäÈÎÎñ......");
+			   log.debug(currentUuid +":å¼€å§‹é‡æ–°åˆ†é…ä»»åŠ¡......");
 		 }		
 		 if(serverList.size()<=0){
-			 //ÔÚ·şÎñÆ÷¶¯Ì¬µ÷ÕûµÄÊ±ºò£¬¿ÉÄÜ³öÏÖ·şÎñÆ÷ÁĞ±íÎª¿ÕµÄÇå¿Õ
+			 //åœ¨æœåŠ¡å™¨åŠ¨æ€è°ƒæ•´çš„æ—¶å€™ï¼Œå¯èƒ½å‡ºç°æœåŠ¡å™¨åˆ—è¡¨ä¸ºç©ºçš„æ¸…ç©º
 			 return;
 		 }
 		 String baseTaskType = ScheduleUtil.splitBaseTaskTypeFromTaskType(taskType);
@@ -757,7 +757,7 @@ public class ScheduleDataManager4ZK implements IScheduleDataManager {
 		 int point =0;
 		 List<String> children = this.getZooKeeper().getChildren(zkPath, false);
 //		 Collections.sort(children);
-//		 20150323 ÓĞĞ©ÈÎÎñ·ÖÆ¬£¬ÒµÎñ·½ÆäÊµÊÇÓÃÊı×ÖµÄ×Ö·û´®ÅÅĞòµÄ¡£ÓÅÏÈÒÔÊı×Ö½øĞĞÅÅĞò£¬·ñÔòÒÔ×Ö·û´®ÅÅĞò
+//		 20150323 æœ‰äº›ä»»åŠ¡åˆ†ç‰‡ï¼Œä¸šåŠ¡æ–¹å…¶å®æ˜¯ç”¨æ•°å­—çš„å­—ç¬¦ä¸²æ’åºçš„ã€‚ä¼˜å…ˆä»¥æ•°å­—è¿›è¡Œæ’åºï¼Œå¦åˆ™ä»¥å­—ç¬¦ä¸²æ’åº
 		 Collections.sort(children,new Comparator<String>(){
 			 public int compare(String u1, String u2) {
 					if(StringUtils.isNumeric(u1) && StringUtils.isNumeric(u2)){
@@ -783,7 +783,7 @@ public class ScheduleDataManager4ZK implements IScheduleDataManager {
 				this.getZooKeeper().setData(zkPath + "/" + name + "/cur_server",serverList.get(point).getBytes(),-1);
 				this.getZooKeeper().setData(zkPath + "/" + name + "/req_server",null,-1);
 			}else if(new String(curServerValue).equals(serverList.get(point))==true && reqServerValue == null ){
-				//²»ĞèÒª×öÈÎºÎÊÂÇé
+				//ä¸éœ€è¦åšä»»ä½•äº‹æƒ…
 				unModifyCount = unModifyCount + 1;
 			}else{
 				this.getZooKeeper().setData(zkPath + "/" + name + "/req_server",serverList.get(point).getBytes(),-1);
@@ -791,7 +791,7 @@ public class ScheduleDataManager4ZK implements IScheduleDataManager {
 			point = (point  + 1) % serverList.size();
 		 }	
 		 
-		 if(unModifyCount < children.size()){ //ÉèÖÃĞèÒªËùÓĞµÄ·şÎñÆ÷ÖØĞÂ×°ÔØÈÎÎñ
+		 if(unModifyCount < children.size()){ //è®¾ç½®éœ€è¦æ‰€æœ‰çš„æœåŠ¡å™¨é‡æ–°è£…è½½ä»»åŠ¡
 			 this.updateReloadTaskItemFlag(taskType);
 		 }
 		 if(log.isDebugEnabled()){
@@ -804,7 +804,7 @@ public class ScheduleDataManager4ZK implements IScheduleDataManager {
 	}
 	public void registerScheduleServer(ScheduleServer server) throws Exception {
 		if(server.isRegister() == true){
-			throw new Exception(server.getUuid() + " ±»ÖØ¸´×¢²á");
+			throw new Exception(server.getUuid() + " è¢«é‡å¤æ³¨å†Œ");
 		}
 		String zkPath = this.PATH_BaseTaskType + "/" + server.getBaseTaskType() +"/" + server.getTaskType();
 		if (this.getZooKeeper().exists(zkPath, false) == null) {
@@ -815,7 +815,7 @@ public class ScheduleDataManager4ZK implements IScheduleDataManager {
 			this.getZooKeeper().create(zkPath, null, this.zkManager.getAcl(),CreateMode.PERSISTENT);
 		}
 		String realPath = null;
-		//´Ë´¦±ØĞëÔö¼ÓUUID×÷ÎªÎ¨Ò»ĞÔ±£ÕÏ
+		//æ­¤å¤„å¿…é¡»å¢åŠ UUIDä½œä¸ºå”¯ä¸€æ€§ä¿éšœ
 		String zkServerPath = zkPath + "/" + server.getTaskType() + "$"+ server.getIp() + "$"
 				+ (UUID.randomUUID().toString().replaceAll("-", "").toUpperCase())+"$";
 		realPath = this.getZooKeeper().create(zkServerPath, null, this.zkManager.getAcl(),CreateMode.PERSISTENT_SEQUENTIAL);
@@ -834,7 +834,7 @@ public class ScheduleDataManager4ZK implements IScheduleDataManager {
     	String zkPath = this.PATH_BaseTaskType + "/" + server.getBaseTaskType() + "/" + server.getTaskType() 
     	    + "/" + this.PATH_Server +"/" + server.getUuid();
     	if(this.getZooKeeper().exists(zkPath, false)== null){
-    		//Êı¾İ¿ÉÄÜ±»Çå³ı£¬ÏÈÇå³ıÄÚ´æÊı¾İºó£¬ÖØĞÂ×¢²áÊı¾İ
+    		//æ•°æ®å¯èƒ½è¢«æ¸…é™¤ï¼Œå…ˆæ¸…é™¤å†…å­˜æ•°æ®åï¼Œé‡æ–°æ³¨å†Œæ•°æ®
     		server.setRegister(false);
     		return false;
     	}else{
@@ -845,7 +845,7 @@ public class ScheduleDataManager4ZK implements IScheduleDataManager {
     		try{
     			this.getZooKeeper().setData(zkPath,valueString.getBytes(),-1);
     		}catch(Exception e){
-    			//»Ö¸´ÉÏ´ÎµÄĞÄÌøÊ±¼ä
+    			//æ¢å¤ä¸Šæ¬¡çš„å¿ƒè·³æ—¶é—´
     			server.setHeartBeatTime(oldHeartBeatTime);
     			server.setVersion(server.getVersion() - 1);
     			throw e;

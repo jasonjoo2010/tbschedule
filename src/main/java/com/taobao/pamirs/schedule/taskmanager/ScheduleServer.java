@@ -8,55 +8,55 @@ import java.util.UUID;
 import com.taobao.pamirs.schedule.ScheduleUtil;
 
 /**
- * µ÷¶È·şÎñÆ÷ĞÅÏ¢¶¨Òå
+ * è°ƒåº¦æœåŠ¡å™¨ä¿¡æ¯å®šä¹‰
  * @author xuannan
  *
  */
 public class ScheduleServer {
 	/**
-	 * È«¾ÖÎ¨Ò»±àºÅ
+	 * å…¨å±€å”¯ä¸€ç¼–å·
 	 */
 	private String uuid;
 	private long id;
 	/**
-	 * ÈÎÎñÀàĞÍ
+	 * ä»»åŠ¡ç±»å‹
 	 */
 	private String taskType;
 
 	/**
-	 * Ô­Ê¼ÈÎÎñÀàĞÍ
+	 * åŸå§‹ä»»åŠ¡ç±»å‹
 	 */
 	private String baseTaskType;
 
 	private String ownSign;
 	/**
-	 * »úÆ÷IPµØÖ·
+	 * æœºå™¨IPåœ°å€
 	 */
 	private String ip;
 
 	/**
-	 * »úÆ÷Ãû³Æ
+	 * æœºå™¨åç§°
 	 */
 	private String hostName;
 
 	/**
-	 * Êı¾İ´¦ÀíÏß³ÌÊıÁ¿
+	 * æ•°æ®å¤„ç†çº¿ç¨‹æ•°é‡
 	 */
 	private int threadNum;
 	/**
-	 * ·şÎñ¿ªÊ¼Ê±¼ä
+	 * æœåŠ¡å¼€å§‹æ—¶é—´
 	 */
 	private Timestamp registerTime;
 	/**
-	 * ×îºóÒ»´ÎĞÄÌøÍ¨ÖªÊ±¼ä
+	 * æœ€åä¸€æ¬¡å¿ƒè·³é€šçŸ¥æ—¶é—´
 	 */
 	private Timestamp heartBeatTime;
 	/**
-	 * ×îºóÒ»´ÎÈ¡Êı¾İÊ±¼ä
+	 * æœ€åä¸€æ¬¡å–æ•°æ®æ—¶é—´
 	 */
 	private Timestamp lastFetchDataTime;
 	/**
-	 * ´¦ÀíÃèÊöĞÅÏ¢£¬ÀıÈç¶ÁÈ¡µÄÈÎÎñÊıÁ¿£¬´¦Àí³É¹¦µÄÈÎÎñÊıÁ¿£¬´¦ÀíÊ§°ÜµÄÊıÁ¿£¬´¦ÀíºÄÊ±
+	 * å¤„ç†æè¿°ä¿¡æ¯ï¼Œä¾‹å¦‚è¯»å–çš„ä»»åŠ¡æ•°é‡ï¼Œå¤„ç†æˆåŠŸçš„ä»»åŠ¡æ•°é‡ï¼Œå¤„ç†å¤±è´¥çš„æ•°é‡ï¼Œå¤„ç†è€—æ—¶
 	 * FetchDataCount=4430,FetcheDataNum=438570,DealDataSucess=438570,DealDataFail=0,DealSpendTime=651066
 	 */
 	private String dealInfoDesc;
@@ -65,12 +65,12 @@ public class ScheduleServer {
 
 	private String nextRunEndTime;
 	/**
-	 * ÅäÖÃÖĞĞÄµÄµ±Ç°Ê±¼ä
+	 * é…ç½®ä¸­å¿ƒçš„å½“å‰æ—¶é—´
 	 */
 	private Timestamp centerServerTime;
 
 	/**
-	 * Êı¾İ°æ±¾ºÅ
+	 * æ•°æ®ç‰ˆæœ¬å·
 	 */
 	private long version;
 	
@@ -95,7 +95,7 @@ public class ScheduleServer {
 		result.registerTime = new Timestamp(aScheduleCenter.getSystemTime());
 		result.threadNum = aThreadNum;
 		result.heartBeatTime = null;
-		result.dealInfoDesc = "µ÷¶È³õÊ¼»¯";
+		result.dealInfoDesc = "è°ƒåº¦åˆå§‹åŒ–";
 		result.version = 0;
 		result.uuid = result.ip
 				+ "$"

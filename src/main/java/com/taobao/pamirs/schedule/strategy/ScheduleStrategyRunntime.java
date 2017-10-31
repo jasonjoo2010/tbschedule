@@ -5,7 +5,7 @@ import com.taobao.pamirs.schedule.strategy.ScheduleStrategy.Kind;
 public class ScheduleStrategyRunntime {
 	
 	/**
-	 * ÈÎÎñÀàĞÍ
+	 * ä»»åŠ¡ç±»å‹
 	 */
 	String strategyName;
 	String uuid;
@@ -14,18 +14,18 @@ public class ScheduleStrategyRunntime {
 	private Kind kind; 
 	
 	/**
-	 * Schedule Name,Class Name¡¢Bean Name
+	 * Schedule Name,Class Nameã€Bean Name
 	 */
 	private String taskName; 
 	
 	private String taskParameter;
 	
 	/**
-	 * ĞèÒªµÄÈÎÎñÊıÁ¿
+	 * éœ€è¦çš„ä»»åŠ¡æ•°é‡
 	 */
 	int	requestNum;
 	/**
-	 * µ±Ç°µÄÈÎÎñÊıÁ¿
+	 * å½“å‰çš„ä»»åŠ¡æ•°é‡
 	 */
 	int currentNum;
 	 

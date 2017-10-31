@@ -10,27 +10,27 @@ public class ScheduleTaskTypeRunningInfo {
 	private long id;
     
 	/**
-     * ÈÎÎñÀàĞÍ£ºÔ­Ê¼ÈÎÎñÀàĞÍ+"-"+ownSign
+     * ä»»åŠ¡ç±»å‹ï¼šåŸå§‹ä»»åŠ¡ç±»å‹+"-"+ownSign
      */
 	private String taskType;
 	
 	/**
-	 * Ô­Ê¼ÈÎÎñÀàĞÍ
+	 * åŸå§‹ä»»åŠ¡ç±»å‹
 	 */
 	private String baseTaskType;
 	
 	/**
-	 * »·¾³
+	 * ç¯å¢ƒ
 	 */
 	private String ownSign;
 	
 	/**
-	 * ×îºóÒ»´ÎÈÎÎñ·ÖÅäµÄÊ±¼ä
+	 * æœ€åä¸€æ¬¡ä»»åŠ¡åˆ†é…çš„æ—¶é—´
 	 */
 	private Timestamp lastAssignTime;
 	
 	/**
-	 * ×îºóÒ»´ÎÖ´ĞĞÈÎÎñ·ÖÅäµÄ·şÎñÆ÷
+	 * æœ€åä¸€æ¬¡æ‰§è¡Œä»»åŠ¡åˆ†é…çš„æœåŠ¡å™¨
 	 */
 	private String lastAssignUUID;
 	

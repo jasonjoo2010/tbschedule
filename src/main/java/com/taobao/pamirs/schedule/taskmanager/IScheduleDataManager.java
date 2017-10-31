@@ -9,7 +9,7 @@ import com.taobao.pamirs.schedule.TaskItemDefine;
 
 
 /**
- * µ÷¶ÈÅäÖÃÖĞĞÄ¿Í»§¶Ë½Ó¿Ú£¬¿ÉÒÔÓĞ»ùÓÚÊı¾İ¿âµÄÊµÏÖ£¬¿ÉÒÔÓĞ»ùÓÚConfigServerµÄÊµÏÖ
+ * è°ƒåº¦é…ç½®ä¸­å¿ƒå®¢æˆ·ç«¯æ¥å£ï¼Œå¯ä»¥æœ‰åŸºäºæ•°æ®åº“çš„å®ç°ï¼Œå¯ä»¥æœ‰åŸºäºConfigServerçš„å®ç°
  * 
  * @author xuannan
  * 
@@ -17,19 +17,19 @@ import com.taobao.pamirs.schedule.TaskItemDefine;
 public interface IScheduleDataManager{
 	public long getSystemTime();
 	/**
-	 * ÖØĞÂ×°ÔØµ±Ç°serverĞèÒª´¦ÀíµÄÊı¾İ¶ÓÁĞ
+	 * é‡æ–°è£…è½½å½“å‰serveréœ€è¦å¤„ç†çš„æ•°æ®é˜Ÿåˆ—
 	 * 
 	 * @param taskType
-	 *            ÈÎÎñÀàĞÍ
+	 *            ä»»åŠ¡ç±»å‹
 	 * @param uuid
-	 *            µ±Ç°serverµÄUUID
+	 *            å½“å‰serverçš„UUID
 	 * @return
 	 * @throws Exception
 	 */
 	public List<TaskItemDefine> reloadDealTaskItem(String taskType,String uuid) throws Exception;
 
 	/**
-	 * ×°ÔØËùÓĞµÄÈÎÎñ¶ÓÁĞĞÅÏ¢
+	 * è£…è½½æ‰€æœ‰çš„ä»»åŠ¡é˜Ÿåˆ—ä¿¡æ¯
 	 * @param taskType
 	 * @return
 	 * @throws Exception
@@ -37,7 +37,7 @@ public interface IScheduleDataManager{
 	public List<ScheduleTaskItem> loadAllTaskItem(String taskType) throws Exception;
 	
 	/**
-	 * ÊÍ·Å×Ô¼º°Ñ³Ö£¬±ğÈËÉêÇëµÄ¶ÓÁĞ
+	 * é‡Šæ”¾è‡ªå·±æŠŠæŒï¼Œåˆ«äººç”³è¯·çš„é˜Ÿåˆ—
 	 * 
 	 * @param taskType
 	 * @param uuid
@@ -47,7 +47,7 @@ public interface IScheduleDataManager{
 	public void releaseDealTaskItem(String taskType,String uuid) throws Exception;
 
 	/**
-	 * »ñÈ¡Ò»¹²ÈÎÎñÀàĞÍµÄ´¦Àí¶ÓÁĞÊıÁ¿
+	 * è·å–ä¸€å…±ä»»åŠ¡ç±»å‹çš„å¤„ç†é˜Ÿåˆ—æ•°é‡
 	 * 
 	 * @param taskType
 	 * @return
@@ -56,7 +56,7 @@ public interface IScheduleDataManager{
 	public int queryTaskItemCount(String taskType) throws Exception;
 
 	/**
-	 * ×°ÔØÈÎÎñÀàĞÍÏà¹ØĞÅÏ¢
+	 * è£…è½½ä»»åŠ¡ç±»å‹ç›¸å…³ä¿¡æ¯
 	 * 
 	 * @param taskType
 	 * @throws Exception
@@ -64,7 +64,7 @@ public interface IScheduleDataManager{
 	public ScheduleTaskType loadTaskTypeBaseInfo(String taskType) throws Exception;
 	
 	/**
-	 * Çå³ıÒÑ¾­¹ıÆÚµÄµ÷¶È·şÎñÆ÷ĞÅÏ¢
+	 * æ¸…é™¤å·²ç»è¿‡æœŸçš„è°ƒåº¦æœåŠ¡å™¨ä¿¡æ¯
 	 * 
 	 * @param taskInfo
 	 * @throws Exception
@@ -72,7 +72,7 @@ public interface IScheduleDataManager{
 	public int clearExpireScheduleServer(String taskType,long expireTime) throws Exception;
 
 	/**
-	 * Çå³ıÈÎÎñĞÅÏ¢£¬·şÎñÆ÷ÒÑ¾­²»´æÔÚµÄÊ±ºò
+	 * æ¸…é™¤ä»»åŠ¡ä¿¡æ¯ï¼ŒæœåŠ¡å™¨å·²ç»ä¸å­˜åœ¨çš„æ—¶å€™
 	 * 
 	 * @param taskInfo
 	 * @throws Exception
@@ -80,7 +80,7 @@ public interface IScheduleDataManager{
 	public int clearTaskItem(String taskType, List<String> serverList) throws Exception;
 
 	/**
-	 * »ñÈ¡ËùÓĞµÄÓĞĞ§·şÎñÆ÷ĞÅÏ¢
+	 * è·å–æ‰€æœ‰çš„æœ‰æ•ˆæœåŠ¡å™¨ä¿¡æ¯
 	 * 
 	 * @param taskInfo
 	 * @return
@@ -89,7 +89,7 @@ public interface IScheduleDataManager{
 	public List<ScheduleServer> selectAllValidScheduleServer(String taskType) throws Exception;
 	public List<String> loadScheduleServerNames(String taskType)throws Exception;
 	/**
-	 * ÖØĞÂ·ÖÅäÈÎÎñItem
+	 * é‡æ–°åˆ†é…ä»»åŠ¡Item
 	 * 
 	 * @param taskType
 	 * @param serverList
@@ -98,7 +98,7 @@ public interface IScheduleDataManager{
 	public void assignTaskItem(String taskType,String currentUuid, int maxNumOfOneServer,List<String> serverList) throws Exception;
 
 	/**
-	 * ·¢ËÍĞÄÌøĞÅÏ¢
+	 * å‘é€å¿ƒè·³ä¿¡æ¯
 	 * 
 	 * @param server
 	 * @throws Exception
@@ -106,7 +106,7 @@ public interface IScheduleDataManager{
 	public boolean refreshScheduleServer(ScheduleServer server) throws Exception;
 
 	/**
-	 * ×¢²á·şÎñÆ÷
+	 * æ³¨å†ŒæœåŠ¡å™¨
 	 * 
 	 * @param server
 	 * @throws Exception
@@ -114,16 +114,16 @@ public interface IScheduleDataManager{
 	public void registerScheduleServer(ScheduleServer server) throws Exception;
 
 	/**
-	 * ×¢Ïú·şÎñÆ÷
+	 * æ³¨é”€æœåŠ¡å™¨
 	 * @param serverUUID
 	 * @throws Exception
 	 */
 	public void unRegisterScheduleServer(String taskType,String serverUUID) throws Exception;
 	/**
-	 * Çå³ıÒÑ¾­¹ıÆÚµÄOWN_SIGNµÄ×Ô¶¯Éú³ÉµÄÊı¾İ
-	 * @param taskType ÈÎÎñÀàĞÍ
-	 * @param serverUUID ·şÎñÆ÷
-	 * @param expireDateInternal ¹ıÆÚÊ±¼ä£¬ÒÔÌìÎªµ¥Î»
+	 * æ¸…é™¤å·²ç»è¿‡æœŸçš„OWN_SIGNçš„è‡ªåŠ¨ç”Ÿæˆçš„æ•°æ®
+	 * @param taskType ä»»åŠ¡ç±»å‹
+	 * @param serverUUID æœåŠ¡å™¨
+	 * @param expireDateInternal è¿‡æœŸæ—¶é—´ï¼Œä»¥å¤©ä¸ºå•ä½
 	 * @throws Exception
 	 */
 	public void clearExpireTaskTypeRunningInfo(String baseTaskType,String serverUUID,double expireDateInternal)throws Exception;
@@ -136,13 +136,13 @@ public interface IScheduleDataManager{
 	public List<ScheduleTaskType> getAllTaskTypeBaseInfo()throws Exception ;
 	
 	/**
-	 * Çå³ıÒ»¸öÈÎÎñÀàĞÍµÄÔËĞĞÆÚĞÅÏ¢
+	 * æ¸…é™¤ä¸€ä¸ªä»»åŠ¡ç±»å‹çš„è¿è¡ŒæœŸä¿¡æ¯
 	 * @param baseTaskType
 	 * @throws Exception
 	 */
 	public void clearTaskType(String baseTaskType) throws Exception;
 	/**
-	 *  ´´½¨Ò»¸öĞÂµÄÈÎÎñÀàĞÍ
+	 *  åˆ›å»ºä¸€ä¸ªæ–°çš„ä»»åŠ¡ç±»å‹
 	 * @param baseTaskType
 	 * @throws Exception
 	 */
@@ -151,14 +151,14 @@ public interface IScheduleDataManager{
     public List<ScheduleTaskTypeRunningInfo> getAllTaskTypeRunningInfo(String baseTaskType) throws Exception;
     
     /**
-     * É¾³ıÒ»¸öÈÎÎñÀàĞÍ
+     * åˆ é™¤ä¸€ä¸ªä»»åŠ¡ç±»å‹
      * @param baseTaskType
      * @throws Exception
      */
     public void deleteTaskType(String baseTaskType) throws Exception;
 	
 	/**
-	 * ¸ù¾İÌõ¼ş²éÑ¯µ±Ç°µ÷¶È·şÎñ
+	 * æ ¹æ®æ¡ä»¶æŸ¥è¯¢å½“å‰è°ƒåº¦æœåŠ¡
 	 * @param baseTaskType
 	 * @param ownSign
 	 * @param ip
@@ -170,7 +170,7 @@ public interface IScheduleDataManager{
 			throws Exception;
 
 	/**
-	 * ²éÑ¯µ÷¶È·şÎñµÄÀúÊ·¼ÇÂ¼
+	 * æŸ¥è¯¢è°ƒåº¦æœåŠ¡çš„å†å²è®°å½•
 	 * @param baseTaskType
 	 * @param ownSign
 	 * @param ip
@@ -184,14 +184,14 @@ public interface IScheduleDataManager{
 	public List<ScheduleServer> selectScheduleServerByManagerFactoryUUID(String factoryUUID) throws Exception;
 
 	/**
-	 * ´´½¨ÈÎÎñÏî¡£×¢ÒâÆäÖĞµÄ CurrentSeverºÍRequestServer²»»áÆğ×÷ÓÃ
+	 * åˆ›å»ºä»»åŠ¡é¡¹ã€‚æ³¨æ„å…¶ä¸­çš„ CurrentSeverå’ŒRequestServerä¸ä¼šèµ·ä½œç”¨
 	 * @param taskItems
 	 * @throws Exception
 	 */
 	public void createScheduleTaskItem(ScheduleTaskItem[] taskItems) throws Exception;
 	
 	/**
-	 * ¸üĞÂÈÎÎñµÄ×´Ì¬ºÍ´¦ÀíĞÅÏ¢
+	 * æ›´æ–°ä»»åŠ¡çš„çŠ¶æ€å’Œå¤„ç†ä¿¡æ¯
 	 * @param taskType
 	 * @param sts
 	 * @param message
@@ -199,13 +199,13 @@ public interface IScheduleDataManager{
 	public void updateScheduleTaskItemStatus(String taskType,String taskItem,ScheduleTaskItem.TaskItemSts sts,String message)throws Exception;
 
 	/**
-	 * É¾³ıÈÎÎñÏî
+	 * åˆ é™¤ä»»åŠ¡é¡¹
 	 * @param taskType
 	 * @param taskItem
 	 */
 	public void deleteScheduleTaskItem(String taskType,String taskItem) throws Exception;
 	/**
-	 * ³õÊ¼»¯ÈÎÎñµ÷¶ÈµÄÓòĞÅÏ¢ºÍ¾²Ì¬ÈÎÎñĞÅÏ¢
+	 * åˆå§‹åŒ–ä»»åŠ¡è°ƒåº¦çš„åŸŸä¿¡æ¯å’Œé™æ€ä»»åŠ¡ä¿¡æ¯
 	 * @param baseTaskType
 	 * @param ownSign
 	 * @param serverUUID
@@ -214,7 +214,7 @@ public interface IScheduleDataManager{
 	public void initialRunningInfo4Static(String baseTaskType, String ownSign,String uuid)throws Exception;
 	public void initialRunningInfo4Dynamic(String baseTaskType, String ownSign)throws Exception;
 	/**
-	 * ÔËĞĞÆÚĞÅÏ¢ÊÇ·ñ³õÊ¼»¯³É¹¦
+	 * è¿è¡ŒæœŸä¿¡æ¯æ˜¯å¦åˆå§‹åŒ–æˆåŠŸ
 	 * @param baseTaskType
 	 * @param ownSign
 	 * @param serverUUID
@@ -229,7 +229,7 @@ public interface IScheduleDataManager{
 	public long getReloadTaskItemFlag(String taskType) throws Exception;
 	
 	/**
-	 * Í¨¹ıtaskType»ñÈ¡µ±Ç°ÔËĞĞµÄserverListĞÅÏ¢¡£
+	 * é€šè¿‡taskTypeè·å–å½“å‰è¿è¡Œçš„serverListä¿¡æ¯ã€‚
 	 * @param taskType
 	 * @return
 	 * @throws Exception
