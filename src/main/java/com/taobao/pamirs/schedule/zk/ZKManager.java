@@ -94,14 +94,6 @@ public class ZKManager{
 				log.error(e.getMessage(),e);
 			}
 		}
-		else if (event.getState() == KeeperState.NoSyncConnected ) {
-			log.info("tb_hj_schedule NoSyncConnected，等待重新建立ZK连接...");
-			try {
-				reConnection();
-			} catch (Exception e) {
-				log.error(e.getMessage(),e);
-			}
-		}
 		else{
 			log.info("tb_hj_schedule 会话有其他状态的值，event.getState() ="+event.getState() +", event  value="+event.toString());
 			connectionLatch.countDown();
