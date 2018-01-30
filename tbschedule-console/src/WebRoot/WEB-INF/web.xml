@@ -5,7 +5,7 @@
 	id="WebApp_ID" version="2.5">
 	<servlet>
 		<servlet-name>WebTest</servlet-name>
-		<servlet-class>com.taobao.pamirs.schedule.WebInitial</servlet-class>
+		<servlet-class>com.taobao.pamirs.schedule.console.WebInitial</servlet-class>
 		<load-on-startup>1</load-on-startup>
 	</servlet>
 </web-app>
