@@ -15,11 +15,4 @@
 		<module>tbschedule</module>
 		<module>tbschedule-console</module>
 	</modules>
-	<dependencies>
-		<dependency>
-			<groupId>javax.servlet</groupId>
-			<artifactId>servlet-api</artifactId>
-			<scope>provided</scope>
-		</dependency>
-	</dependencies>
 </project>
