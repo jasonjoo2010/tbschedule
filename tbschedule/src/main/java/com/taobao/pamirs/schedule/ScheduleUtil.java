@@ -23,7 +23,7 @@ public class ScheduleUtil {
 	public static String getLocalHostName() {
 		try {
 		    InetAddress addr = getRealAddr();
-		    if (addr != null) {
+		    if (addr != null && !addr.getHostAddress().equals(addr.getHostName())) {
 		        return addr.getHostName();
 		    }
 			return InetAddress.getLocalHost().getHostName();
