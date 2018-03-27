@@ -154,7 +154,7 @@ public class ScheduleUtil {
 	                        continue;
 	                    }
 	                }
-	                if (addr.getHostAddress().startsWith("192.168.") || addr.getHostAddress().startsWith("10.")) {
+	                if (addr.getHostAddress().startsWith("192.168.") || addr.getHostAddress().startsWith("172.16.") || addr.getHostAddress().startsWith("10.")) {
 	                    // 暂优先lan地址
 	                    return addr;
 	                }
