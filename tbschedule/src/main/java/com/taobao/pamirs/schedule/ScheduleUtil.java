@@ -1,10 +1,15 @@
 package com.taobao.pamirs.schedule;
 
 import java.net.InetAddress;
+import java.net.InterfaceAddress;
+import java.net.NetworkInterface;
 import java.net.ServerSocket;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.Enumeration;
+import java.util.List;
 
 
 /**
@@ -17,6 +22,10 @@ public class ScheduleUtil {
 
 	public static String getLocalHostName() {
 		try {
+		    InetAddress addr = getRealAddr();
+		    if (addr != null) {
+		        return addr.getHostName();
+		    }
 			return InetAddress.getLocalHost().getHostName();
 		} catch (Exception e) {
 			return "";
@@ -36,12 +45,16 @@ public class ScheduleUtil {
 
 	public static String getLocalIP() {
 		try {
+		    InetAddress addr = getRealAddr();
+		    if (addr != null) {
+		        return addr.getHostAddress();
+		    }
 			return InetAddress.getLocalHost().getHostAddress();
 		} catch (Exception e) {
 			return "";
 		}
 	}
-
+	
 	public static String transferDataToString(Date d){
 		SimpleDateFormat DATA_FORMAT_yyyyMMddHHmmss = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         return DATA_FORMAT_yyyyMMddHHmmss.format(d);
@@ -111,7 +124,57 @@ public class ScheduleUtil {
 		}
 		return s;
 	}
+	
+	/**
+	 * XXX 这里的实现依然有问题，多有效端口时会有问题，暂先排个序，优先取有效的lan地址
+	 * XXX 另外考虑这里是否加入缓存
+	 * @return
+	 */
+	private static InetAddress getRealAddr() {
+	    try {
+	        //备选地址
+	        List<InetAddress> addrs = new ArrayList<InetAddress>();
+	        // 遍历所有的网络接口
+	        for (Enumeration<NetworkInterface> interfaces = NetworkInterface.getNetworkInterfaces(); interfaces.hasMoreElements(); ) {
+	            NetworkInterface interFace = (NetworkInterface) interfaces.nextElement();
+	            // 在所有的接口下再遍历IP
+	            for (InterfaceAddress interfaceAddr : interFace.getInterfaceAddresses()) {
+	                InetAddress addr = interfaceAddr.getAddress();
+	                if (addr.isLoopbackAddress()) continue;
+	                if (addr.isMulticastAddress()) continue;
+	                if (addr.isLinkLocalAddress()) continue;
+	                if (addr.getHostAddress().indexOf(":") >= 0) {
+	                    //ipv6
+	                    if (interfaceAddr.getNetworkPrefixLength() == 64) {
+                            continue;
+                        }
+	                } else {
+	                    //ipv4
+	                    if (interfaceAddr.getNetworkPrefixLength() == 32) {
+	                        continue;
+	                    }
+	                }
+	                if (addr.getHostAddress().startsWith("192.168.") || addr.getHostAddress().startsWith("10.")) {
+	                    // 暂优先lan地址
+	                    return addr;
+	                }
+	                addrs.add(addr);
+	            }
+	        }
+	        if (addrs.size() > 0) {
+	            return addrs.get(0);
+	        }
+	        // 如果没有发现 non-loopback地址.只能用最次选的方案
+	        InetAddress jdkSuppliedAddress = InetAddress.getLocalHost();
+	        return jdkSuppliedAddress;
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	    }
+	    return null;
+	}
 	public static void main(String[] args) {
+	    System.out.println(getLocalHostName());
+	    System.out.println(getLocalIP());
 		System.out.println(printArray(assignTaskNumber(1,10,0)));
 		System.out.println(printArray(assignTaskNumber(2,10,0)));
 		System.out.println(printArray(assignTaskNumber(3,10,0)));
@@ -119,7 +182,7 @@ public class ScheduleUtil {
 		System.out.println(printArray(assignTaskNumber(5,10,0)));
 		System.out.println(printArray(assignTaskNumber(6,10,0)));
 		System.out.println(printArray(assignTaskNumber(7,10,0)));
-		System.out.println(printArray(assignTaskNumber(8,10,0)));		
+		System.out.println(printArray(assignTaskNumber(8,10,0)));
 		System.out.println(printArray(assignTaskNumber(9,10,0)));
 		System.out.println(printArray(assignTaskNumber(10,10,0)));
 		
@@ -132,7 +195,7 @@ public class ScheduleUtil {
 		System.out.println(printArray(assignTaskNumber(5,10,3)));
 		System.out.println(printArray(assignTaskNumber(6,10,3)));
 		System.out.println(printArray(assignTaskNumber(7,10,3)));
-		System.out.println(printArray(assignTaskNumber(8,10,3)));		
+		System.out.println(printArray(assignTaskNumber(8,10,3)));
 		System.out.println(printArray(assignTaskNumber(9,10,3)));
 		System.out.println(printArray(assignTaskNumber(10,10,3)));
 		
