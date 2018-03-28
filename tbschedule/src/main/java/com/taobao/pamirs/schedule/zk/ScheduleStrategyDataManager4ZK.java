@@ -258,6 +258,7 @@ public class ScheduleStrategyDataManager4ZK{
 		ScheduleStrategyRunntime result = null;
 		if(this.getZooKeeper().exists(zkPath, false) !=null){
 			result = this.loadScheduleStrategyRunntime(strategyName,manangerFactoryUUID);
+			result.setRequestNum(requestNum);
 		} else {
 			result = new ScheduleStrategyRunntime();
 			result.setStrategyName(strategyName);
@@ -265,7 +266,6 @@ public class ScheduleStrategyDataManager4ZK{
 			result.setRequestNum(requestNum);
 			result.setMessage("");
 		}
-		result.setRequestNum(requestNum);
 		String valueString = this.gson.toJson(result);	
 		this.getZooKeeper().setData(zkPath,valueString.getBytes(),-1);
 	}

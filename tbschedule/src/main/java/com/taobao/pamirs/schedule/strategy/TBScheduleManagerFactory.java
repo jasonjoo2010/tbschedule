@@ -242,6 +242,13 @@ public class TBScheduleManagerFactory implements ApplicationContextAware {
                         break;
                     }
                 }
+                /*System.out.println("need: " + needReschedule);
+                System.out.println("old: " + oldNums.toString());
+                System.out.print("new:");
+                for (int i : nums) {
+                    System.out.print(" " + i);
+                }
+                System.out.println();*/
                 if (!needReschedule) {
                     return;
                 }
