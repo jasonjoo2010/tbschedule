@@ -48,7 +48,7 @@ public class TBScheduleManagerStatic extends TBScheduleManager {
  				      //log.error("isRuntimeInfoInitial = " + isRuntimeInfoInitial);
  				      try{
 					  initialRunningInfo();
-					  isRuntimeInfoInitial = scheduleCenter.isInitialRunningInfoSucuss(
+					  isRuntimeInfoInitial = scheduleCenter.isInitialRunningInfoSuccess(
 										currenScheduleServer.getBaseTaskType(),
 										currenScheduleServer.getOwnSign());
  				      }catch(Throwable e){
@@ -189,7 +189,7 @@ public class TBScheduleManagerStatic extends TBScheduleManager {
 			return;
 		}
 		//设置初始化成功标准，避免在leader转换的时候，新增的线程组初始化失败
-		scheduleCenter.setInitialRunningInfoSucuss(this.currenScheduleServer.getBaseTaskType(), this.currenScheduleServer.getTaskType(), this.currenScheduleServer.getUuid());
+		scheduleCenter.setInitialRunningInfoSuccess(this.currenScheduleServer.getBaseTaskType(), this.currenScheduleServer.getTaskType(), this.currenScheduleServer.getUuid());
 		scheduleCenter.clearTaskItem(this.currenScheduleServer.getTaskType(), serverList);
 		scheduleCenter.assignTaskItem(this.currenScheduleServer.getTaskType(),this.currenScheduleServer.getUuid(),this.taskTypeInfo.getMaxTaskItemsOfOneThreadGroup(),serverList);
 	}	

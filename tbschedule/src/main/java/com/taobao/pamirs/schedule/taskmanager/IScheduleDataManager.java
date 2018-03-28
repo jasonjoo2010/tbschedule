@@ -221,8 +221,8 @@ public interface IScheduleDataManager{
 	 * @return
 	 * @throws Exception
 	 */
-	public boolean isInitialRunningInfoSucuss(String baseTaskType, String ownSign) throws Exception;
-	public void setInitialRunningInfoSucuss(String baseTaskType, String taskType,String uuid) throws Exception;
+	public boolean isInitialRunningInfoSuccess(String baseTaskType, String ownSign) throws Exception;
+	public void setInitialRunningInfoSuccess(String baseTaskType, String taskType,String uuid) throws Exception;
 	public String getLeader(List<String> serverList);
 	
 	public long updateReloadTaskItemFlag(String taskType) throws Exception;

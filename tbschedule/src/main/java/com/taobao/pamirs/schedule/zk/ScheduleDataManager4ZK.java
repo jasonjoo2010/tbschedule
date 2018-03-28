@@ -132,14 +132,14 @@ public class ScheduleDataManager4ZK implements IScheduleDataManager {
 		 //创建静态任务
 		 this.createScheduleTaskItem(baseTaskType, ownSign,this.loadTaskTypeBaseInfo(baseTaskType).getTaskItems());
 		 //标记信息初始化成功
-		 setInitialRunningInfoSucuss(baseTaskType,taskType,uuid);
+		 setInitialRunningInfoSuccess(baseTaskType,taskType,uuid);
 	}
 	
-	public void setInitialRunningInfoSucuss(String baseTaskType, String taskType,String uuid) throws Exception{
+	public void setInitialRunningInfoSuccess(String baseTaskType, String taskType,String uuid) throws Exception{
 		 String zkPath = this.PATH_BaseTaskType+"/"+ baseTaskType +"/" + taskType+"/" + this.PATH_TaskItem;
 		 this.getZooKeeper().setData(zkPath, uuid.getBytes(),-1);
 	}
-    public boolean isInitialRunningInfoSucuss(String baseTaskType, String ownSign) throws Exception{
+    public boolean isInitialRunningInfoSuccess(String baseTaskType, String ownSign) throws Exception{
     	String taskType = ScheduleUtil.getTaskTypeByBaseAndOwnSign(baseTaskType, ownSign);
     	String leader = this.getLeader(this.loadScheduleServerNames(taskType));
     	String zkPath = this.PATH_BaseTaskType+"/"+ baseTaskType +"/" + taskType+"/"+ this.PATH_TaskItem;
