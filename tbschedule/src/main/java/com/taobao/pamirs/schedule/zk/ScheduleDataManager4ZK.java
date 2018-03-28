@@ -569,6 +569,7 @@ public class ScheduleDataManager4ZK implements IScheduleDataManager {
 			 return new ArrayList<String>();
 		 }
 		 List<String> serverList = this.getZooKeeper().getChildren(zkPath, false);
+		 // server列表进行排序
 		 Collections.sort(serverList,new Comparator<String>(){
 				public int compare(String u1, String u2) {
 					return u1.substring(u1.lastIndexOf("$") + 1).compareTo(

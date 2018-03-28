@@ -1,6 +1,7 @@
 package com.taobao.pamirs.schedule.strategy;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -203,6 +204,7 @@ public class TBScheduleManagerFactory implements ApplicationContextAware {
 		this.assignScheduleServer();
 		this.reRunScheduleServer();
 	}
+
 	/**
 	 * 根据策略重新分配调度任务的机器
 	 * @throws Exception
@@ -217,6 +219,34 @@ public class TBScheduleManagerFactory implements ApplicationContextAware {
 
             int[] nums = ScheduleUtil.assignTaskNumber(factoryList.size(), scheduleStrategy.getAssignNum(),
                     scheduleStrategy.getNumOfSingleServer());
+            {
+                /**
+                 * 检查前后有效调度表是否有差异
+                 * 注意: assignTaskNumber返回的调度策略均为前面的节点先填充
+                 * 目的:
+                 * 1. 做到在调用器启动数量相同时，不进行重启操作（老的调度机制）
+                 * 2. 在N台server中启动M个线程组，初始策略为随机选取，老机制是每次都在有序UUID表中选取最先的那个
+                 *   （由于按同样的顺序决定Leader，故总分Leader上，且所有策略均如此，有负载集中）
+                 * 3. 在调度分布发生变化时，正常重新分布
+                 */
+                List<Integer> oldNums = new ArrayList<Integer>();
+                for (int i = 0; i < factoryList.size(); i++) {
+                    ScheduleStrategyRunntime factory = factoryList.get(i);
+                    oldNums.add(factory.getRequestNum());
+                }
+                Collections.sort(oldNums, Collections.reverseOrder());
+                boolean needReschedule = false;
+                for (int i = 0; i < nums.length; i++) {
+                    if (nums[i] != oldNums.get(i)) {
+                        needReschedule = true;
+                        break;
+                    }
+                }
+                if (!needReschedule) {
+                    return;
+                }
+                Collections.shuffle(factoryList);
+            }
             for (int i = 0; i < factoryList.size(); i++) {
                 ScheduleStrategyRunntime factory = factoryList.get(i);
                 // 更新请求的服务器数量
