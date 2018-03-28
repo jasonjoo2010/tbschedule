@@ -252,7 +252,8 @@ public class ScheduleStrategyDataManager4ZK{
 	 * @throws KeeperException
 	 * @throws InterruptedException
 	 */
-	public void updateStrategyRunntimeReqestNum(String strategyName,String manangerFactoryUUID,int requestNum) throws Exception{
+    public void updateStrategyRuntimeRequestNum(String strategyName, String manangerFactoryUUID, int requestNum)
+            throws Exception {
 		String zkPath =	this.PATH_Strategy +"/"+strategyName+"/" + manangerFactoryUUID;
 		ScheduleStrategyRunntime result = null;
 		if(this.getZooKeeper().exists(zkPath, false) !=null){

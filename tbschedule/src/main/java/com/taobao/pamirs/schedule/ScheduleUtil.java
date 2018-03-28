@@ -7,6 +7,8 @@ import java.net.ServerSocket;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.Enumeration;
 import java.util.List;
@@ -97,7 +99,7 @@ public class ScheduleUtil {
 	 * @param maxNum 总的任务数量
 	 * @return
 	 */
-	public static int[] assignTaskNumber(int serverNum,int taskItemNum,int maxNumOfOneServer){
+    public static int[] assignTaskNumber(int serverNum, int taskItemNum, int maxNumOfOneServer) {
 		int[] taskNums = new int[serverNum];
 		int numOfSingle = taskItemNum / serverNum;
 		int otherNum = taskItemNum % serverNum;
@@ -117,12 +119,14 @@ public class ScheduleUtil {
 		return taskNums;
 	}
 	private static String printArray(int[] items){
-		String s="";
-		for(int i=0;i<items.length;i++){
-			if(i >0){s = s +",";}
-			s = s + items[i];
-		}
-		return s;
+        StringBuffer s = new StringBuffer();
+        for (int i = 0; i < items.length; i++) {
+            if (i > 0) {
+                s.append(",");
+            }
+            s.append(items[i]);
+        }
+        return s.toString();
 	}
 	
 	/**
@@ -185,6 +189,11 @@ public class ScheduleUtil {
 		System.out.println(printArray(assignTaskNumber(8,10,0)));
 		System.out.println(printArray(assignTaskNumber(9,10,0)));
 		System.out.println(printArray(assignTaskNumber(10,10,0)));
+		System.out.println(printArray(assignTaskNumber(10,1,0)));
+		System.out.println(printArray(assignTaskNumber(10,1,0)));
+		System.out.println(printArray(assignTaskNumber(10,1,0)));
+		System.out.println(printArray(assignTaskNumber(10,1,0)));
+		System.out.println(printArray(assignTaskNumber(10,1,0)));
 		
 		System.out.println("-----------------");
 		

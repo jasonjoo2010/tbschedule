@@ -207,21 +207,22 @@ public class TBScheduleManagerFactory implements ApplicationContextAware {
 	 * 根据策略重新分配调度任务的机器
 	 * @throws Exception
 	 */
-	public void assignScheduleServer() throws Exception{
+    public void assignScheduleServer() throws Exception {
 		for(ScheduleStrategyRunntime run: this.scheduleStrategyManager.loadAllScheduleStrategyRunntimeByUUID(this.uuid)){
 			List<ScheduleStrategyRunntime> factoryList = this.scheduleStrategyManager.loadAllScheduleStrategyRunntimeByTaskType(run.getStrategyName());
-			if(factoryList.size() == 0 || this.isLeader(this.uuid, factoryList) ==false){
-				continue;
-			}
-			ScheduleStrategy scheduleStrategy =this.scheduleStrategyManager.loadStrategy(run.getStrategyName());
-			
-			int[] nums =  ScheduleUtil.assignTaskNumber(factoryList.size(), scheduleStrategy.getAssignNum(), scheduleStrategy.getNumOfSingleServer());
-			for(int i=0;i<factoryList.size();i++){
-				ScheduleStrategyRunntime factory = 	factoryList.get(i);
-				//更新请求的服务器数量
-				this.scheduleStrategyManager.updateStrategyRunntimeReqestNum(run.getStrategyName(), 
-						factory.getUuid(),nums[i]);
-			}
+            if (factoryList.size() == 0 || this.isLeader(this.uuid, factoryList) == false) {
+                continue;
+            }
+            ScheduleStrategy scheduleStrategy = this.scheduleStrategyManager.loadStrategy(run.getStrategyName());
+
+            int[] nums = ScheduleUtil.assignTaskNumber(factoryList.size(), scheduleStrategy.getAssignNum(),
+                    scheduleStrategy.getNumOfSingleServer());
+            for (int i = 0; i < factoryList.size(); i++) {
+                ScheduleStrategyRunntime factory = factoryList.get(i);
+                // 更新请求的服务器数量
+                this.scheduleStrategyManager.updateStrategyRuntimeRequestNum(run.getStrategyName(), factory.getUuid(),
+                        nums[i]);
+            }
 		}
 	}
 	

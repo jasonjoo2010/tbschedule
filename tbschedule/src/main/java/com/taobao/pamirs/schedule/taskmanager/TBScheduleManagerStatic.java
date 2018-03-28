@@ -73,7 +73,7 @@ public class TBScheduleManagerStatic extends TBScheduleManager {
     			   String tmpStr ="TaskItemDefine:";
     			   for(int i=0;i< currentTaskItemList.size();i++){
     				   if(i>0){
-    					   tmpStr = tmpStr +",";    					   
+    					   tmpStr = tmpStr +",";
     				   }
     				   tmpStr = tmpStr + currentTaskItemList.get(i);
     			   }
