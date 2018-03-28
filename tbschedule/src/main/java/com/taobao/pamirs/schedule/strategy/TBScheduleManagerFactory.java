@@ -250,7 +250,7 @@ public class TBScheduleManagerFactory implements ApplicationContextAware {
                 }
                 System.out.println();*/
                 if (!needReschedule) {
-                    return;
+                    continue;
                 }
                 Collections.shuffle(factoryList);
             }
