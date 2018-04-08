@@ -1,35 +1,20 @@
+<%@page contentType="text/html; charset=utf-8" %>
 <%@page import="java.util.ArrayList"%>
 <%@page import="com.taobao.pamirs.schedule.strategy.ScheduleStrategyRunntime"%>
 <%@page import="com.taobao.pamirs.schedule.ConsoleManager"%>
 <%@page import="java.util.List"%>
-<%@ page contentType="text/html; charset=GB2312" %>
-
-<html>
-<head>
-<title>
-µ÷¶È¶¯Ì¬·ÖÅäÇé¿ö
-</title>
-<STYLE type=text/css>
-
-
-TH{height:20px;color:#5371BA;font-weight:bold;font-size:12px;text-align:center;border:#8CB2E3 solid;border-width:0 1 1 0;background-color:#E4EFF1;white-space:nowrap;overflow:hidden;}
-TD{background-color: ;border:#8CB2E3 1px solid;border-width:0 1 1 0;font-size:12px;}
-table{border-collapse:collapse}
-</STYLE>
 <%
  String strategyName =request.getParameter("strategyName");
  String uuid =request.getParameter("uuid");
-
 %>
-</head>
-<body style="font-size:12px;">
+<%@include file="header.jsp"%>
 <table border="1" >
      <tr>
-     	<th>ĞòºÅ</th>
-     	<th>ÈÎÎñÀàĞÍ</th>
-     	<th>´¦Àí»úÆ÷</th>
-    	<th>Ïß³Ì×éÊıÁ¿</th>
-    	<th>´íÎóĞÅÏ¢</th>
+     	<th>åºå·</th>
+     	<th>ä»»åŠ¡ç±»å‹</th>
+     	<th>å¤„ç†æœºå™¨</th>
+    	<th>çº¿ç¨‹ç»„æ•°é‡</th>
+    	<th>é”™è¯¯ä¿¡æ¯</th>
      </tr>
 <%
 List<ScheduleStrategyRunntime> runntimeList = null;
@@ -55,5 +40,4 @@ for(int i=0;i<runntimeList.size();i++){
 }
 %>
 </table>
-</body>
-</html>
+<%@include file="footer.jsp"%>

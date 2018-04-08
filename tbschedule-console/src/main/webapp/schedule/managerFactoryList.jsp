@@ -1,35 +1,20 @@
+<%@page contentType="text/html; charset=utf-8" %>
 <%@page import="com.taobao.pamirs.schedule.strategy.ManagerFactoryInfo"%>
 <%@page import="com.taobao.pamirs.schedule.strategy.ScheduleStrategy"%>
 <%@page import="com.taobao.pamirs.schedule.ConsoleManager"%>
 <%@page import="java.util.List"%>
-<%@ page contentType="text/html; charset=GB2312" %>
 <%
     String isManager= request.getParameter("manager");
 %>
-<html>
-<head>
-<title>
-µ÷¶È²ßÂÔ¹ÜÀí
-</title>
-<STYLE type=text/css>
-
-
-TH{height:20px;color:#5371BA;font-weight:bold;font-size:12px;text-align:center;border:#8CB2E3 solid;border-width:0 1 1 0;background-color:#E4EFF1;white-space:nowrap;overflow:hidden;}
-TD{background-color: ;border:#8CB2E3 1px solid;border-width:0 1 1 0;font-size:12px;}
-table{border-collapse:collapse}
-</STYLE>
-
-</head>
-<body style="font-size:12px;">
-
+<%@include file="header.jsp"%>
 <table id="contentTable" border="1" >
      <tr>
-     	<th width="50" >ĞòºÅ</th>
+     	<th width="50" >åºå·</th>
      	<%if("true".equals(isManager)){%>
-     	<th width="100" >¹ÜÀí</th>
+     	<th width="100" >ç®¡ç†</th>
 		<%}%>
-     	<th >ÈÎÎñ´¦Àí»ú</th>
-     	<th width="50" >×´Ì¬</th>
+     	<th >ä»»åŠ¡å¤„ç†æœº</th>
+     	<th width="50" >çŠ¶æ€</th>
      </tr>
 <%
 List<ManagerFactoryInfo> list =  ConsoleManager.getScheduleStrategyManager().loadAllManagerFactoryInfo();
@@ -39,13 +24,13 @@ String actionName;
 for(int i=0;i<list.size();i++){
 	ManagerFactoryInfo info = list.get(i);
 	if(info.isStart() == true){
-		sts ="ÔËĞĞ";
+		sts ="è¿è¡Œ";
 		action="stopManagerFactory";
-		actionName="Í£Ö¹";
+		actionName="åœæ­¢";
 	}else{
-		sts ="ĞİÃß";
+		sts ="ä¼‘çœ ";
 		action="startManagerFactory";
-		actionName="Æô¶¯";		
+		actionName="å¯åŠ¨";		
 	}
 %>
      <tr onclick="openDetail(this,'<%=info.getUuid()%>')">
@@ -63,12 +48,10 @@ for(int i=0;i<list.size();i++){
 %>
 </table>
 <br/>
-´Ëµ÷¶ÈÆ÷ÉÏµÄÈÎÎñ·ÖÅäÇé¿ö£º
+æ­¤è°ƒåº¦å™¨ä¸Šçš„ä»»åŠ¡åˆ†é…æƒ…å†µï¼š
 <iframe  name="scheduleStrategyRuntime" height="150" width="100%"></iframe>
-´Ëµ÷¶ÈÆ÷ÉÏµÄ·şÎñÇé¿ö
+æ­¤è°ƒåº¦å™¨ä¸Šçš„æœåŠ¡æƒ…å†µ
 <iframe  name="servlerList" height="230" width="100%"></iframe>
-</body>
-</html>
 <script>
 
 var oldSelectRow = null;
@@ -86,3 +69,4 @@ if(contentTable.rows.length >1){
 }
 
 </script>
+<%@include file="footer.jsp"%>

@@ -1,6 +1,6 @@
+<%@page contentType="text/html; charset=utf-8" %>
 <%@page import="java.io.*"%>
 <%@page import="com.taobao.pamirs.schedule.ConsoleManager"%>
-<%@ page contentType="text/html; charset=GB2312"%>
 <%
 	if (ConsoleManager.isInitial() == false) {
 		response.sendRedirect("config.jsp");
@@ -17,11 +17,11 @@
 				buffer = ConsoleManager.getScheduleStrategyManager()
 						.exportConfig(rootPath, confWriter);
 			} else {
-				tmpWriter.write("Ã»ÓĞÉèÖÃµ¼³öÅäÖÃĞÅÏ¢µÄÂ·¾¶");
+				tmpWriter.write("æ²¡æœ‰è®¾ç½®å¯¼å‡ºé…ç½®ä¿¡æ¯çš„è·¯å¾„");
 			}
-			// µ¼³öÎÄ¼ş
+			// å¯¼å‡ºæ–‡ä»¶
 			if (type != null && type.equals("1")) {
-				// µ¼³ö½øĞĞ±£´æ
+				// å¯¼å‡ºè¿›è¡Œä¿å­˜
 				if (buffer != null) {
 					response.setContentType("text/plain;charset=GBK");
 					response.setHeader("Content-disposition",
@@ -32,29 +32,28 @@
 				}
 			}
 			if (tmpWriter != null && tmpWriter.toString().length() > 0) {
-				errWriter.write("<font color=\"red\">´íÎóĞÅÏ¢£º</font>\n\t");
+				errWriter.write("<font color=\"red\">é”™è¯¯ä¿¡æ¯ï¼š</font>\n\t");
 				errWriter.write(tmpWriter.toString());
 			}
 		} catch (Exception e) {
 			if (tmpWriter != null && tmpWriter.toString().length() > 0) {
-				errWriter.write("<font color=\"red\">´íÎóĞÅÏ¢£º</font>\n\t");
+				errWriter.write("<font color=\"red\">é”™è¯¯ä¿¡æ¯ï¼š</font>\n\t");
 				errWriter.write(tmpWriter.toString());
 			}
 			StringWriter strWriter = new StringWriter();
 			PrintWriter printWriter = new PrintWriter(strWriter);
 			e.printStackTrace(printWriter);
-			errWriter.write("<font color=\"red\">´íÎóµÄ¶ÑÕ»ĞÅÏ¢:</font>\n\t" + e.getMessage()+"\n"+strWriter);
+			errWriter.write("<font color=\"red\">é”™è¯¯çš„å †æ ˆä¿¡æ¯:</font>\n\t" + e.getMessage()+"\n"+strWriter);
 		}
 	}
 %>
-<html>
-<body style="font-size: 12px;">
+<%@include file="header.jsp"%>
 <form id="taskTypeForm" method="post" name="taskTypeForm"
 	action="exportConfig.jsp"><input type="hidden" id="type"
-	name="type" value="1" /> ÅäÖÃÎÄ¼şÂ·¾¶£º<input type="text" name="rootPath"
+	name="type" value="1" /> é…ç½®æ–‡ä»¶è·¯å¾„ï¼š<input type="text" name="rootPath"
 	value="<%=rootPath == null ? "" : rootPath%>" style="width:330px;" />
-<input type="button" onclick="viewConfig();" value="²é¿´" /> <input
-	type="button" onclick="saveConfig();" value="µ¼³ö" />
+<input type="button" onclick="viewConfig();" value="æŸ¥çœ‹" /> <input
+	type="button" onclick="saveConfig();" value="å¯¼å‡º" />
 <pre>
 <%if(errWriter==null || errWriter.getBuffer().length() == 0) { %>
 <%=confWriter%>
@@ -64,16 +63,15 @@
 </pre>
 </form>
 <script>
-	// ²é¿´ÅäÖÃÎÄ¼ş 
+	// æŸ¥çœ‹é…ç½®æ–‡ä»¶ 
 	function viewConfig() {
 		document.getElementById("type").value = "0";
 		document.getElementById("taskTypeForm").submit();
 	}
-	// µ¼³öÅäÖÃÎÄ¼ş
+	// å¯¼å‡ºé…ç½®æ–‡ä»¶
 	function saveConfig() {
 		document.getElementById("type").value = "1";
 		document.getElementById("taskTypeForm").submit();
 	}
 </script>
-</body>
-</html>
+<%@include file="footer.jsp"%>

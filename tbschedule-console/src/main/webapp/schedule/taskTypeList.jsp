@@ -1,7 +1,7 @@
+<%@page contentType="text/html; charset=utf-8" %>
 <%@page import="com.taobao.pamirs.schedule.ConsoleManager"%>
 <%@page import="com.taobao.pamirs.schedule.taskmanager.ScheduleTaskType"%>
 <%@page import="java.util.List"%>
-<%@ page contentType="text/html; charset=GB2312" %>
 <%
 	if(ConsoleManager.isInitial() == false){
 		response.sendRedirect("config.jsp");
@@ -11,47 +11,34 @@
 <%
 	String isManager = request.getParameter("manager");
 %>
-<html>
-<head>
-<title>
-Scheduleµ÷¶È¹ÜÀí
-</title>
-<STYLE type=text/css>
-
-TH{height:20px;color:#5371BA;font-weight:bold;font-size:12px;text-align:center;border:#8CB2E3 solid;border-width:0 1 1 0;background-color:#E4EFF1;}
-TD{background-color: ;border:#8CB2E3 1px solid;border-width:0 1 1 0;font-size:12px;}
-table{border-collapse:collapse}
-</STYLE>
-
-</head>
-<body style="font-size:12px;">
+<%@include file="header.jsp"%>
 <table id="list" border="1" >
 <thead>
      <tr>
-     	<th>ĞòºÅ</th>
+     	<th>åºå·</th>
      	<%
      		if ("true".equals(isManager)) {
      	%>
-     	<th >¹ÜÀí</th>
+     	<th >ç®¡ç†</th>
 		<%
 			}
 		%>
-     	<th>ÈÎÎñÀàĞÍ</th>
-     	<th>ÈÎÎñ´¦ÀíBean</th>
-     	<th>ĞÄÌøÆµÂÊ(Ãë)</th>
-     	<th>ËÀÍö¼ä¸ô(Ãë)</th>
-     	<th>Ïß³ÌÊı</th>
-     	<th>Ã¿´Î»ñÈ¡Êı¾İÁ¿</th>
-     	<th>Ã¿´ÎÖ´ĞĞÊıÁ¿</th>
-     	<th>Ã»ÓĞÊı¾İÊ±ĞİÃßÊ±³¤(Ãë)</th>
-     	<th>´¦ÀíÄ£Ê½</th>
-     	<th>Ã¿´Î´¦ÀíÍêÊı¾İºóĞİÃßÊ±¼ä(Ãë)</th>
-    	<th>Çå³ı´¦ÀíÓòĞÅÏ¢Ê±³¤(Ğ¡Ê±)</th>
-     	<th>Ö´ĞĞ¿ªÊ¼Ê±¼ä</th>
-     	<th>Ö´ĞĞ½áÊøÊ±¼ä</th>
-     	<th>µ¥Ïß³Ì×é×î´óÈÎÎñÏî</th>
-     	<th>×Ô¶¨Òå²ÎÊı</th>
-     	<th>ÈÎÎñÏî</th>
+     	<th>ä»»åŠ¡ç±»å‹</th>
+     	<th>ä»»åŠ¡å¤„ç†Bean</th>
+     	<th>å¿ƒè·³é¢‘ç‡(ç§’)</th>
+     	<th>æ­»äº¡é—´éš”(ç§’)</th>
+     	<th>çº¿ç¨‹æ•°</th>
+     	<th>æ¯æ¬¡è·å–æ•°æ®é‡</th>
+     	<th>æ¯æ¬¡æ‰§è¡Œæ•°é‡</th>
+     	<th>æ²¡æœ‰æ•°æ®æ—¶ä¼‘çœ æ—¶é•¿(ç§’)</th>
+     	<th>å¤„ç†æ¨¡å¼</th>
+     	<th>æ¯æ¬¡å¤„ç†å®Œæ•°æ®åä¼‘çœ æ—¶é—´(ç§’)</th>
+    	<th>æ¸…é™¤å¤„ç†åŸŸä¿¡æ¯æ—¶é•¿(å°æ—¶)</th>
+     	<th>æ‰§è¡Œå¼€å§‹æ—¶é—´</th>
+     	<th>æ‰§è¡Œç»“æŸæ—¶é—´</th>
+     	<th>å•çº¿ç¨‹ç»„æœ€å¤§ä»»åŠ¡é¡¹</th>
+     	<th>è‡ªå®šä¹‰å‚æ•°</th>
+     	<th>ä»»åŠ¡é¡¹</th>
      </tr>
      </thead>
      <tbody>
@@ -76,9 +63,9 @@ table{border-collapse:collapse}
      		if ("true".equals(isManager)) {
      	%>
      	<td width="120" align="center">
-     		<a target="taskDetail" href="taskTypeEdit.jsp?taskType=<%=taskTypes.get(i).getBaseTaskType()%>"  style="color:#0000CD">±à¼­</a>
-     		<a target="taskDetail" href="taskTypeDeal.jsp?action=clearTaskType&taskType=<%=taskTypes.get(i).getBaseTaskType()%>"  style="color:#0000CD">ÇåÀí</a>
-     		<a target="taskDetail" href="javascript:void(0)" onclick="validateDel('<%=taskTypes.get(i).getBaseTaskType()%>')" style="color:#0000CD">É¾³ı</a>
+     		<a target="taskDetail" href="taskTypeEdit.jsp?taskType=<%=taskTypes.get(i).getBaseTaskType()%>"  style="color:#0000CD">ç¼–è¾‘</a>
+     		<a target="taskDetail" href="taskTypeDeal.jsp?action=clearTaskType&taskType=<%=taskTypes.get(i).getBaseTaskType()%>"  style="color:#0000CD">æ¸…ç†</a>
+     		<a target="taskDetail" href="javascript:void(0)" onclick="validateDel('<%=taskTypes.get(i).getBaseTaskType()%>')" style="color:#0000CD">åˆ é™¤</a>
      	</td>
 		<%
 			}
@@ -117,14 +104,12 @@ table{border-collapse:collapse}
 <%
 	if ("true".equals(isManager)) {
 %>
-<a target="taskDetail" href="taskTypeEdit.jsp?taskType=-1"  style="color:#0000CD">´´½¨ĞÂÈÎÎñ...</a>
+<a target="taskDetail" href="taskTypeEdit.jsp?taskType=-1"  style="color:#0000CD">åˆ›å»ºæ–°ä»»åŠ¡...</a>
 <%
 	}
 %>
-ÔËĞĞÆÚĞÅÏ¢£º<br/>
+è¿è¡ŒæœŸä¿¡æ¯ï¼š<br/>
 <iframe id="showTaskDetail" name="taskDetail"  height="80%" width="100%"></iframe>
-</body>
-</html>
 <script>
 var oldSelectRow = null;
 function openDetail(obj,baseTaskType){
@@ -141,14 +126,15 @@ if(list.rows.length >1){
 }
 
 function deleteTaskType(baseTaskType){
-	//return window.confirm("ÇëÈ·ÈÏËùÓĞµÄµ÷¶ÈÆ÷¶¼ÒÑ¾­Í£Ö¹£¬·ñÔò»áµ¼ÖÂµ÷¶ÈÆ÷Òì³££¡");
+	//return window.confirm("è¯·ç¡®è®¤æ‰€æœ‰çš„è°ƒåº¦å™¨éƒ½å·²ç»åœæ­¢ï¼Œå¦åˆ™ä¼šå¯¼è‡´è°ƒåº¦å™¨å¼‚å¸¸ï¼");
 		
 }
 
 function validateDel(str) {
-    var flag = window.confirm("È·ÈÏÉ¾³ıÈÎÎñ"+str+"?");
+    var flag = window.confirm("ç¡®è®¤åˆ é™¤ä»»åŠ¡"+str+"?");
     if(flag) {
         window.location.href="taskTypeDeal.jsp?action=deleteTaskType&taskType="+str; 
     }
 }
 </script>
+<%@include file="footer.jsp"%>

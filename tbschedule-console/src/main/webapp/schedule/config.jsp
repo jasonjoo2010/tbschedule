@@ -1,77 +1,65 @@
+<%@page contentType="text/html; charset=utf-8" %>
 <%@page import="com.taobao.pamirs.schedule.zk.ZKManager"%>
 <%@page import="java.util.Properties"%>
 <%@page import="com.taobao.pamirs.schedule.ConsoleManager"%>
 <%@page import="com.taobao.pamirs.schedule.strategy.ScheduleStrategy"%>
-<%@ page contentType="text/html; charset=GB2312" %>
 <%
 Properties  p = ConsoleManager.loadConfig();
 String error = request.getParameter("error");
 %>
-<html>
-<head>
-<STYLE type=text/css>
-
-TH{color:#5371BA;font-weight:bold;font-size:12px;background-color:#E4EFF1;display:block;}
-TD{font-size:12px;}
-
-</STYLE>
-</head>
-<body>
-<h1>»ù´¡ĞÅÏ¢ÅäÖÃ</h1>
+<%@include file="header.jsp"%>
+<h1>åŸºç¡€ä¿¡æ¯é…ç½®</h1>
 
 <%if(error != null){%>
-<div id ="error" style="font-size:18px;color:red">´íÎóĞÅÏ¢£º<%=error%></div>
+<div id ="error" style="font-size:18px;color:red">é”™è¯¯ä¿¡æ¯ï¼š<%=error%></div>
 
 <%}%>
 
 <form id="configForm" method="get" name="configForm" action="configDeal.jsp">
-<table>
+<table class="noborder">
 <tr>
-	<td>ZookeeperµØÖ·:</td>
+	<td>Zookeeperåœ°å€:</td>
 	<td><input type="text" name="zkConnectString"  value="<%=p.getProperty(ZKManager.keys.zkConnectString.toString())%>" style="width:300"></td>
-	<td>¸ñÊ½: IPµØÖ·£º¶Ë¿Ú</td>
+	<td>æ ¼å¼: IPåœ°å€ï¼šç«¯å£</td>
 </tr>
 <tr>
-	<td>Zookeeper³¬Ê±:</td>
+	<td>Zookeeperè¶…æ—¶:</td>
 	<td><input type="text" name="zkSessionTimeout" value="<%=p.getProperty(ZKManager.keys.zkSessionTimeout.toString())%>" style="width:300"></td>
-	<td>µ¥Î»ºÁÃë</td>
+	<td>å•ä½æ¯«ç§’</td>
 </tr>
 <tr>
-	<td>Zookeeper¸ùÄ¿Â¼£º</td>
+	<td>Zookeeperæ ¹ç›®å½•ï¼š</td>
 	<td><input type="text" name="rootPath" value="<%=p.getProperty(ZKManager.keys.rootPath.toString())%>" style="width:300"></td>
-	<td>ÀıÈç£º/taobao-pamirs-schedule/huijin,£¬¿ÉÒÔÊÇÒ»¼¶Ä¿Â¼£¬Ò²¿ÉÒÔÊÇ¶à¼¶Ä¿Â¼£¬×¢Òâ²»Í¬µ÷¶ÈÓò¼ä²»ÄÜÓĞ¸¸×Ó¹ØÏµ<br/>
-	    Í¨¹ıÇĞ»»´ËÊôĞÔÀ´ÊµÏÖ¶à¸öµ÷¶ÈÓòµÄ¹ÜÀí
+	<td>ä¾‹å¦‚ï¼š/taobao-pamirs-schedule/huijin,ï¼Œå¯ä»¥æ˜¯ä¸€çº§ç›®å½•ï¼Œä¹Ÿå¯ä»¥æ˜¯å¤šçº§ç›®å½•ï¼Œæ³¨æ„ä¸åŒè°ƒåº¦åŸŸé—´ä¸èƒ½æœ‰çˆ¶å­å…³ç³»<br/>
+	    é€šè¿‡åˆ‡æ¢æ­¤å±æ€§æ¥å®ç°å¤šä¸ªè°ƒåº¦åŸŸçš„ç®¡ç†
 	</td>
 </tr>
 <tr>
-	<td>ZookeeperÓÃ»§£º</td>
+	<td>Zookeeperç”¨æˆ·ï¼š</td>
 	<td><input type="text" name="userName" value="<%=p.getProperty(ZKManager.keys.userName.toString())%>" style="width:300"></td>
 	<td></td>
 </tr>
 <tr>
-	<td>ZookeeperÃÜÂë£º</td>
+	<td>Zookeeperå¯†ç ï¼š</td>
 	<td><input type="text" name="password" value="<%=p.getProperty(ZKManager.keys.password.toString())%>" style="width:300"	></td>
 	<td></td>
 </tr>
 </table>
 <br/>
-<input type="button" value="±£´æ" onclick="save();" style="width:100px" >
-<a href="index.jsp?manager=true">¹ÜÀíÖ÷Ò³...</a>
+<input type="button" value="ä¿å­˜" onclick="save();" style="width:100px" >
+<a href="index.jsp?manager=true">ç®¡ç†ä¸»é¡µ...</a>
 <br/><br/>
 <% if(ConsoleManager.isInitial() == false){%>
-<b>ÓĞ¼¸ÖÖÔ­Òòµ¼ÖÂÄãĞèÒªÅäÖÃÕâĞ©ĞÅÏ¢£º</b><br>
-&nbsp&nbsp&nbsp&nbsp 1¡¢ÄãÊÇµÚÒ»´ÎÆô¶¯<br>
-&nbsp&nbsp&nbsp&nbsp 2¡¢ÄãµÄÅäÖÃĞÅÏ¢±»É¾³ı&nbsp<b><%=ConsoleManager.configFile%></b><br>
-&nbsp&nbsp&nbsp&nbsp 3¡¢Á¬½Ó²»ÉÏÄãÅäÖÃµÄZookeeper·şÎñÆ÷<br>
+<b>æœ‰å‡ ç§åŸå› å¯¼è‡´ä½ éœ€è¦é…ç½®è¿™äº›ä¿¡æ¯ï¼š</b><br>
+&nbsp&nbsp&nbsp&nbsp 1ã€ä½ æ˜¯ç¬¬ä¸€æ¬¡å¯åŠ¨<br>
+&nbsp&nbsp&nbsp&nbsp 2ã€ä½ çš„é…ç½®ä¿¡æ¯è¢«åˆ é™¤&nbsp<b><%=ConsoleManager.configFile%></b><br>
+&nbsp&nbsp&nbsp&nbsp 3ã€è¿æ¥ä¸ä¸Šä½ é…ç½®çš„ZookeeperæœåŠ¡å™¨<br>
 <%}%>
 
 </form>
-
-</body>
-</html>
-
 <script>
 function save(){
     document.getElementById("configForm").submit();
 }
 </script>
+<%@include file="footer.jsp"%>
