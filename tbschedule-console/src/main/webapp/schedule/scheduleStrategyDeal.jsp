@@ -1,14 +1,7 @@
+<%@page contentType="text/html; charset=utf-8" %>
 <%@page import="com.taobao.pamirs.schedule.ConsoleManager"%>
 <%@page import="com.taobao.pamirs.schedule.strategy.ScheduleStrategy"%>
-<%@ page contentType="text/html; charset=GB2312" %>
-<html>
-<head>
-<title>
-´´½¨µ÷¶ÈÈÎÎñ
-</title>
-</head>
-<body bgcolor="#ffffff">
-
+<%@include file="header.jsp"%>
 <%
 	String action = (String) request.getParameter("action");
 	String result = "";
@@ -60,7 +53,7 @@
 					scheduleStrategy.getStrategyName());
 			isRefreshParent = true;
 		} else {
-			throw new Exception("²»Ö§³ÖµÄ²Ù×÷£º" + action);
+			throw new Exception("ä¸æ”¯æŒçš„æ“ä½œï¼š" + action);
 		}
 	} catch (Throwable e) {
 		e.printStackTrace();
@@ -69,8 +62,6 @@
 	}
 %>
 <%=result%>
-</body>
-</html>
 <%
 	if (isRefreshParent == true) {
 %>
@@ -80,3 +71,4 @@
 <%
 	}
 %>
+<%@include file="footer.jsp"%>
