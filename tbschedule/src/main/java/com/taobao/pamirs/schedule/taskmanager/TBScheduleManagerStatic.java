@@ -153,15 +153,15 @@ public class TBScheduleManagerStatic extends TBScheduleManager {
 	 * @throws Exception
 	 */
 	private boolean isExistZombieServ(String type,Map<String,Stat> statMap) throws Exception{
-		boolean exist =false;
-		for(String key:statMap.keySet()){
-			Stat s  = statMap.get(key);
-			if(this.scheduleCenter.getSystemTime() -s.getMtime()>  this.taskTypeInfo.getHeartBeatRate() * 40)
-			{
-				log.error("zombie serverList exists! serv="+key+" ,type="+type +"超过40次心跳周期未更新");
-				exist=true;
-			}
-		}
+        boolean exist = false;
+        for (String key : statMap.keySet()) {
+            Stat s = statMap.get(key);
+            if (this.scheduleCenter.getSystemTime() - s.getMtime() 
+                    > this.taskTypeInfo.getHeartBeatRate() * 40) {
+                log.error("zombie serverList exists! serv=" + key + " ,type=" + type + "超过40次心跳周期未更新");
+                exist = true;
+            }
+        }
 		return exist;
 		 
 	}
