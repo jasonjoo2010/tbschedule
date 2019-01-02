@@ -5,7 +5,7 @@
 	<groupId>com.taobao.pamirs.schedule</groupId>
 	<artifactId>tbschedule-parent</artifactId>
 	<packaging>pom</packaging>
-	<version>3.3.3.2</version>
+	<version>3.3.4.0</version>
 	<modules>
 		<module>tbschedule</module>
 		<module>tbschedule-console</module>
