@@ -5,37 +5,42 @@
 	<parent>
 		<groupId>com.taobao.pamirs.schedule</groupId>
 		<artifactId>tbschedule-parent</artifactId>
-		<version>3.3.3.2</version>
+		<version>3.3.4.0</version>
 	</parent>
 	<artifactId>tbschedule</artifactId>
 	<packaging>jar</packaging>
 	<dependencies>
 		<dependency>
-			<groupId>commons-lang</groupId>
-			<artifactId>commons-lang</artifactId>
-			<version>2.4</version>
-		</dependency>
-		<dependency>
-			<groupId>commons-beanutils</groupId>
-			<artifactId>commons-beanutils-core</artifactId>
-			<version>1.7.0</version>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-lang3</artifactId>
+			<version>${commons-lang3.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework</groupId>
-			<artifactId>spring</artifactId>
-			<version>2.5.6.SEC03</version>
+			<artifactId>spring-context</artifactId>
+			<version>${spring.version}</version>
 			<scope>provided</scope>
+			<exclusions>
+				<exclusion>
+					<groupId>commons-logging</groupId>
+					<artifactId>commons-logging</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>com.google.code.gson</groupId>
 			<artifactId>gson</artifactId>
-			<version>2.1</version>
+			<version>${gson.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.zookeeper</groupId>
 			<artifactId>zookeeper</artifactId>
-			<version>3.4.6</version><!--$NO-MVN-MAN-VER$ -->
+			<version>${zookeeper.version}</version>
 			<exclusions>
+				<exclusion>
+					<groupId>log4j</groupId>
+					<artifactId>log4j</artifactId>
+				</exclusion>
 				<exclusion>
 					<groupId>org.slf4j</groupId>
 					<artifactId>slf4j-log4j12</artifactId>
@@ -43,8 +48,14 @@
 			</exclusions>
 		</dependency>
 		<dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>${slf4j.version}</version>
+        </dependency>
+		<dependency>
 			<groupId>org.slf4j</groupId>
-			<artifactId>slf4j-api</artifactId>
+			<artifactId>jcl-over-slf4j</artifactId>
+			<version>${slf4j.version}</version>
 		</dependency>
 	</dependencies>
 	<build>
