@@ -1,21 +1,20 @@
 package com.taobao.pamirs.schedule.test;
 
+import javax.annotation.Resource;
+
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.unitils.UnitilsJUnit4;
-import org.unitils.spring.annotation.SpringApplicationContext;
-import org.unitils.spring.annotation.SpringBeanByName;
 
 import com.taobao.pamirs.schedule.strategy.ScheduleStrategy;
 import com.taobao.pamirs.schedule.strategy.TBScheduleManagerFactory;
 import com.taobao.pamirs.schedule.taskmanager.ScheduleTaskType;
 
-@SpringApplicationContext({ "schedule.xml" })
-public class InitialDemoConfigData extends UnitilsJUnit4 {
+
+public class InitialDemoConfigData extends AbstractTest {
 	protected static transient Logger log = LoggerFactory
 			.getLogger(InitialDemoConfigData.class);
-	@SpringBeanByName
+	@Resource
 	TBScheduleManagerFactory scheduleManagerFactory;
 
 	public void setScheduleManagerFactory(

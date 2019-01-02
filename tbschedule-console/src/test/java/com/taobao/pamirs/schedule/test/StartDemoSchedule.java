@@ -1,10 +1,9 @@
 package com.taobao.pamirs.schedule.test;
 
 
+import javax.annotation.Resource;
+
 import org.junit.Test;
-import org.unitils.UnitilsJUnit4;
-import org.unitils.spring.annotation.SpringApplicationContext;
-import org.unitils.spring.annotation.SpringBeanByName;
 
 import com.taobao.pamirs.schedule.strategy.TBScheduleManagerFactory;
 
@@ -13,9 +12,8 @@ import com.taobao.pamirs.schedule.strategy.TBScheduleManagerFactory;
  * @author xuannan
  *
  */
-@SpringApplicationContext( { "schedule.xml" })
-public class StartDemoSchedule  extends UnitilsJUnit4{
-	@SpringBeanByName
+public class StartDemoSchedule extends AbstractTest {
+	@Resource
 	TBScheduleManagerFactory scheduleManagerFactory;
 	
     public void setScheduleManagerFactory(
