@@ -390,36 +390,38 @@ class TBScheduleProcessorNotSleep<T> implements IScheduleProcessor, Runnable {
 				//log.error(e.getMessage(), e);
 			}
 		}
-	}
+    }
 
-	public void addFetchNum(long num, String addr) {
-			this.statisticsInfo.addFetchDataCount(1);
-			this.statisticsInfo.addFetchDataNum(num);
-	}
+    public void addFetchNum(long num, String addr) {
+        this.statisticsInfo.addFetchDataCount(1);
+        this.statisticsInfo.addFetchDataNum(num);
+    }
 
-	public void addSuccessNum(long num, long spendTime, String addr) {
-			this.statisticsInfo.addDealDataSucess(num);
-			this.statisticsInfo.addDealSpendTime(spendTime);
-	}
+    public void addSuccessNum(long num, long spendTime, String addr) {
+        this.statisticsInfo.addDealDataSucess(num);
+        this.statisticsInfo.addDealSpendTime(spendTime);
+    }
 
-	public void addFailNum(long num, long spendTime, String addr) {
-			this.statisticsInfo.addDealDataFail(num);
-			this.statisticsInfo.addDealSpendTime(spendTime);
-	}
-	
-    class MYComparator implements Comparator<T>{
-    	Comparator<T> comparator;
-    	public MYComparator(Comparator<T> aComparator){
-    		this.comparator = aComparator;
-    	}
+    public void addFailNum(long num, long spendTime, String addr) {
+        this.statisticsInfo.addDealDataFail(num);
+        this.statisticsInfo.addDealSpendTime(spendTime);
+    }
 
-		public int compare(T o1, T o2) {
-			statisticsInfo.addOtherCompareCount(1);
-			return this.comparator.compare(o1, o2);
-		}
-    	public  boolean equals(Object obj){
-    	 return this.comparator.equals(obj);
-    	}
+    class MYComparator implements Comparator<T> {
+        Comparator<T> comparator;
+
+        public MYComparator(Comparator<T> aComparator) {
+            this.comparator = aComparator;
+        }
+
+        public int compare(T o1, T o2) {
+            statisticsInfo.addOtherCompareCount(1);
+            return this.comparator.compare(o1, o2);
+        }
+
+        public boolean equals(Object obj) {
+            return this.comparator.equals(obj);
+        }
     }
     
 }

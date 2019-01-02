@@ -1,9 +1,9 @@
 package com.taobao.pamirs.schedule.taskmanager;
 
 import java.sql.Timestamp;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.UUID;
+
+import org.apache.commons.lang3.time.FastDateFormat;
 
 import com.taobao.pamirs.schedule.ScheduleUtil;
 
@@ -101,8 +101,8 @@ public class ScheduleServer {
 				+ "$"
 				+ (UUID.randomUUID().toString().replaceAll("-", "")
 						.toUpperCase());
-		SimpleDateFormat DATA_FORMAT_yyyyMMdd = new SimpleDateFormat("yyMMdd");
-		String s = DATA_FORMAT_yyyyMMdd.format(new Date(aScheduleCenter.getSystemTime()));
+		FastDateFormat DATA_FORMAT_yyyyMMdd = FastDateFormat.getInstance("yyMMdd");
+		String s = DATA_FORMAT_yyyyMMdd.format(aScheduleCenter.getSystemTime());
 		result.id = Long.parseLong(s) * 100000000
 				+ Math.abs(result.uuid.hashCode() % 100000000);
 		return result;

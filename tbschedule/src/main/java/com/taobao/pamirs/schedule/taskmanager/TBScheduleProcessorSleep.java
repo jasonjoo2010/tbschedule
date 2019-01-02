@@ -199,7 +199,7 @@ class TBScheduleProcessorSleep<T> implements IScheduleProcessor,Runnable {
 	          Object executeTask;
 	          while (true) {
 	            if(this.isStopSchedule == true){//停止队列调度
-	              this.m_lockObject.realseThread();
+	              this.m_lockObject.releaseThread();
 	              this.m_lockObject.notifyOtherThread();//通知所有的休眠线程
 				  synchronized (this.threadList) {			
 					  this.threadList.remove(Thread.currentThread());
@@ -261,7 +261,7 @@ class TBScheduleProcessorSleep<T> implements IScheduleProcessor,Runnable {
 	            if(logger.isTraceEnabled()){
 				   logger.trace(Thread.currentThread().getName() +"：当前运行线程数量:" +this.m_lockObject.count());
 			    }
-				if (this.m_lockObject.realseThreadButNotLast() == false) {
+				if (this.m_lockObject.releaseThreadButNotLast() == false) {
 					int size = 0;
 					Thread.currentThread().sleep(100);
 					startTime =scheduleManager.scheduleCenter.getSystemTime();
@@ -287,7 +287,7 @@ class TBScheduleProcessorSleep<T> implements IScheduleProcessor,Runnable {
 							this.m_lockObject.notifyOtherThread();
 						}
 					}
-					this.m_lockObject.realseThread();
+					this.m_lockObject.releaseThread();
 				} else {// 将当前线程放置到等待队列中。直到有线程装载到了新的任务数据
 					if(logger.isTraceEnabled()){
 						   logger.trace("不是最后一个线程，sleep");

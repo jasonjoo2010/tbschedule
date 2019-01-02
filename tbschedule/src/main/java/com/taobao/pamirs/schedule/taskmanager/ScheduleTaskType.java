@@ -109,43 +109,43 @@ public class ScheduleTaskType implements java.io.Serializable {
     public static String STS_PAUSE="pause";
     public static String STS_RESUME="resume";
     
-    public static String[] splitTaskItem(String str){
-    	List<String> list = new ArrayList<String>();
-		int start = 0;
-		int index = 0;
-    	while(index < str.length()){
-    		if(str.charAt(index)==':'){
-    			index = str.indexOf('}', index) + 1;
-    			list.add(str.substring(start,index).trim());
-    			while(index <str.length()){
-    				if(str.charAt(index) ==' '){
-    					index = index +1;
-    				}else{
-    					break;
-    				}
-    			}
-    			index = index + 1; //跳过逗号
-    			start = index;
-    		}else if(str.charAt(index)==','){
-    			list.add(str.substring(start,index).trim());
-    			while(index <str.length()){
-    				if(str.charAt(index) ==' '){
-    					index = index +1;
-    				}else{
-    					break;
-    				}
-    			}
-    			index = index + 1; //跳过逗号
-    			start = index;
-    		}else{
-    			index = index + 1;
-    		}
-    	}
-    	if(start < str.length()){
-    		list.add(str.substring(start).trim());
-    	}
-    	return (String[]) list.toArray(new String[0]);
-     }
+    public static String[] splitTaskItem(String str) {
+        List<String> list = new ArrayList<String>();
+        int start = 0;
+        int index = 0;
+        while (index < str.length()) {
+            if (str.charAt(index) == ':') {
+                index = str.indexOf('}', index) + 1;
+                list.add(str.substring(start, index).trim());
+                while (index < str.length()) {
+                    if (str.charAt(index) == ' ') {
+                        index = index + 1;
+                    } else {
+                        break;
+                    }
+                }
+                index = index + 1; // 跳过逗号
+                start = index;
+            } else if (str.charAt(index) == ',') {
+                list.add(str.substring(start, index).trim());
+                while (index < str.length()) {
+                    if (str.charAt(index) == ' ') {
+                        index = index + 1;
+                    } else {
+                        break;
+                    }
+                }
+                index = index + 1; // 跳过逗号
+                start = index;
+            } else {
+                index = index + 1;
+            }
+        }
+        if (start < str.length()) {
+            list.add(str.substring(start).trim());
+        }
+        return (String[]) list.toArray(new String[0]);
+    }
     
 	public long getVersion() {
 		return version;
@@ -225,75 +225,85 @@ public class ScheduleTaskType implements java.io.Serializable {
 
 	public void setProcessorType(String processorType) {
 		this.processorType = processorType;
-	}
+    }
 
-	public void setPermitRunStartTime(String permitRunStartTime) {
-		this.permitRunStartTime = permitRunStartTime;
-		if(this.permitRunStartTime != null && this.permitRunStartTime.trim().length() ==0){
-			this.permitRunStartTime = null;
-		}	
-	}
+    public void setPermitRunStartTime(String permitRunStartTime) {
+        this.permitRunStartTime = permitRunStartTime;
+        if (this.permitRunStartTime != null && this.permitRunStartTime.trim().length() == 0) {
+            this.permitRunStartTime = null;
+        }
+    }
 
-	public String getPermitRunEndTime() {
-		return permitRunEndTime;
-	}
+    public String getPermitRunEndTime() {
+        return permitRunEndTime;
+    }
 
-	public double getExpireOwnSignInterval() {
-		return expireOwnSignInterval;
-	}
-	public void setExpireOwnSignInterval(double expireOwnSignInterval) {
-		this.expireOwnSignInterval = expireOwnSignInterval;
-	}
-	
-	public String getDealBeanName() {
-		return dealBeanName;
-	}
-	public void setDealBeanName(String dealBeanName) {
-		this.dealBeanName = dealBeanName;
-	}
-	public void setPermitRunEndTime(String permitRunEndTime) {
-		this.permitRunEndTime = permitRunEndTime;
-		if(this.permitRunEndTime != null && this.permitRunEndTime.trim().length() ==0){
-			this.permitRunEndTime = null;
-		}	
+    public double getExpireOwnSignInterval() {
+        return expireOwnSignInterval;
+    }
 
-	}
+    public void setExpireOwnSignInterval(double expireOwnSignInterval) {
+        this.expireOwnSignInterval = expireOwnSignInterval;
+    }
 
-	public String toString() {
-		return ToStringBuilder.reflectionToString(this);
-	}
-	public void setTaskItems(String[] aTaskItems) {
-		this.taskItems = aTaskItems;
-	}
-	public String[] getTaskItems() {
-		return taskItems;
-	}
-	public void setSts(String sts) {
-		this.sts = sts;
-	}
-	public String getSts() {
-		return sts;
-	}
-	public void setTaskKind(String taskKind) {
-		this.taskKind = taskKind;
-	}
-	public String getTaskKind() {
-		return taskKind;
-	}
-	public void setTaskParameter(String taskParameter) {
-		this.taskParameter = taskParameter;
-	}
-	public String getTaskParameter() {
-		return taskParameter;
-	}
+    public String getDealBeanName() {
+        return dealBeanName;
+    }
 
-	public int getMaxTaskItemsOfOneThreadGroup() {
-		return maxTaskItemsOfOneThreadGroup;
-	}
+    public void setDealBeanName(String dealBeanName) {
+        this.dealBeanName = dealBeanName;
+    }
 
-	public void setMaxTaskItemsOfOneThreadGroup(int maxTaskItemsOfOneThreadGroup) {
-		this.maxTaskItemsOfOneThreadGroup = maxTaskItemsOfOneThreadGroup;
-	}
-	
+    public void setPermitRunEndTime(String permitRunEndTime) {
+        this.permitRunEndTime = permitRunEndTime;
+        if (this.permitRunEndTime != null && this.permitRunEndTime.trim().length() == 0) {
+            this.permitRunEndTime = null;
+        }
+
+    }
+
+    public String toString() {
+        return ToStringBuilder.reflectionToString(this);
+    }
+
+    public void setTaskItems(String[] aTaskItems) {
+        this.taskItems = aTaskItems;
+    }
+
+    public String[] getTaskItems() {
+        return taskItems;
+    }
+
+    public void setSts(String sts) {
+        this.sts = sts;
+    }
+
+    public String getSts() {
+        return sts;
+    }
+
+    public void setTaskKind(String taskKind) {
+        this.taskKind = taskKind;
+    }
+
+    public String getTaskKind() {
+        return taskKind;
+    }
+
+    public void setTaskParameter(String taskParameter) {
+        this.taskParameter = taskParameter;
+    }
+
+    public String getTaskParameter() {
+        return taskParameter;
+    }
+
+    public int getMaxTaskItemsOfOneThreadGroup() {
+        return maxTaskItemsOfOneThreadGroup;
+    }
+
+    public void setMaxTaskItemsOfOneThreadGroup(int maxTaskItemsOfOneThreadGroup) {
+        this.maxTaskItemsOfOneThreadGroup = maxTaskItemsOfOneThreadGroup;
+    }
 	
 }

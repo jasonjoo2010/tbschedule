@@ -18,9 +18,6 @@ import com.taobao.pamirs.schedule.TaskItemDefine;
 import com.taobao.pamirs.schedule.strategy.IStrategyTask;
 import com.taobao.pamirs.schedule.strategy.TBScheduleManagerFactory;
 
-
-
-
 /**
  * 1、任务调度分配器的目标：	让所有的任务不重复，不遗漏的被快速处理。
  * 2、一个Manager只管理一种任务类型的一组工作线程。
@@ -105,37 +102,38 @@ abstract class TBScheduleManager implements IStrategyTask {
     
     TBScheduleManagerFactory factory;
 	TBScheduleManager(TBScheduleManagerFactory aFactory,String baseTaskType,String ownSign ,IScheduleDataManager aScheduleCenter) throws Exception{
-		this.factory = aFactory;
-		this.currentSerialNumber = serialNumber();
-		this.scheduleCenter = aScheduleCenter;
-		this.taskTypeInfo = this.scheduleCenter.loadTaskTypeBaseInfo(baseTaskType);
-    	log.info("create TBScheduleManager for taskType:"+baseTaskType);
+        this.factory = aFactory;
+        this.currentSerialNumber = serialNumber();
+        this.scheduleCenter = aScheduleCenter;
+        this.taskTypeInfo = this.scheduleCenter.loadTaskTypeBaseInfo(baseTaskType);
+        log.info("create TBScheduleManager for taskType:" + baseTaskType);
 		//清除已经过期1天的TASK,OWN_SIGN的组合。超过一天没有活动server的视为过期
 		this.scheduleCenter.clearExpireTaskTypeRunningInfo(baseTaskType,ScheduleUtil.getLocalIP() + "清除过期OWN_SIGN信息",this.taskTypeInfo.getExpireOwnSignInterval());
-		
-		Object dealBean = aFactory.getBean(this.taskTypeInfo.getDealBeanName());
-		if (dealBean == null) {
-			throw new Exception( "SpringBean " + this.taskTypeInfo.getDealBeanName() + " 不存在");
-		}
-		if (dealBean instanceof IScheduleTaskDeal == false) {
-			throw new Exception( "SpringBean " + this.taskTypeInfo.getDealBeanName() + " 没有实现 IScheduleTaskDeal接口");
-		}
-    	this.taskDealBean = (IScheduleTaskDeal)dealBean;
+
+        Object dealBean = aFactory.getBean(this.taskTypeInfo.getDealBeanName());
+        if (dealBean == null) {
+            throw new Exception("SpringBean " + this.taskTypeInfo.getDealBeanName() + " 不存在");
+        }
+        if (dealBean instanceof IScheduleTaskDeal == false) {
+            throw new Exception("SpringBean " + this.taskTypeInfo.getDealBeanName() + " 没有实现 IScheduleTaskDeal接口");
+        }
+        this.taskDealBean = (IScheduleTaskDeal) dealBean;
 
     	if(this.taskTypeInfo.getJudgeDeadInterval() < this.taskTypeInfo.getHeartBeatRate() * 5){
     		throw new Exception("数据配置存在问题，死亡的时间间隔，至少要大于心跳线程的5倍。当前配置数据：JudgeDeadInterval = "
     				+ this.taskTypeInfo.getJudgeDeadInterval() 
     				+ ",HeartBeatRate = " + this.taskTypeInfo.getHeartBeatRate());
-    	}
-    	this.currenScheduleServer = ScheduleServer.createScheduleServer(this.scheduleCenter,baseTaskType,ownSign,this.taskTypeInfo.getThreadNumber());
-    	this.currenScheduleServer.setManagerFactoryUUID(this.factory.getUuid());
-    	scheduleCenter.registerScheduleServer(this.currenScheduleServer);
-    	this.mBeanName = "pamirs:name=" + "schedule.ServerMananger." +this.currenScheduleServer.getUuid();
-    	this.heartBeatTimer = new Timer(this.currenScheduleServer.getTaskType() +"-" + this.currentSerialNumber +"-HeartBeat");
-    	this.heartBeatTimer.schedule(new HeartBeatTimerTask(this),
-                new java.util.Date(System.currentTimeMillis() + 500),
+        }
+        this.currenScheduleServer = ScheduleServer.createScheduleServer(this.scheduleCenter, baseTaskType, ownSign,
+                this.taskTypeInfo.getThreadNumber());
+        this.currenScheduleServer.setManagerFactoryUUID(this.factory.getUuid());
+        scheduleCenter.registerScheduleServer(this.currenScheduleServer);
+        this.mBeanName = "pamirs:name=" + "schedule.ServerMananger." + this.currenScheduleServer.getUuid();
+        this.heartBeatTimer = new Timer(
+                this.currenScheduleServer.getTaskType() + "-" + this.currentSerialNumber + "-HeartBeat");
+        this.heartBeatTimer.schedule(new HeartBeatTimerTask(this), new java.util.Date(System.currentTimeMillis() + 500),
                 this.taskTypeInfo.getHeartBeatRate());
-    	initial();
+        initial();
 	}  
 	/**
 	 * 对象创建时需要做的初始化工作
@@ -254,237 +252,252 @@ abstract class TBScheduleManager implements IStrategyTask {
 				}
 			}
     	}
-    	if(isRunNow == true){
-    		this.resume("开启服务立即启动");
-    	}
-    	this.rewriteScheduleInfo();
-    	
+        if (isRunNow == true) {
+            this.resume("开启服务立即启动");
+        }
+        this.rewriteScheduleInfo();
+
     }
 	/**
 	 * 当Process没有获取到数据的时候调用，决定是否暂时停止服务器
 	 * @throws Exception
 	 */
-	public boolean isContinueWhenData() throws Exception{
-		if(isPauseWhenNoData() == true){
-			this.pause("没有数据,暂停调度");
-			return false;
-		}else{
-			return true;
-		}
-	}
-	public boolean isPauseWhenNoData(){
-		//如果还没有分配到任务队列则不能退出
-		if(this.currentTaskItemList.size() >0 && this.taskTypeInfo.getPermitRunStartTime() != null){
-			if(this.taskTypeInfo.getPermitRunEndTime() == null
-		       || this.taskTypeInfo.getPermitRunEndTime().equals("-1")){
-				return true;
-			}else{
-				return false;
-			}
-		}else{
-			return false;
-		}
-	}	
+    public boolean isContinueWhenData() throws Exception {
+        if (isPauseWhenNoData() == true) {
+            this.pause("没有数据,暂停调度");
+            return false;
+        } else {
+            return true;
+        }
+    }
+
+    public boolean isPauseWhenNoData() {
+        // 如果还没有分配到任务队列则不能退出
+        if (this.currentTaskItemList.size() > 0 && this.taskTypeInfo.getPermitRunStartTime() != null) {
+            if (this.taskTypeInfo.getPermitRunEndTime() == null
+                    || this.taskTypeInfo.getPermitRunEndTime().equals("-1")) {
+                return true;
+            } else {
+                return false;
+            }
+        } else {
+            return false;
+        }
+    }
+
 	/**
 	 * 超过运行的运行时间，暂时停止调度
 	 * @throws Exception 
 	 */
-	public void pause(String message) throws Exception{
-		if (this.isPauseSchedule == false) {
-			this.isPauseSchedule = true;
-			this.pauseMessage = message;
-			if (log.isDebugEnabled()) {
-				log.debug("暂停调度 ：" + this.currenScheduleServer.getUuid()+":" + this.statisticsInfo.getDealDescription());
-			}
-			if (this.processor != null) {
-				this.processor.stopSchedule();
-			}
-			rewriteScheduleInfo();
-		}
-	}
+    public void pause(String message) throws Exception {
+        if (this.isPauseSchedule == false) {
+            this.isPauseSchedule = true;
+            this.pauseMessage = message;
+            if (log.isDebugEnabled()) {
+                log.debug("暂停调度 ：" + this.currenScheduleServer.getUuid() + ":"
+                        + this.statisticsInfo.getDealDescription());
+            }
+            if (this.processor != null) {
+                this.processor.stopSchedule();
+            }
+            rewriteScheduleInfo();
+        }
+    }
 	/**
 	 * 处在了可执行的时间区间，恢复运行
 	 * @throws Exception 
 	 */
-	public void resume(String message) throws Exception{
-		if (this.isPauseSchedule == true) {
-			if(log.isDebugEnabled()){
-				log.debug("恢复调度:" + this.currenScheduleServer.getUuid());
-			}
-			this.isPauseSchedule = false;
-			this.pauseMessage = message;
-			if (this.taskDealBean != null) {
-				if (this.taskTypeInfo.getProcessorType() != null &&
-					this.taskTypeInfo.getProcessorType().equalsIgnoreCase("NOTSLEEP")==true){
-					this.taskTypeInfo.setProcessorType("NOTSLEEP");
-					this.processor = new TBScheduleProcessorNotSleep(this,
-							taskDealBean,this.statisticsInfo);
-				}else{
-					this.processor = new TBScheduleProcessorSleep(this,
-							taskDealBean,this.statisticsInfo);
-					this.taskTypeInfo.setProcessorType("SLEEP");
-				}
-			}
-			rewriteScheduleInfo();
-		}
-	}	
+    public void resume(String message) throws Exception {
+        if (this.isPauseSchedule == true) {
+            if (log.isDebugEnabled()) {
+                log.debug("恢复调度:" + this.currenScheduleServer.getUuid());
+            }
+            this.isPauseSchedule = false;
+            this.pauseMessage = message;
+            if (this.taskDealBean != null) {
+                if (this.taskTypeInfo.getProcessorType() != null
+                        && this.taskTypeInfo.getProcessorType().equalsIgnoreCase("NOTSLEEP") == true) {
+                    this.taskTypeInfo.setProcessorType("NOTSLEEP");
+                    this.processor = new TBScheduleProcessorNotSleep(this, taskDealBean, this.statisticsInfo);
+                } else {
+                    this.processor = new TBScheduleProcessorSleep(this, taskDealBean, this.statisticsInfo);
+                    this.taskTypeInfo.setProcessorType("SLEEP");
+                }
+            }
+            rewriteScheduleInfo();
+        }
+    }
+
 	/**
 	 * 当服务器停止的时候，调用此方法清除所有未处理任务，清除服务器的注册信息。
 	 * 也可能是控制中心发起的终止指令。
 	 * 需要注意的是，这个方法必须在当前任务处理完毕后才能执行
+	 * 
 	 * @throws Exception 
 	 */
-	public void stop(String strategyName) throws Exception{
-		if(log.isInfoEnabled()){
-			log.info("停止服务器 ：" + this.currenScheduleServer.getUuid());
-		}
-		this.isPauseSchedule = false;
-		if (this.processor != null) {
-			this.processor.stopSchedule();
-		} else {
-			this.unRegisterScheduleServer();
-		}
-	}
+    public void stop(String strategyName) throws Exception {
+        if (log.isInfoEnabled()) {
+            log.info("停止服务器 ：" + this.currenScheduleServer.getUuid());
+        }
+        this.isPauseSchedule = false;
+        if (this.processor != null) {
+            this.processor.stopSchedule();
+        } else {
+            this.unRegisterScheduleServer();
+        }
+    }
 	
 	/**
-	 * 只应该在Processor中调用
-	 * @throws Exception
-	 */
-	protected void unRegisterScheduleServer() throws Exception{
-		registerLock.lock();
-		try {
-			if (this.processor != null) {
-				this.processor = null;
-			}
-			if (this.isPauseSchedule == true) {
-				// 是暂停调度，不注销Manager自己
-				return;
-			}
-			if (log.isDebugEnabled()) {
-				log.debug("注销服务器 ：" + this.currenScheduleServer.getUuid());
-			}
-			this.isStopSchedule = true;
-			// 取消心跳TIMER
-			this.heartBeatTimer.cancel();
-			// 从配置中心注销自己
-			this.scheduleCenter.unRegisterScheduleServer(
-					this.currenScheduleServer.getTaskType(),
-					this.currenScheduleServer.getUuid());
-		} finally {
-			registerLock.unlock();
-		}
-	}
-	public ScheduleTaskType getTaskTypeInfo() {
-		return taskTypeInfo;
-	}	
-	
-	
-	public StatisticsInfo getStatisticsInfo() {
-		return statisticsInfo;
-	}
-	/**
-	 * 打印给定任务类型的任务分配情况
-	 * @param taskType
-	 */
-	public void printScheduleServerInfo(String taskType){
-		
-	}
-	public ScheduleServer getScheduleServer(){
-		return this.currenScheduleServer;
-	}
-	public String getmBeanName() {
-		return mBeanName;
-	}
+     * 只应该在Processor中调用
+     * 
+     * @throws Exception
+     */
+    protected void unRegisterScheduleServer() throws Exception {
+        registerLock.lock();
+        try {
+            if (this.processor != null) {
+                this.processor = null;
+            }
+            if (this.isPauseSchedule == true) {
+                // 是暂停调度，不注销Manager自己
+                return;
+            }
+            if (log.isDebugEnabled()) {
+                log.debug("注销服务器 ：" + this.currenScheduleServer.getUuid());
+            }
+            this.isStopSchedule = true;
+            // 取消心跳TIMER
+            this.heartBeatTimer.cancel();
+            // 从配置中心注销自己
+            this.scheduleCenter.unRegisterScheduleServer(this.currenScheduleServer.getTaskType(),
+                    this.currenScheduleServer.getUuid());
+        } finally {
+            registerLock.unlock();
+        }
+    }
+
+    public ScheduleTaskType getTaskTypeInfo() {
+        return taskTypeInfo;
+    }
+
+    public StatisticsInfo getStatisticsInfo() {
+        return statisticsInfo;
+    }
+
+    /**
+     * 打印给定任务类型的任务分配情况
+     * 
+     * @param taskType
+     */
+    public void printScheduleServerInfo(String taskType) {
+
+    }
+
+    public ScheduleServer getScheduleServer() {
+        return this.currenScheduleServer;
+    }
+
+    public String getmBeanName() {
+        return mBeanName;
+    }
 }
 
 class HeartBeatTimerTask extends java.util.TimerTask {
-	private static transient Logger log = LoggerFactory
-			.getLogger(HeartBeatTimerTask.class);
-	TBScheduleManager manager;
+    private static transient Logger log = LoggerFactory.getLogger(HeartBeatTimerTask.class);
+    TBScheduleManager manager;
 
-	public HeartBeatTimerTask(TBScheduleManager aManager) {
-		manager = aManager;
-	}
+    public HeartBeatTimerTask(TBScheduleManager aManager) {
+        manager = aManager;
+    }
 
-	public void run() {
-		try {
-			Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
-			manager.refreshScheduleServerInfo();
-		} catch (Exception ex) {
-			log.error(ex.getMessage(), ex);
-		}
-	}
+    public void run() {
+        try {
+            Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
+            manager.refreshScheduleServerInfo();
+        } catch (Exception ex) {
+            log.error(ex.getMessage(), ex);
+        }
+    }
 }
 
 class PauseOrResumeScheduleTask extends java.util.TimerTask {
 	private static transient Logger log = LoggerFactory
 			.getLogger(HeartBeatTimerTask.class);
-	public static int TYPE_PAUSE  = 1;
-	public static int TYPE_RESUME = 2;	
-	TBScheduleManager manager;
-	Timer timer;
-	int type;
-	String cronTabExpress;
-	public PauseOrResumeScheduleTask(TBScheduleManager aManager,Timer aTimer,int aType,String aCronTabExpress) {
-		this.manager = aManager;
-		this.timer = aTimer;
-		this.type = aType;
-		this.cronTabExpress = aCronTabExpress;
-	}
-	public void run() {
-		try {
-			Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
-			this.cancel();//取消调度任务
-			Date current = new Date(System.currentTimeMillis());
-			CronExpression cexp = new CronExpression(this.cronTabExpress);
-			Date nextTime = cexp.getNextValidTimeAfter(current);
-			if(this.type == TYPE_PAUSE){
-				manager.pause("到达终止时间,pause调度");
-				this.manager.getScheduleServer().setNextRunEndTime(ScheduleUtil.transferDataToString(nextTime));
-			}else{
-				manager.resume("到达开始时间,resume调度");
-				this.manager.getScheduleServer().setNextRunStartTime(ScheduleUtil.transferDataToString(nextTime));
-			}
-			this.timer.schedule(new PauseOrResumeScheduleTask(this.manager,this.timer,this.type,this.cronTabExpress) , nextTime);
-		} catch (Throwable ex) {
-			log.error(ex.getMessage(), ex);
-		}
-	}
+    public static int TYPE_PAUSE = 1;
+    public static int TYPE_RESUME = 2;
+    TBScheduleManager manager;
+    Timer timer;
+    int type;
+    String cronTabExpress;
+
+    public PauseOrResumeScheduleTask(TBScheduleManager aManager, Timer aTimer, int aType, String aCronTabExpress) {
+        this.manager = aManager;
+        this.timer = aTimer;
+        this.type = aType;
+        this.cronTabExpress = aCronTabExpress;
+    }
+
+    public void run() {
+        try {
+            Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
+            this.cancel();// 取消调度任务
+            Date current = new Date(System.currentTimeMillis());
+            CronExpression cexp = new CronExpression(this.cronTabExpress);
+            Date nextTime = cexp.getNextValidTimeAfter(current);
+            if (this.type == TYPE_PAUSE) {
+                manager.pause("到达终止时间,pause调度");
+                this.manager.getScheduleServer().setNextRunEndTime(ScheduleUtil.transferDataToString(nextTime));
+            } else {
+                manager.resume("到达开始时间,resume调度");
+                this.manager.getScheduleServer().setNextRunStartTime(ScheduleUtil.transferDataToString(nextTime));
+            }
+            this.timer.schedule(new PauseOrResumeScheduleTask(this.manager, this.timer, this.type, this.cronTabExpress),
+                    nextTime);
+        } catch (Throwable ex) {
+            log.error(ex.getMessage(), ex);
+        }
+    }
 }
 
-class StatisticsInfo{
+class StatisticsInfo {
 	private AtomicLong fetchDataNum = new AtomicLong(0);//读取次数
 	private AtomicLong fetchDataCount = new AtomicLong(0);//读取的数据量
 	private AtomicLong dealDataSucess = new AtomicLong(0);//处理成功的数据量
 	private AtomicLong dealDataFail = new AtomicLong(0);//处理失败的数据量
 	private AtomicLong dealSpendTime = new AtomicLong(0);//处理总耗时,没有做同步，可能存在一定的误差
 	private AtomicLong otherCompareCount = new AtomicLong(0);//特殊比较的次数
-	
-	public void addFetchDataNum(long value){
-		this.fetchDataNum.addAndGet(value);
-	}
-	public void addFetchDataCount(long value){
-		this.fetchDataCount.addAndGet(value);
-	}
-	public void addDealDataSucess(long value){
-		this.dealDataSucess.addAndGet(value);
-	}
-	public void addDealDataFail(long value){
-		this.dealDataFail.addAndGet(value);
-	}
-	public void addDealSpendTime(long value){
-		this.dealSpendTime.addAndGet(value);
-	}
-	public void addOtherCompareCount(long value){
-		this.otherCompareCount.addAndGet(value);
-	}
+
+    public void addFetchDataNum(long value) {
+        this.fetchDataNum.addAndGet(value);
+    }
+
+    public void addFetchDataCount(long value) {
+        this.fetchDataCount.addAndGet(value);
+    }
+
+    public void addDealDataSucess(long value) {
+        this.dealDataSucess.addAndGet(value);
+    }
+
+    public void addDealDataFail(long value) {
+        this.dealDataFail.addAndGet(value);
+    }
+
+    public void addDealSpendTime(long value) {
+        this.dealSpendTime.addAndGet(value);
+    }
+
+    public void addOtherCompareCount(long value) {
+        this.otherCompareCount.addAndGet(value);
+    }
     public String getDealDescription(){
-    	return "FetchDataCount=" + this.fetchDataCount 
-    	  +",FetchDataNum=" + this.fetchDataNum
-    	  +",DealDataSucess=" + this.dealDataSucess
-    	  +",DealDataFail=" + this.dealDataFail
-    	  +",DealSpendTime=" + this.dealSpendTime
-    	  +",otherCompareCount=" + this.otherCompareCount;    	  
+        return new StringBuilder("FetchDataCount=").append(this.fetchDataCount)
+                .append(",FetchDataNum=").append(this.fetchDataNum)
+                .append(",DealDataSucess=").append(this.dealDataSucess)
+                .append(",DealDataFail=").append(this.dealDataFail)
+                .append(",DealSpendTime=").append(this.dealSpendTime)
+                .append(",otherCompareCount=").append(this.otherCompareCount)
+                .toString();  
     }
 
 }

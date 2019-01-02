@@ -5,13 +5,12 @@ import java.net.InterfaceAddress;
 import java.net.NetworkInterface;
 import java.net.ServerSocket;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.Date;
 import java.util.Enumeration;
 import java.util.List;
+
+import org.apache.commons.lang3.time.FastDateFormat;
 
 
 /**
@@ -20,7 +19,7 @@ import java.util.List;
  *
  */
 public class ScheduleUtil {
-	public static String OWN_SIGN_BASE ="BASE";
+	private static final String OWN_SIGN_BASE ="BASE";
 
 	public static String getLocalHostName() {
 		try {
@@ -55,40 +54,44 @@ public class ScheduleUtil {
 		} catch (Exception e) {
 			return "";
 		}
-	}
-	
-	public static String transferDataToString(Date d){
-		SimpleDateFormat DATA_FORMAT_yyyyMMddHHmmss = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+    }
+
+    public static String transferDataToString(Date d) {
+        FastDateFormat DATA_FORMAT_yyyyMMddHHmmss = FastDateFormat.getInstance("yyyy-MM-dd HH:mm:ss");
         return DATA_FORMAT_yyyyMMddHHmmss.format(d);
-	}
-	public static Date transferStringToDate(String d) throws ParseException{
-		SimpleDateFormat DATA_FORMAT_yyyyMMddHHmmss = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        return DATA_FORMAT_yyyyMMddHHmmss.parse(d);
-	}
-	public static Date transferStringToDate(String d,String formate) throws ParseException{
-		SimpleDateFormat FORMAT = new SimpleDateFormat(formate);
+    }
+
+    public static Date transferStringToDate(String d) throws ParseException {
+        return transferStringToDate(d, "yyyy-MM-dd HH:mm:ss");
+    }
+
+    public static Date transferStringToDate(String d, String formatString) throws ParseException {
+        FastDateFormat FORMAT = FastDateFormat.getInstance(formatString);
         return FORMAT.parse(d);
-	}
-	public static String getTaskTypeByBaseAndOwnSign(String baseType,String ownSign){
-		if(ownSign.equals(OWN_SIGN_BASE) == true){
-			return baseType;
-		}
-		return baseType+"$" + ownSign;
-	}
-	public static String splitBaseTaskTypeFromTaskType(String taskType){
-		 if(taskType.indexOf("$") >=0){
-			 return taskType.substring(0,taskType.indexOf("$"));
-		 }else{
-			 return taskType;
-		 }
-		 
-	}
-	public static String splitOwnsignFromTaskType(String taskType){
-		 if(taskType.indexOf("$") >=0){
-			 return taskType.substring(taskType.indexOf("$")+1);
-		 }else{
-			 return OWN_SIGN_BASE;
-		 }
+    }
+
+    public static String getTaskTypeByBaseAndOwnSign(String baseType, String ownSign) {
+        if (ownSign.equals(OWN_SIGN_BASE) == true) {
+            return baseType;
+        }
+        return baseType + "$" + ownSign;
+    }
+
+    public static String splitBaseTaskTypeFromTaskType(String taskType) {
+        if (taskType.indexOf("$") >= 0) {
+            return taskType.substring(0, taskType.indexOf("$"));
+        } else {
+            return taskType;
+        }
+
+    }
+
+    public static String splitOwnsignFromTaskType(String taskType) {
+        if (taskType.indexOf("$") >= 0) {
+            return taskType.substring(taskType.indexOf("$") + 1);
+        } else {
+            return OWN_SIGN_BASE;
+        }
 	}	
 	
 	/**
@@ -118,17 +121,7 @@ public class ScheduleUtil {
 		}
 		return taskNums;
 	}
-	private static String printArray(int[] items){
-        StringBuffer s = new StringBuffer();
-        for (int i = 0; i < items.length; i++) {
-            if (i > 0) {
-                s.append(",");
-            }
-            s.append(items[i]);
-        }
-        return s.toString();
-	}
-	
+    
 	/**
 	 * XXX 这里的实现依然有问题，多有效端口时会有问题，暂先排个序，优先取有效的lan地址
 	 * XXX 另外考虑这里是否加入缓存
@@ -175,38 +168,5 @@ public class ScheduleUtil {
 	        e.printStackTrace();
 	    }
 	    return null;
-	}
-	public static void main(String[] args) {
-	    System.out.println(getLocalHostName());
-	    System.out.println(getLocalIP());
-		System.out.println(printArray(assignTaskNumber(1,10,0)));
-		System.out.println(printArray(assignTaskNumber(2,10,0)));
-		System.out.println(printArray(assignTaskNumber(3,10,0)));
-		System.out.println(printArray(assignTaskNumber(4,10,0)));
-		System.out.println(printArray(assignTaskNumber(5,10,0)));
-		System.out.println(printArray(assignTaskNumber(6,10,0)));
-		System.out.println(printArray(assignTaskNumber(7,10,0)));
-		System.out.println(printArray(assignTaskNumber(8,10,0)));
-		System.out.println(printArray(assignTaskNumber(9,10,0)));
-		System.out.println(printArray(assignTaskNumber(10,10,0)));
-		System.out.println(printArray(assignTaskNumber(10,1,0)));
-		System.out.println(printArray(assignTaskNumber(10,1,0)));
-		System.out.println(printArray(assignTaskNumber(10,1,0)));
-		System.out.println(printArray(assignTaskNumber(10,1,0)));
-		System.out.println(printArray(assignTaskNumber(10,1,0)));
-		
-		System.out.println("-----------------");
-		
-		System.out.println(printArray(assignTaskNumber(1,10,3)));
-		System.out.println(printArray(assignTaskNumber(2,10,3)));
-		System.out.println(printArray(assignTaskNumber(3,10,3)));
-		System.out.println(printArray(assignTaskNumber(4,10,3)));
-		System.out.println(printArray(assignTaskNumber(5,10,3)));
-		System.out.println(printArray(assignTaskNumber(6,10,3)));
-		System.out.println(printArray(assignTaskNumber(7,10,3)));
-		System.out.println(printArray(assignTaskNumber(8,10,3)));
-		System.out.println(printArray(assignTaskNumber(9,10,3)));
-		System.out.println(printArray(assignTaskNumber(10,10,3)));
-		
 	}
 }

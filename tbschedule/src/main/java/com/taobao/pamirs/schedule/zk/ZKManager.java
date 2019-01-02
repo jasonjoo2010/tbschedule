@@ -108,12 +108,12 @@ public class ZKManager{
 	}
 	public static Properties createProperties(){
 		Properties result = new Properties();
-		result.setProperty(keys.zkConnectString.toString(),"localhost:2181");
-		result.setProperty(keys.rootPath.toString(),"/taobao-pamirs-schedule/huijin");
-		result.setProperty(keys.userName.toString(),"ScheduleAdmin");
-		result.setProperty(keys.password.toString(),"password");
-		result.setProperty(keys.zkSessionTimeout.toString(),"60000");
-		result.setProperty(keys.isCheckParentPath.toString(),"true");
+        result.setProperty(keys.zkConnectString.toString(), "localhost:2181");
+        result.setProperty(keys.rootPath.toString(), "/taobao-pamirs-schedule/huijin");
+        result.setProperty(keys.userName.toString(), "ScheduleAdmin");
+        result.setProperty(keys.password.toString(), "password");
+        result.setProperty(keys.zkSessionTimeout.toString(), "60000");
+        result.setProperty(keys.isCheckParentPath.toString(), "true");
 		
 		return result;
 	}
@@ -137,19 +137,20 @@ public class ZKManager{
 			zk.setData(this.getRootPath(),Version.getVersion().getBytes(),-1);
 		}else{
 			//先校验父亲节点，本身是否已经是schedule的目录
-			if(isCheckParentPath == true){
-			   checkParent(zk,this.getRootPath());
-			}
-			byte[] value = zk.getData(this.getRootPath(), false, null);
-			if(value == null){
-				zk.setData(this.getRootPath(),Version.getVersion().getBytes(),-1);
-			}else{
-				String dataVersion = new String(value);
-				if(Version.isCompatible(dataVersion)==false){
-					throw new Exception("TBSchedule程序版本 "+ Version.getVersion() +" 不兼容Zookeeper中的数据版本 " + dataVersion );
-				}
-				log.info("当前的程序版本:" + Version.getVersion() + " 数据版本: " + dataVersion);
-			}
+            if (isCheckParentPath == true) {
+                checkParent(zk, this.getRootPath());
+            }
+            byte[] value = zk.getData(this.getRootPath(), false, null);
+            if (value == null) {
+                zk.setData(this.getRootPath(), Version.getVersion().getBytes(), -1);
+            } else {
+                String dataVersion = new String(value);
+                if (Version.isCompatible(dataVersion) == false) {
+                    throw new Exception(
+                            "TBSchedule程序版本 " + Version.getVersion() + " 不兼容Zookeeper中的数据版本 " + dataVersion);
+                }
+                log.info("当前的程序版本:" + Version.getVersion() + " 数据版本: " + dataVersion);
+            }
 		}
 	}
 	public static void checkParent(ZooKeeper zk, String path) throws Exception {

@@ -1,37 +1,37 @@
 package com.taobao.pamirs.schedule.taskmanager;
 
 class LockObject {
-	private int m_threadCount = 0;
-	private Object m_waitOnObject = new Object();
+	private int threadCount = 0;
+	private Object waitOnObject = new Object();
 
 	public LockObject() {
 	}
 
 	public void waitCurrentThread() throws Exception {
-		synchronized (m_waitOnObject) {
+		synchronized (waitOnObject) {
 			// System.out.println(Thread.currentThread().getName() + ":" +
 			// "休眠当前线程");
-			this.m_waitOnObject.wait();
+			this.waitOnObject.wait();
 		}
 	}
 
 	public void notifyOtherThread() throws Exception {
-		synchronized (m_waitOnObject) {
+		synchronized (waitOnObject) {
 			// System.out.println(Thread.currentThread().getName() + ":" +
 			// "唤醒所有等待线程");
-			this.m_waitOnObject.notifyAll();
+			this.waitOnObject.notifyAll();
 		}
 	}
 
 	public void addThread() {
 		synchronized (this) {
-			m_threadCount = m_threadCount + 1;
+			threadCount = threadCount + 1;
 		}
 	}
 
-	public void realseThread() {
+	public void releaseThread() {
 		synchronized (this) {
-			m_threadCount = m_threadCount - 1;
+			threadCount = threadCount - 1;
 		}
 	}
 
@@ -40,12 +40,12 @@ class LockObject {
 	 * 
 	 * @return boolean
 	 */
-	public boolean realseThreadButNotLast() {
+	public boolean releaseThreadButNotLast() {
 		synchronized (this) {
-			if (this.m_threadCount == 1) {
+			if (this.threadCount == 1) {
 				return false;
 			} else {
-				m_threadCount = m_threadCount - 1;
+				threadCount = threadCount - 1;
 				return true;
 			}
 		}
@@ -53,7 +53,7 @@ class LockObject {
 
 	public int count() {
 		synchronized (this) {
-			return m_threadCount;
+			return threadCount;
 		}
 	}
 }

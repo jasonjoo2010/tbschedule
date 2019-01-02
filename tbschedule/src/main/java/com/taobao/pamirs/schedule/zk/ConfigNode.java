@@ -8,63 +8,59 @@ package com.taobao.pamirs.schedule.zk;
  * @version 1.0
  */
 public class ConfigNode {
+    private String rootPath;
+    private String configType;
+    private String name;
+    private String value;
+    
+    public ConfigNode() {
+    }
 
-	private String rootPath;
+    public ConfigNode(String rootPath, String configType, String name) {
+        this.rootPath = rootPath;
+        this.configType = configType;
+        this.name = name;
+    }
 
-	private String configType;
+    public String getRootPath() {
+        return rootPath;
+    }
 
-	private String name;
+    public void setRootPath(String rootPath) {
+        this.rootPath = rootPath;
+    }
 
-	private String value;
+    public String getConfigType() {
+        return configType;
+    }
 
-	public ConfigNode() {
+    public void setConfigType(String configType) {
+        this.configType = configType;
+    }
 
-	}
+    public String getName() {
+        return name;
+    }
 
-	public ConfigNode(String rootPath, String configType, String name) {
-		this.rootPath = rootPath;
-		this.configType = configType;
-		this.name = name;
-	}
+    public void setName(String name) {
+        this.name = name;
+    }
 
-	public String getRootPath() {
-		return rootPath;
-	}
+    public String getValue() {
+        return value;
+    }
 
-	public void setRootPath(String rootPath) {
-		this.rootPath = rootPath;
-	}
+    public void setValue(String value) {
+        this.value = value;
+    }
 
-	public String getConfigType() {
-		return configType;
-	}
-
-	public void setConfigType(String configType) {
-		this.configType = configType;
-	}
-
-	public String getName() {
-		return name;
-	}
-
-	public void setName(String name) {
-		this.name = name;
-	}
-
-	public String getValue() {
-		return value;
-	}
-
-	public void setValue(String value) {
-		this.value = value;
-	}
-
-	public String toString() {
-		StringBuffer buffer = new StringBuffer();
-		buffer.append("配置根目录：").append(rootPath).append("\n");
-		buffer.append("配置类型：").append(configType).append("\n");
-		buffer.append("任务名称：").append(name).append("\n");
-		buffer.append("配置的值：").append(value).append("\n");
-		return buffer.toString();
-	}
+    @Override
+    public String toString() {
+        StringBuffer buffer = new StringBuffer();
+        buffer.append("配置根目录：").append(rootPath).append("\n");
+        buffer.append("配置类型：").append(configType).append("\n");
+        buffer.append("任务名称：").append(name).append("\n");
+        buffer.append("配置的值：").append(value).append("\n");
+        return buffer.toString();
+    }
 }

@@ -2,8 +2,6 @@ package com.taobao.pamirs.schedule.zk;
 
 import java.lang.reflect.Type;
 import java.sql.Timestamp;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -16,6 +14,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.time.FastDateFormat;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.ZooKeeper;
@@ -949,29 +948,30 @@ class ScheduleServerComparator implements Comparator<ScheduleServer>{
 		return result;
 	}
 }
-class TimestampTypeAdapter implements JsonSerializer<Timestamp>, JsonDeserializer<Timestamp>{   
-    public JsonElement serialize(Timestamp src, Type arg1, JsonSerializationContext arg2) {   
-    	DateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");   
-        String dateFormatAsString = format.format(new Date(src.getTime()));   
-        return new JsonPrimitive(dateFormatAsString);   
-    }   
-  
-    public Timestamp deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {   
-        if (!(json instanceof JsonPrimitive)) {   
-            throw new JsonParseException("The date should be a string value");   
-        }   
-  
-        try {   
-        	DateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");   
-            Date date = (Date) format.parse(json.getAsString());   
-            return new Timestamp(date.getTime());   
-        } catch (Exception e) {   
-            throw new JsonParseException(e);   
-        }   
-    }   
 
-}  
+class TimestampTypeAdapter implements JsonSerializer<Timestamp>, JsonDeserializer<Timestamp> {
+    private static final String FORMAT = "yyyy-MM-dd HH:mm:ss";
+    
+    public JsonElement serialize(Timestamp src, Type arg1, JsonSerializationContext arg2) {
+        FastDateFormat format = FastDateFormat.getInstance(FORMAT);
+        String dateFormatAsString = format.format(src.getTime());
+        return new JsonPrimitive(dateFormatAsString);
+    }
 
+    public Timestamp deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context)
+            throws JsonParseException {
+        if (!(json instanceof JsonPrimitive)) {
+            throw new JsonParseException("The date should be a string value");
+        }
 
+        try {
+            FastDateFormat format = FastDateFormat.getInstance(FORMAT);
+            Date date = (Date) format.parse(json.getAsString());
+            return new Timestamp(date.getTime());
+        } catch (Exception e) {
+            throw new JsonParseException(e);
+        }
+    }
 
+}
  

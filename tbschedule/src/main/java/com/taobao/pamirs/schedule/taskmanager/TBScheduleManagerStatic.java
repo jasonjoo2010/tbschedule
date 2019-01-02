@@ -21,19 +21,22 @@ public class TBScheduleManagerStatic extends TBScheduleManager {
     
     private final Object NeedReloadTaskItemLock = new Object();
 
-	public TBScheduleManagerStatic(TBScheduleManagerFactory aFactory,
-			String baseTaskType, String ownSign,IScheduleDataManager aScheduleCenter) throws Exception {
-		super(aFactory, baseTaskType, ownSign, aScheduleCenter);
-	}
-	public void initialRunningInfo() throws Exception{
-		scheduleCenter.clearExpireScheduleServer(this.currenScheduleServer.getTaskType(),this.taskTypeInfo.getJudgeDeadInterval());
-		List<String> list = scheduleCenter.loadScheduleServerNames(this.currenScheduleServer.getTaskType());
-		if(scheduleCenter.isLeader(this.currenScheduleServer.getUuid(),list)){
-	    	//是第一次启动，先清楚所有的垃圾数据
-			log.debug(this.currenScheduleServer.getUuid() + ":" + list.size());
-	    	this.scheduleCenter.initialRunningInfo4Static(this.currenScheduleServer.getBaseTaskType(), this.currenScheduleServer.getOwnSign(),this.currenScheduleServer.getUuid());
-	    }
-	 }
+    public TBScheduleManagerStatic(TBScheduleManagerFactory aFactory, String baseTaskType, String ownSign,
+            IScheduleDataManager aScheduleCenter) throws Exception {
+        super(aFactory, baseTaskType, ownSign, aScheduleCenter);
+    }
+
+    public void initialRunningInfo() throws Exception {
+        scheduleCenter.clearExpireScheduleServer(this.currenScheduleServer.getTaskType(),
+                this.taskTypeInfo.getJudgeDeadInterval());
+        List<String> list = scheduleCenter.loadScheduleServerNames(this.currenScheduleServer.getTaskType());
+        if (scheduleCenter.isLeader(this.currenScheduleServer.getUuid(), list)) {
+            // 是第一次启动，先清楚所有的垃圾数据
+            log.debug(this.currenScheduleServer.getUuid() + ":" + list.size());
+            this.scheduleCenter.initialRunningInfo4Static(this.currenScheduleServer.getBaseTaskType(),
+                    this.currenScheduleServer.getOwnSign(), this.currenScheduleServer.getUuid());
+        }
+    }
 	public void initial() throws Exception{
     	new Thread(this.currenScheduleServer.getTaskType()  +"-" + this.currentSerialNumber +"-StartProcess"){
     		@SuppressWarnings("static-access")

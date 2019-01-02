@@ -20,50 +20,51 @@ public class ScheduleWatcher implements Watcher {
 		manager.getZooKeeper().getChildren(path, true);
 		route.put(path,watcher);
 	}
-	public void process(WatchedEvent event) {
-		if(log.isInfoEnabled()){
-			log.info("已经触发了" + event.getType() + ":"+ event.getState() + "事件！" + event.getPath());
-		}
-		if(event.getType() == Event.EventType.NodeChildrenChanged){
-			String path = event.getPath();
-			Watcher watcher = route.get(path);
-			  if( watcher != null ){
-				  try{
-					  watcher.process(event);
-				  }finally{
-					  try{
-						  if(manager.getZooKeeper().exists(path,null) != null){
-							  manager.getZooKeeper().getChildren(path, true);
-						  }
-					  }catch(Exception e){
-						  log.error(path +":" + e.getMessage(),e);
-					  }
-				  }
-			  }else{
-				  log.info("已经触发了" + event.getType() + ":"+ event.getState() + "事件！" + event.getPath());
-			  }
-		}else if(event.getState()== KeeperState.AuthFailed){
-			log.info("tb_hj_schedule zk status =KeeperState.AuthFailed！");
-		}else if(event.getState()== KeeperState.ConnectedReadOnly){
-			log.info("tb_hj_schedule zk status =KeeperState.ConnectedReadOnly！");
-		}else if(event.getState()== KeeperState.Disconnected){
-			log.info("tb_hj_schedule zk status =KeeperState.Disconnected！");
-			try {
-				manager.reConnection();
-			} catch (Exception e) {
-				log.error(e.getMessage(),e);
-			}
-		}else if (event.getState()== KeeperState.SaslAuthenticated){
-			log.info("tb_hj_schedule zk status =KeeperState.SaslAuthenticated！");
-		}else if (event.getState() == KeeperState.SyncConnected) {
-			log.info("收到ZK连接成功事件！");
-		} else if (event.getState() == KeeperState.Expired) {
-			log.error("会话超时，等待重新建立ZK连接...");
-			try {
-				manager.reConnection();
-			} catch (Exception e) {
-				log.error(e.getMessage(),e);
-			}
-		}
+
+    public void process(WatchedEvent event) {
+        if (log.isInfoEnabled()) {
+            log.info("已经触发了{}:{}事件！{}", event.getType(), event.getState(), event.getPath());
+        }
+        if (event.getType() == Event.EventType.NodeChildrenChanged) {
+            String path = event.getPath();
+            Watcher watcher = route.get(path);
+            if (watcher != null) {
+                try {
+                    watcher.process(event);
+                } finally {
+                    try {
+                        if (manager.getZooKeeper().exists(path, null) != null) {
+                            manager.getZooKeeper().getChildren(path, true);
+                        }
+                    } catch (Exception e) {
+                        log.error("{}: {}", path, e.getMessage(), e);
+                    }
+                }
+            } else {
+                log.info("已经触发了{}:{}事件！{}", event.getType(), event.getState(), event.getPath());
+            }
+        } else if (event.getState() == KeeperState.AuthFailed) {
+            log.info("tb_hj_schedule zk status =KeeperState.AuthFailed！");
+        } else if (event.getState() == KeeperState.ConnectedReadOnly) {
+            log.info("tb_hj_schedule zk status =KeeperState.ConnectedReadOnly！");
+        } else if (event.getState() == KeeperState.Disconnected) {
+            log.info("tb_hj_schedule zk status =KeeperState.Disconnected！");
+            try {
+                manager.reConnection();
+            } catch (Exception e) {
+                log.error(e.getMessage(), e);
+            }
+        } else if (event.getState() == KeeperState.SaslAuthenticated) {
+            log.info("tb_hj_schedule zk status = KeeperState.SaslAuthenticated！");
+        } else if (event.getState() == KeeperState.SyncConnected) {
+            log.info("收到ZK连接成功事件！");
+        } else if (event.getState() == KeeperState.Expired) {
+            log.error("会话超时，等待重新建立ZK连接...");
+            try {
+                manager.reConnection();
+            } catch (Exception e) {
+                log.error(e.getMessage(), e);
+            }
+        }
 	}
 }
