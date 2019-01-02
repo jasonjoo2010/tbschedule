@@ -20,6 +20,6 @@ pom.xml：
 ```
 <groupId>com.taobao.pamirs.schedule</groupId>
 <artifactId>tbschedule</artifactId>
-<version>3.3.3.2</version>
+<version>3.3.4.0</version>
 ```
 
