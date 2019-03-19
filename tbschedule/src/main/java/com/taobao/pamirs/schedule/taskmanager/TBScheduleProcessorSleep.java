@@ -143,6 +143,22 @@ class TBScheduleProcessorSleep<T> implements IScheduleProcessor,Runnable {
 	public boolean isSleeping(){
     	return this.isSleeping;
     }
+	
+	private void sleep(long millis) {
+	    try {
+    	    while (millis > 0 && !isStopSchedule) {
+    	        if (millis >= 2000) {
+    	            Thread.sleep(2000);
+    	            millis -= 2000;
+    	        } else {
+    	            Thread.sleep(millis);
+    	            millis = 0;
+    	        }
+    	    }
+	    } catch (InterruptedException e) {
+        }
+	}
+	
 	protected int loadScheduleData() {
 		try {
            //在每次数据处理完毕后休眠固定的时间
@@ -151,7 +167,7 @@ class TBScheduleProcessorSleep<T> implements IScheduleProcessor,Runnable {
 					logger.trace("处理完一批数据后休眠：" + this.taskTypeInfo.getSleepTimeInterval());
 				}
 				this.isSleeping = true;
-			    Thread.sleep(taskTypeInfo.getSleepTimeInterval());
+			    sleep(taskTypeInfo.getSleepTimeInterval());
 			    this.isSleeping = false;
 			    
 				if(logger.isTraceEnabled()){
@@ -276,7 +292,7 @@ class TBScheduleProcessorSleep<T> implements IScheduleProcessor,Runnable {
 								   logger.trace("没有装载到数据，start sleep");
 							}
 							this.isSleeping = true;
-						    Thread.currentThread().sleep(this.scheduleManager.getTaskTypeInfo().getSleepTimeNoData());
+						    sleep(this.scheduleManager.getTaskTypeInfo().getSleepTimeNoData());
 						    this.isSleeping = false;
 						    
 						    if(logger.isTraceEnabled()){
