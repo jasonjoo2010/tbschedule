@@ -1,0 +1,3 @@
+# Tooling related information for the beans namespace
+http\://www.dayima.org/schema/schedule@name=schedule Namespace
+http\://www.dayima.org/schema/schedule@prefix=schedule
