@@ -16,13 +16,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
 
 import com.google.common.base.Preconditions;
-import com.google.common.base.Strings;
 import com.google.common.io.CharStreams;
-import com.google.common.io.LineProcessor;
 import com.taobao.pamirs.schedule.ConsoleManager;
 import com.taobao.pamirs.schedule.zk.ZKManager;
 import com.yoloho.common.support.MsgBean;
@@ -177,5 +176,27 @@ public class ConfigController {
             return msgBean.failure(e.getMessage()).returnMsg();
         }
         return msgBean.returnMsg();
+    }
+    
+    @RequestMapping("/dump")
+    public ModelAndView dump(
+            @RequestParam(required = false) String path,
+            HttpServletResponse response) throws Exception {
+        if (ConsoleManager.isInitial() == false) {
+            response.sendRedirect("config");
+            return null;
+        }
+        if (StringUtils.isEmpty(path)) {
+            path = ConsoleManager.getScheduleStrategyManager().getRootPath();
+        }
+        ModelAndView mav = new ModelAndView("config/dump");
+        StringWriter writer = new StringWriter();
+        try {
+            ConsoleManager.getScheduleStrategyManager().printTree(path, writer, "<br/>");
+            mav.addObject("data", writer.getBuffer().toString());
+        } finally {
+            writer.close();
+        }
+        return mav;
     }
 }

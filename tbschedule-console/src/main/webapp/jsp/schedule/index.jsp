@@ -18,7 +18,7 @@
 
 <c:if test="${isManager }">
 	<a class="naviLink" target="content" href="/config/modify">Zookeeper</a>
-	<a class="naviLink" target="content" href="zookeeperData">RAW Data</a>
+	<a class="naviLink" target="content" href="/config/dump">RAW Data</a>
 	<a class="naviLink" target="content" href="/config/export">Export</a>
 	<a class="naviLink" target="content" href="/config/import">Import</a>
 </c:if>

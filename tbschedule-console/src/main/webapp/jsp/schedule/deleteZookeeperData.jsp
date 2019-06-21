@@ -1,3 +1,4 @@
+<!-- This file is deprecated, remained from old structure -->
 <%@page contentType="text/html; charset=utf-8" %>
 <%@page import="java.io.StringWriter"%>
 <%@page import="com.taobao.pamirs.schedule.ConsoleManager"%>
