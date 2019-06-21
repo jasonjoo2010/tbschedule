@@ -19,8 +19,8 @@
 <c:if test="${isManager }">
 	<a class="naviLink" target="content" href="/config/modify">Zookeeper</a>
 	<a class="naviLink" target="content" href="zookeeperData">RAW Data</a>
-	<a class="naviLink" target="content" href="exportConfig">Export</a>
-	<a class="naviLink" target="content" href="importConfig">Import</a>
+	<a class="naviLink" target="content" href="/config/export">Export</a>
+	<a class="naviLink" target="content" href="/config/import">Import</a>
 </c:if>
 <iframe id="frameContent" name="content" FRAMEBORDER="0"  height="85%" width="100%" src=""></iframe>
 <script>

@@ -1,8 +1,12 @@
 package com.taobao.pamirs.schedule.console.controller;
 
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.Map;
 import java.util.Properties;
+
+import javax.servlet.http.HttpServletResponse;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,7 +25,7 @@ import com.yoloho.common.support.MsgBean;
 public class ConfigController {
     private static final Logger logger = LoggerFactory.getLogger(ConfigController.class.getSimpleName());
     
-    @RequestMapping({ "/modify" })
+    @RequestMapping("/modify")
     public ModelAndView index() throws Exception {
         ModelAndView mav = new ModelAndView("config/modify");
         mav.addObject("isInitial", ConsoleManager.isInitial());
@@ -39,7 +43,7 @@ public class ConfigController {
         return mav;
     }
 
-    @RequestMapping({ "/save" })
+    @RequestMapping("/save")
     @ResponseBody
     public Map<String, Object> save(
             String address, 
@@ -73,5 +77,61 @@ public class ConfigController {
             return msgBean.failure(e.getMessage()).returnMsg();
         }
         return msgBean.returnMsg();
+    }
+    
+    @RequestMapping("/export")
+    public ModelAndView export(HttpServletResponse response) throws Exception {
+        if (ConsoleManager.isInitial() == false) {
+            response.sendRedirect("config");
+            return null;
+        }
+        String rootPath = ConsoleManager.getScheduleStrategyManager().getRootPath();
+        ModelAndView mav = new ModelAndView("config/export");
+        mav.addObject("rootPath", rootPath);
+        return mav;
+    }
+    
+    @RequestMapping("/exportToJSON")
+    @ResponseBody
+    public Map<String, Object> exportData(boolean download, HttpServletResponse response) throws Exception {
+        MsgBean msgBean = new MsgBean();
+        String rootPath = ConsoleManager.getScheduleStrategyManager().getRootPath();
+        StringWriter confWriter = new StringWriter();
+        try {
+            StringBuffer buffer = null;
+            if (rootPath != null && rootPath.length() > 0) {
+                buffer = ConsoleManager.getScheduleStrategyManager()
+                        .exportConfig(rootPath, confWriter);
+            } else {
+                return msgBean.failure("No rootPath configured").returnMsg();
+            }
+            // Download
+            if (download) {
+                // 导出进行保存
+                if (buffer != null) {
+                    response.setContentType("text/plain;charset=GBK");
+                    response.setHeader("Content-disposition",
+                            "attachment; filename=config.txt");
+                    PrintWriter out_ = response.getWriter();
+                    out_.print(buffer.toString());
+                    out_.close();
+                }
+                return null;
+            } else {
+                msgBean.put("configData", confWriter.toString());
+            }
+        } catch (Exception e) {
+            logger.error("Export configuration erorr", e);
+            return msgBean.failure(e.getMessage()).returnMsg();
+        } finally {
+            confWriter.close();
+        }
+        return msgBean.returnMsg();
+    }
+    
+    @RequestMapping("/exportToFile")
+    public ModelAndView exportToFile() throws Exception {
+        String rootPath = ConsoleManager.getScheduleStrategyManager().getRootPath();
+        return null;
     }
 }
