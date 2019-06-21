@@ -2,12 +2,16 @@ package com.taobao.pamirs.schedule.console.controller;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.io.StringReader;
 import java.io.StringWriter;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
@@ -16,6 +20,9 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
 
 import com.google.common.base.Preconditions;
+import com.google.common.base.Strings;
+import com.google.common.io.CharStreams;
+import com.google.common.io.LineProcessor;
 import com.taobao.pamirs.schedule.ConsoleManager;
 import com.taobao.pamirs.schedule.zk.ZKManager;
 import com.yoloho.common.support.MsgBean;
@@ -129,9 +136,46 @@ public class ConfigController {
         return msgBean.returnMsg();
     }
     
-    @RequestMapping("/exportToFile")
-    public ModelAndView exportToFile() throws Exception {
-        String rootPath = ConsoleManager.getScheduleStrategyManager().getRootPath();
-        return null;
+    @RequestMapping("/import")
+    public ModelAndView importConfig(HttpServletResponse response) throws Exception {
+        if (ConsoleManager.isInitial() == false) {
+            response.sendRedirect("config");
+            return null;
+        }
+        ModelAndView mav = new ModelAndView("config/import");
+        return mav;
+    }
+    
+    @RequestMapping("/importSave")
+    @ResponseBody
+    public Map<String, Object> importSave(String content, boolean force) {
+        MsgBean msgBean = new MsgBean();
+        if (StringUtils.isEmpty(content)) {
+            return msgBean.failure("Config content is empty").returnMsg();
+        }
+        StringWriter writer = new StringWriter();
+        try {
+            List<String> lines = CharStreams.readLines(new StringReader(content));
+            Iterator<String> it = lines.iterator();
+            String line;
+            while (it.hasNext()) {
+                line = it.next();
+                if (StringUtils.isEmpty(line)) {
+                    logger.info("Ignore empty line");
+                    continue;
+                }
+                if (line.contains("strategy")
+                        || line.contains("baseTaskType")) {
+                    ConsoleManager.getScheduleStrategyManager()
+                            .importConfig(line, writer, force);
+                } else {
+                    logger.warn("Unrecognized configuration: {}", line);
+                }
+            }
+        } catch (Exception e) {
+            logger.error("Import configuration error", e);
+            return msgBean.failure(e.getMessage()).returnMsg();
+        }
+        return msgBean.returnMsg();
     }
 }

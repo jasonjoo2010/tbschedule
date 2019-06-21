@@ -6,11 +6,9 @@
 rootPath: <input type="text" name="rootPath" value="${rootPath }" style="width:330px;" />
 <input type="button" onclick="viewConfig();" value="View" />
 <input type="button" onclick="saveConfig();" value="Export" />
-<pre>
-</pre>
-<h3>
-</h3>
-<script>
+<pre></pre>
+<h3 style="color: red"></h3>
+<script type="text/javascript">
 function viewConfig() {
 	$.getJSON('exportToJSON', function(data) {
 	    if (data.errno == 0) {
