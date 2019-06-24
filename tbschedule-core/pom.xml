@@ -3,9 +3,9 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
-		<groupId>com.yoloho</groupId>
+		<groupId>com.yoloho.schedule</groupId>
 		<artifactId>tbschedule-parent</artifactId>
-		<version>4.0.0</version>
+		<version>${revision}</version>
 	</parent>
 	<artifactId>tbschedule-core</artifactId>
     <name>tbschedule-core</name>
@@ -14,9 +14,8 @@
         <!-- enhanced related -->
         <!-- needed by AbstractRedis* -->
         <dependency>
-            <groupId>com.yoloho</groupId>
+            <groupId>com.yoloho.data</groupId>
             <artifactId>enhanced-data-cache</artifactId>
-            <version>1.0.0</version>
             <scope>provided</scope>
         </dependency>
         <!-- commons -->
@@ -58,16 +57,4 @@
             <scope>test</scope>
 		</dependency>
 	</dependencies>
-	<build>
-		<plugins>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-compiler-plugin</artifactId>
-				<configuration>
-					<source>1.7</source>
-					<target>1.7</target>
-				</configuration>
-			</plugin>
-		</plugins>
-	</build>
 </project>

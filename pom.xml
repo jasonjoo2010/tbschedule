@@ -4,13 +4,17 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
     <parent>
-        <groupId>com.yoloho</groupId>
+        <groupId>com.yoloho.parent</groupId>
         <artifactId>enhanced-parent</artifactId>
         <version>1.0.0</version>
     </parent>
+    <groupId>com.yoloho.schedule</groupId>
 	<artifactId>tbschedule-parent</artifactId>
 	<packaging>pom</packaging>
-	<version>4.0.0</version>
+	<version>${revision}</version>
+    <properties>
+        <revision>4.0.0</revision>
+    </properties>
 	<modules>
 		<module>tbschedule-core</module>
 		<module>tbschedule-console</module>
@@ -19,12 +23,7 @@
     <dependencyManagement>
         <dependencies>
             <dependency>
-                <groupId>com.yoloho</groupId>
-                <artifactId>enhanced-data-cache</artifactId>
-                <version>1.0.0</version>
-            </dependency>
-            <dependency>
-                <groupId>com.yoloho</groupId>
+                <groupId>com.yoloho.schedule</groupId>
                 <artifactId>tbschedule-core</artifactId>
                 <version>${project.version}</version>
             </dependency>
@@ -40,18 +39,6 @@
                     <target>1.7</target>
                 </configuration>
             </plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-source-plugin</artifactId>
-				<executions>
-					<execution>
-						<phase>verify</phase>
-						<goals>
-							<goal>jar-no-fork</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
 		</plugins>
 	</build>
 </project>

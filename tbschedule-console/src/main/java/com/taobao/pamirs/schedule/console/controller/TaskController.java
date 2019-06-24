@@ -3,7 +3,6 @@ package com.taobao.pamirs.schedule.console.controller;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletResponse;
@@ -17,13 +16,11 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
 
-import com.google.common.base.Preconditions;
 import com.taobao.pamirs.schedule.ConsoleManager;
 import com.taobao.pamirs.schedule.taskmanager.ScheduleServer;
 import com.taobao.pamirs.schedule.taskmanager.ScheduleTaskItem;
 import com.taobao.pamirs.schedule.taskmanager.ScheduleTaskType;
 import com.taobao.pamirs.schedule.taskmanager.ScheduleTaskTypeRunningInfo;
-import com.taobao.pamirs.schedule.zk.ZKManager;
 import com.yoloho.common.support.MsgBean;
 
 @Controller
