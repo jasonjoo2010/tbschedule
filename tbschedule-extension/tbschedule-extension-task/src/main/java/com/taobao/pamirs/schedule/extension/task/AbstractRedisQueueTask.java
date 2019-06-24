@@ -13,9 +13,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
-import com.yoloho.common.annotation.NonNull;
-import com.yoloho.data.cache.lock.DistributedLock;
-import com.yoloho.data.cache.redis.api.RedisService;
+import com.yoloho.enhanced.common.annotation.NonNull;
+import com.yoloho.enhanced.data.cache.lock.DistributedLock;
+import com.yoloho.enhanced.data.cache.redis.api.RedisService;
 
 /**
  * 任务的抽象类，提供以redis为队列的简单抽象<br>

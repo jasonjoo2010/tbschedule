@@ -21,7 +21,7 @@ import com.taobao.pamirs.schedule.taskmanager.ScheduleServer;
 import com.taobao.pamirs.schedule.taskmanager.ScheduleTaskItem;
 import com.taobao.pamirs.schedule.taskmanager.ScheduleTaskType;
 import com.taobao.pamirs.schedule.taskmanager.ScheduleTaskTypeRunningInfo;
-import com.yoloho.common.support.MsgBean;
+import com.yoloho.enhanced.common.support.MsgBean;
 
 @Controller
 @RequestMapping("/task")

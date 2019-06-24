@@ -5,7 +5,7 @@ import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.view.InternalResourceViewResolver;
 import org.springframework.web.servlet.view.JstlView;
 
-import com.yoloho.spring.xml.BaseWebMvcConfigurer;
+import com.yoloho.enhanced.spring.xml.BaseWebMvcConfigurer;
 
 public class Web extends BaseWebMvcConfigurer {
 

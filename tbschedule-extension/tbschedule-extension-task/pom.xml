@@ -12,9 +12,8 @@
 	<packaging>jar</packaging>
 	<dependencies>
         <!-- enhanced related -->
-        <!-- needed by AbstractRedis* -->
         <dependency>
-            <groupId>com.yoloho.data</groupId>
+            <groupId>com.yoloho.enhanced.data</groupId>
             <artifactId>enhanced-data-cache</artifactId>
         </dependency>
         <!-- tbschedule -->

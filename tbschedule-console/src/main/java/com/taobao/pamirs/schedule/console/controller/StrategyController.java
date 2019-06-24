@@ -16,8 +16,8 @@ import com.taobao.pamirs.schedule.ConsoleManager;
 import com.taobao.pamirs.schedule.console.vo.StrategyVo;
 import com.taobao.pamirs.schedule.strategy.ScheduleStrategy;
 import com.taobao.pamirs.schedule.strategy.ScheduleStrategyRunntime;
-import com.yoloho.common.support.MsgBean;
-import com.yoloho.common.util.JoinerSplitters;
+import com.yoloho.enhanced.common.support.MsgBean;
+import com.yoloho.enhanced.common.util.JoinerSplitters;
 
 @Controller
 @RequestMapping("/strategy")

@@ -24,7 +24,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.io.CharStreams;
 import com.taobao.pamirs.schedule.ConsoleManager;
 import com.taobao.pamirs.schedule.zk.ZKManager;
-import com.yoloho.common.support.MsgBean;
+import com.yoloho.enhanced.common.support.MsgBean;
 
 @Controller
 @RequestMapping("/config")

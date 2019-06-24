@@ -11,13 +11,6 @@
     <name>tbschedule-core</name>
 	<packaging>jar</packaging>
 	<dependencies>
-        <!-- enhanced related -->
-        <!-- needed by AbstractRedis* -->
-        <dependency>
-            <groupId>com.yoloho.data</groupId>
-            <artifactId>enhanced-data-cache</artifactId>
-            <scope>provided</scope>
-        </dependency>
         <!-- commons -->
 		<dependency>
 			<groupId>org.apache.commons</groupId>

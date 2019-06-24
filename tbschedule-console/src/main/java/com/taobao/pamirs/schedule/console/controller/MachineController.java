@@ -10,7 +10,7 @@ import org.springframework.web.servlet.ModelAndView;
 
 import com.taobao.pamirs.schedule.ConsoleManager;
 import com.taobao.pamirs.schedule.strategy.ManagerFactoryInfo;
-import com.yoloho.common.support.MsgBean;
+import com.yoloho.enhanced.common.support.MsgBean;
 
 @Controller
 @RequestMapping("/machine")

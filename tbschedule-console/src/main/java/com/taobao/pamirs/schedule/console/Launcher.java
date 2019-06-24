@@ -6,7 +6,7 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Import;
 
 import com.taobao.pamirs.schedule.ConsoleManager;
-import com.yoloho.spring.annotation.InitDefaults;
+import com.yoloho.enhanced.spring.annotation.InitDefaults;
 
 @InitDefaults(
         projectName = "tbschedule-console"

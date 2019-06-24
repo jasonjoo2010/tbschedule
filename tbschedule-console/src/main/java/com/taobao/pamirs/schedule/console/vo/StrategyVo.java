@@ -4,8 +4,8 @@ import org.apache.commons.lang3.StringUtils;
 
 import com.taobao.pamirs.schedule.strategy.ScheduleStrategy;
 import com.taobao.pamirs.schedule.strategy.ScheduleStrategy.Kind;
-import com.yoloho.common.util.BeansUtil;
-import com.yoloho.common.util.JoinerSplitters;
+import com.yoloho.enhanced.common.util.BeansUtil;
+import com.yoloho.enhanced.common.util.JoinerSplitters;
 
 public class StrategyVo {
     private String name;
