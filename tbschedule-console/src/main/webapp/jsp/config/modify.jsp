@@ -9,7 +9,7 @@
 </div>
 </c:if>
 <h1>基础信息配置</h1>
-<form id="configForm" method="get" name="configForm" action="configDeal">
+<form id="configForm" method="get" name="configForm" action="save">
 <table class="noborder">
 <tr>
 	<td>Zookeeper地址:</td>
@@ -58,7 +58,9 @@ $(function() {
         dataType: 'json',
         success: function(data) {
             if (data.errno == 0) {
-                document.location.href = 'index?manager=true';
+                setTimeout(function() {
+                	document.location.href = '/strategy/index?manager=true';
+                }, 1000);
             } else {
                 alert(data.errdesc);
             }

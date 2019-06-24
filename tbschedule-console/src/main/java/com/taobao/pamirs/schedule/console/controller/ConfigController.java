@@ -69,7 +69,8 @@ public class ConfigController {
             ConsoleManager.saveConfigInfo(p);
             int waitCount = 5;
             while (waitCount >= 0) {
-                if (ConsoleManager.getScheduleManagerFactory().getZkManager().checkZookeeperState()) {
+                if (ConsoleManager.getScheduleManagerFactory().getZkManager().checkZookeeperState() 
+                        && ConsoleManager.isInitial()) {
                     break;
                 }
                 Thread.sleep(1000);
