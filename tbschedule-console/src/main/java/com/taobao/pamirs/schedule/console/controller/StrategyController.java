@@ -5,6 +5,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import javax.servlet.http.HttpServletResponse;
+
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -24,8 +26,19 @@ import com.yoloho.enhanced.common.util.JoinerSplitters;
 public class StrategyController {
     
     @RequestMapping("/index")
-    public ModelAndView index() throws Exception {
+    public ModelAndView index(HttpServletResponse response) throws Exception {
         ModelAndView mav = new ModelAndView("strategy/index");
+        if (ConsoleManager.isInitial() == false) {
+            response.sendRedirect("/config/modify");
+            return null;
+        }
+        try {
+            ConsoleManager.getScheduleStrategyManager();
+        } catch (Exception e) {
+            // This should be more elegant.
+            response.sendRedirect("/config/modify");
+            return null;
+        }
         List<ScheduleStrategy> scheduleStrategyList = ConsoleManager.getScheduleStrategyManager()
                 .loadAllScheduleStrategy();
         mav.addObject("strategyList", scheduleStrategyList.stream()
