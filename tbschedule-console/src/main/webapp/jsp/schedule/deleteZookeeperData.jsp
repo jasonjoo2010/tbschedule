@@ -4,7 +4,7 @@
 <%@page import="com.taobao.pamirs.schedule.ConsoleManager"%>
 <%
 if(ConsoleManager.isInitial() == false){
-		response.sendRedirect("config");
+		response.sendRedirect("/config/modify");
 }
 %>
 <%@include file="header.jsp"%>

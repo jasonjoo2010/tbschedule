@@ -89,7 +89,7 @@ public class ConfigController {
     @RequestMapping("/export")
     public ModelAndView export(HttpServletResponse response) throws Exception {
         if (ConsoleManager.isInitial() == false) {
-            response.sendRedirect("config");
+            response.sendRedirect("/config/modify");
             return null;
         }
         String rootPath = ConsoleManager.getScheduleStrategyManager().getRootPath();
@@ -139,7 +139,7 @@ public class ConfigController {
     @RequestMapping("/import")
     public ModelAndView importConfig(HttpServletResponse response) throws Exception {
         if (ConsoleManager.isInitial() == false) {
-            response.sendRedirect("config");
+            response.sendRedirect("/config/modify");
             return null;
         }
         ModelAndView mav = new ModelAndView("config/import");
@@ -184,7 +184,7 @@ public class ConfigController {
             @RequestParam(required = false) String path,
             HttpServletResponse response) throws Exception {
         if (ConsoleManager.isInitial() == false) {
-            response.sendRedirect("config");
+            response.sendRedirect("/config/modify");
             return null;
         }
         if (StringUtils.isEmpty(path)) {

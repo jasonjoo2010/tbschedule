@@ -32,7 +32,7 @@ public class TaskController {
     public ModelAndView index(HttpServletResponse response) throws Exception {
         ModelAndView mav = new ModelAndView("task/index");
         if (ConsoleManager.isInitial() == false) {
-            response.sendRedirect("config");
+            response.sendRedirect("/config/modify");
             return null;
         }
         List<ScheduleTaskType> taskList = ConsoleManager.getScheduleDataManager().getAllTaskTypeBaseInfo();

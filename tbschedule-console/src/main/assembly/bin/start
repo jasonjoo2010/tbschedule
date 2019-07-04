@@ -1,0 +1,23 @@
+#!/bin/sh
+# Friendly to container environment
+
+alias echo="/bin/echo"
+
+cd `dirname $0`
+BIN_DIR=`pwd`
+cd ..
+DEPLOY_DIR=`pwd`
+CONF_DIR=$DEPLOY_DIR/conf
+MAIN_CLASS=com.taobao.pamirs.schedule.console.Launcher
+MEM_MAX=128m
+MEM_MN=64m
+SERVER_PORT=8080
+
+LIB_DIR=$DEPLOY_DIR/lib
+LIB_JARS=`ls $LIB_DIR|grep .jar|awk '{print "'$LIB_DIR'/"$0}'|tr "\n" ":"`
+
+JAVA_OPTS=" -Dserver.port=$SERVER_PORT -Dlog.file=false -Dlog.console=true -Djava.awt.headless=true -Djava.net.preferIPv4Stack=true "
+JAVA_MEM_OPTS=" -server -Xmx$MEM_MAX -Xms$MEM_MAX -Xmn$MEM_MN -Xss256k -XX:+DisableExplicitGC -XX:+UseConcMarkSweepGC -XX:+CMSParallelRemarkEnabled -XX:+UseCMSCompactAtFullCollection -XX:LargePageSizeInBytes=128m -XX:+UseFastAccessorMethods -XX:+UseCMSInitiatingOccupancyOnly -XX:CMSInitiatingOccupancyFraction=80 "
+
+echo -n "Starting the $SERVER_NAME ...\c"
+java $JAVA_OPTS $JAVA_MEM_OPTS -classpath $CONF_DIR:$LIB_JARS $MAIN_CLASS
