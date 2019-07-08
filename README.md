@@ -31,7 +31,7 @@ In older original version the worker instances' distribution always includes the
 ```
 <groupId>com.yoloho.schedule</groupId>
 <artifactId>tbschedule-core</artifactId>
-<version>4.0.0</version>
+<version>4.0.1</version>
 ```
 
 ## task
@@ -39,5 +39,5 @@ In older original version the worker instances' distribution always includes the
 ```
 <groupId>com.yoloho.schedule</groupId>
 <artifactId>tbschedule-extension-task</artifactId>
-<version>4.0.0</version>
+<version>4.0.1</version>
 ```
