@@ -4,6 +4,9 @@ A simple non-centralizing scheduling framework based on `zookeeper`.
 
 # Changelog
 
+## 4.0.1
+* Support packaging for tbschedule-console
+
 ## 4.0.0
 * Regroup the modules
 * Restructure console to support SpringBoot with enhanced library
