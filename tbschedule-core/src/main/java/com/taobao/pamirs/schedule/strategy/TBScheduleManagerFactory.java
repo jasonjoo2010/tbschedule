@@ -2,30 +2,29 @@ package com.taobao.pamirs.schedule.strategy;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.ServiceLoader;
 import java.util.Timer;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-import org.apache.zookeeper.ZooKeeper;
-import org.apache.zookeeper.KeeperException.NoAuthException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 
-import com.taobao.pamirs.schedule.ConsoleManager;
+import com.google.common.base.Preconditions;
 import com.taobao.pamirs.schedule.IScheduleTaskDeal;
 import com.taobao.pamirs.schedule.ScheduleUtil;
-import com.taobao.pamirs.schedule.taskmanager.IScheduleDataManager;
+import com.taobao.pamirs.schedule.taskmanager.IStorage;
+import com.taobao.pamirs.schedule.taskmanager.ScheduleConfig;
 import com.taobao.pamirs.schedule.taskmanager.TBScheduleManagerStatic;
-import com.taobao.pamirs.schedule.zk.ScheduleDataManager4ZK;
-import com.taobao.pamirs.schedule.zk.ScheduleStrategyDataManager4ZK;
-import com.taobao.pamirs.schedule.zk.ZKManager;
 
 /**
  * 调度服务器构造器
@@ -37,16 +36,14 @@ public class TBScheduleManagerFactory implements ApplicationContextAware {
 
 	protected static transient Logger logger = LoggerFactory.getLogger(TBScheduleManagerFactory.class);
 	
-	private Map<String,String> zkConfig;
+    private ScheduleConfig config;
 	
-	protected ZKManager zkManager;
-
-
+	protected IStorage storage;
 
 	/**
-	 * 是否启动调度管理，如果只是做系统管理，应该设置为false
+	 * Whether should really do schedule or just as an operator (console client)
 	 */
-	public boolean start = true;
+	private boolean enableSchedule = true;
 	private int timerInterval = 2000;
 	/**
 	 * ManagerFactoryTimerTask上次执行的时间戳。<br/>
@@ -55,13 +52,7 @@ public class TBScheduleManagerFactory implements ApplicationContextAware {
 	 */
 	public volatile long timerTaskHeartBeatTS = System.currentTimeMillis();
 	
-	/**
-	 * 调度配置中心客服端
-	 */
-	private IScheduleDataManager	scheduleDataManager;
-	private ScheduleStrategyDataManager4ZK scheduleStrategyManager;
-	
-	private Map<String,List<IStrategyTask>> managerMap = new ConcurrentHashMap<String, List<IStrategyTask>>();
+    private Map<String, List<IStrategyTask>> managerMap = new ConcurrentHashMap<String, List<IStrategyTask>>();
 	
 	private ApplicationContext			applicationcontext;	
 	private String uuid;
@@ -83,55 +74,80 @@ public class TBScheduleManagerFactory implements ApplicationContextAware {
     public String getErrorMessage() {
         return errorMessage;
     }
+    
+    /**
+     * Whether enable scheduling
+     * 
+     * @return
+     */
+    public boolean isEnableSchedule() {
+        return enableSchedule;
+    }
+    
+    /**
+     * Enable / disable scheduling
+     * 
+     * @param enableSchedule
+     */
+    public void setEnableSchedule(boolean enableSchedule) {
+        this.enableSchedule = enableSchedule;
+    }
 
     public void init() throws Exception {
-        Properties properties = new Properties();
-        for (Map.Entry<String, String> e : this.zkConfig.entrySet()) {
-            properties.put(e.getKey(), e.getValue());
-        }
-        this.init(properties);
-    }
-	
-	public void reInit(Properties p) throws Exception{
-        if (this.start == true || this.timer != null || this.managerMap.size() > 0) {
-            throw new Exception("调度器有任务处理，不能重新初始化");
-        }
-        this.init(p);
-	}
-	
-    public void init(Properties p) throws Exception {
         if (this.initialThread != null) {
             this.initialThread.stopThread();
         }
         this.lock.lock();
         try {
-            this.scheduleDataManager = null;
-            this.scheduleStrategyManager = null;
-            ConsoleManager.setScheduleManagerFactory(this);
-            if (this.zkManager != null) {
-                this.zkManager.close();
+            if (this.storage != null) {
+                this.storage.shutdown();
+                this.storage = null;
             }
-            this.zkManager = new ZKManager(p);
-            this.errorMessage = "Zookeeper connecting ......" + this.zkManager.getConnectStr();
+            {
+                // SPI
+                ServiceLoader<IStorage> loader = ServiceLoader.load(IStorage.class);
+                Preconditions.checkNotNull(loader, "Fail to fetch providers of IStorage");
+                Iterator<IStorage> it = loader.iterator();
+                Preconditions.checkArgument(it.hasNext(), "Fail to fetch providers of IStorage");
+                this.storage = it.next();
+                this.storage.init(getConfig());
+            }
+            
+            this.errorMessage = "Initializing ......";
             initialThread = new InitialThread(this);
             initialThread.setName("TBScheduleManagerFactory-initialThread");
             initialThread.start();
         } finally {
             this.lock.unlock();
         }
+    }
+	
+	public void reInit(ScheduleConfig config) throws Exception{
+        if (isEnableSchedule() || this.timer != null || this.managerMap.size() > 0) {
+            throw new Exception("Can not reinit due to running jobs");
+        }
+        setConfig(config);
+        init();
 	}
+	
+    public void init(Properties p) throws Exception {
+        setConfig(new ScheduleConfig(p));
+        init();
+	}
+    
+    public void init(ScheduleConfig config) throws Exception {
+        setConfig(config);
+        init();
+    }
     
     /**
      * 在Zk状态正常后回调数据初始化
      * @throws Exception
      */
     public void initialData() throws Exception {
-        this.zkManager.initial();
-        this.scheduleDataManager = new ScheduleDataManager4ZK(this.zkManager);
-        this.scheduleStrategyManager = new ScheduleStrategyDataManager4ZK(this.zkManager);
-        if (this.start == true) {
+        if (isEnableSchedule()) {
             // 注册调度管理器
-            this.scheduleStrategyManager.registerManagerFactory(this);
+            this.storage.registerFactory(this);
             if (timer == null) {
                 timer = new Timer("TBScheduleManagerFactory-Timer");
             }
@@ -155,7 +171,7 @@ public class TBScheduleManagerFactory implements ApplicationContextAware {
             if (ScheduleStrategy.Kind.Schedule == strategy.getKind()) {
                 String baseTaskType = ScheduleUtil.splitBaseTaskTypeFromTaskType(strategy.getTaskName());
                 String ownSign = ScheduleUtil.splitOwnsignFromTaskType(strategy.getTaskName());
-                result = new TBScheduleManagerStatic(this, baseTaskType, ownSign, scheduleDataManager);
+                result = new TBScheduleManagerStatic(this, baseTaskType, ownSign, storage);
             } else if (ScheduleStrategy.Kind.Java == strategy.getKind()) {
                 result = (IStrategyTask) Class.forName(strategy.getTaskName()).newInstance();
                 result.initialTaskParameter(strategy.getStrategyName(), strategy.getTaskParameter());
@@ -169,45 +185,60 @@ public class TBScheduleManagerFactory implements ApplicationContextAware {
         return result;
     }
 
-	public void refresh() throws Exception {
-		this.lock.lock();
-		try {
-			// 判断状态是否终止
-			ManagerFactoryInfo stsInfo = null;
-			boolean isException = false;
-			try {
-				stsInfo = this.getScheduleStrategyManager().loadManagerFactoryInfo(this.getUuid());
-			} catch (Exception e) {
-				isException = true;
-				logger.error("获取服务器信息有误：uuid="+this.getUuid(), e);
-			}
-			if (isException == true) {
-				try {
-					stopServer(null); // 停止所有的调度任务
-					this.getScheduleStrategyManager().unRregisterManagerFactory(this);
-				} finally {
-					reRegisterManagerFactory();
-				}
-			} else if (stsInfo.isStart() == false) {
-				stopServer(null); // 停止所有的调度任务
-				this.getScheduleStrategyManager().unRregisterManagerFactory(
-						this);
-			} else {
-				reRegisterManagerFactory();
-			}
-		} finally {
-			this.lock.unlock();
-		}
-	}
+    public void refresh() throws Exception {
+        this.lock.lock();
+        try {
+            // 判断状态是否终止
+            boolean isException = false;
+            boolean allowRun = true;
+            try {
+                allowRun = this.storage.isFactoryAllowExecute(getUuid());
+            } catch (Exception e) {
+                isException = true;
+                logger.error("Fetch factory configuration failed: factoryUUID={}", getUuid(), e);
+            }
+            if (isException == true) {
+                try {
+                    stopServer(null); // 停止所有的调度任务
+                    this.storage.unregisterFactory(getUuid());
+                } finally {
+                    reRegisterManagerFactory();
+                }
+            } else if (allowRun == false) {
+                stopServer(null); // 停止所有的调度任务
+                this.storage.unregisterFactory(getUuid());
+            } else {
+                reRegisterManagerFactory();
+            }
+        } finally {
+            this.lock.unlock();
+        }
+    }
 
     public void reRegisterManagerFactory() throws Exception {
         // 重新分配调度器
-        List<String> stopList = this.getScheduleStrategyManager().registerManagerFactory(this);
+        List<String> stopList = this.storage.registerFactory(this);
         for (String strategyName : stopList) {
             this.stopServer(strategyName);
         }
         this.assignScheduleServer();
         this.reRunScheduleServer();
+    }
+    
+    public IStorage getStorage() {
+        return storage;
+    }
+    
+    private List<ScheduleStrategyRuntime> getStrategyRunntimeByUUID(String factoryUUID) throws Exception {
+        List<ScheduleStrategyRuntime> result = new ArrayList<>();
+        List<String> strategyNames = this.storage.getStrategyNames();
+        for (String strategyName : strategyNames) {
+            ScheduleStrategyRuntime runtime = this.storage.getStrategyRuntime(strategyName, factoryUUID);
+            if (runtime != null) {
+                result.add(runtime);
+            }
+        }
+        return result;
     }
 
 	/**
@@ -215,12 +246,12 @@ public class TBScheduleManagerFactory implements ApplicationContextAware {
 	 * @throws Exception
 	 */
     public void assignScheduleServer() throws Exception {
-		for(ScheduleStrategyRunntime run: this.scheduleStrategyManager.loadAllScheduleStrategyRunntimeByUUID(this.uuid)){
-			List<ScheduleStrategyRunntime> factoryList = this.scheduleStrategyManager.loadAllScheduleStrategyRunntimeByTaskType(run.getStrategyName());
+        for (ScheduleStrategyRuntime run : getStrategyRunntimeByUUID(getUuid())) {
+            List<ScheduleStrategyRuntime> factoryList = this.storage.getStrategyRuntimes(run.getStrategyName());
             if (factoryList.size() == 0 || this.isLeader(this.uuid, factoryList) == false) {
                 continue;
             }
-            ScheduleStrategy scheduleStrategy = this.scheduleStrategyManager.loadStrategy(run.getStrategyName());
+            ScheduleStrategy scheduleStrategy = this.storage.getStrategy(run.getStrategyName());
 
             int[] nums = ScheduleUtil.assignTaskNumber(factoryList.size(), scheduleStrategy.getAssignNum(),
                     scheduleStrategy.getNumOfSingleServer());
@@ -236,7 +267,7 @@ public class TBScheduleManagerFactory implements ApplicationContextAware {
                  */
                 List<Integer> oldNums = new ArrayList<Integer>();
                 for (int i = 0; i < factoryList.size(); i++) {
-                    ScheduleStrategyRunntime factory = factoryList.get(i);
+                    ScheduleStrategyRuntime factory = factoryList.get(i);
                     oldNums.add(factory.getRequestNum());
                 }
                 Collections.sort(oldNums, Collections.reverseOrder());
@@ -260,18 +291,40 @@ public class TBScheduleManagerFactory implements ApplicationContextAware {
                 Collections.shuffle(factoryList);
             }
             for (int i = 0; i < factoryList.size(); i++) {
-                ScheduleStrategyRunntime factory = factoryList.get(i);
-                // 更新请求的服务器数量
-                this.scheduleStrategyManager.updateStrategyRuntimeRequestNum(run.getStrategyName(), factory.getUuid(),
-                        nums[i]);
+                ScheduleStrategyRuntime factory = factoryList.get(i);
+                // Update request num
+                updateStrategyRuntimeRequestNum(run.getStrategyName(), factory.getUuid(), nums[i]);
             }
 		}
 	}
+    
+    /**
+     * Update request num in strategy's runtime info
+     * 
+     * @param strategyName
+     * @param factoryUUID
+     * @param requestNum
+     * @throws Exception
+     */
+    private void updateStrategyRuntimeRequestNum(String strategyName, String factoryUUID, int requestNum)
+            throws Exception {
+        ScheduleStrategyRuntime runtime = this.storage.getStrategyRuntime(strategyName, factoryUUID);
+        if(runtime !=null){
+            runtime.setRequestNum(requestNum);
+        } else {
+            runtime = new ScheduleStrategyRuntime();
+            runtime.setStrategyName(strategyName);
+            runtime.setUuid(factoryUUID);
+            runtime.setRequestNum(requestNum);
+            runtime.setMessage("");
+        }
+        this.storage.updateStrategyRuntime(runtime);
+    }
 	
-	public boolean isLeader(String uuid, List<ScheduleStrategyRunntime> factoryList) {
+	public boolean isLeader(String uuid, List<ScheduleStrategyRuntime> factoryList) {
 		try {
 			long no = Long.parseLong(uuid.substring(uuid.lastIndexOf("$") + 1));
-			for (ScheduleStrategyRunntime server : factoryList) {
+			for (ScheduleStrategyRuntime server : factoryList) {
 				if (no > Long.parseLong(server.getUuid().substring(
 						server.getUuid().lastIndexOf("$") + 1))) {
 					return false;
@@ -285,7 +338,7 @@ public class TBScheduleManagerFactory implements ApplicationContextAware {
 	}	
 	
 	public void reRunScheduleServer() throws Exception{
-		for (ScheduleStrategyRunntime run : this.scheduleStrategyManager.loadAllScheduleStrategyRunntimeByUUID(this.uuid)) {
+		for (ScheduleStrategyRuntime run : getStrategyRunntimeByUUID(getUuid())) {
 			List<IStrategyTask> list = this.managerMap.get(run.getStrategyName());
 			if(list == null){
 				list = new ArrayList<IStrategyTask>();
@@ -300,7 +353,7 @@ public class TBScheduleManagerFactory implements ApplicationContextAware {
 					}
 				}
 		   //不足，增加调度器
-		   ScheduleStrategy strategy = this.scheduleStrategyManager.loadStrategy(run.getStrategyName());
+		   ScheduleStrategy strategy = this.storage.getStrategy(run.getStrategyName());
 		   while(list.size() < run.getRequestNum()){
 			   IStrategyTask result = this.createStrategyTask(strategy);
 			   if(null==result){
@@ -345,12 +398,12 @@ public class TBScheduleManagerFactory implements ApplicationContextAware {
 		}
 	}
 	/**
-	 * 停止所有调度资源
+	 * 停止所有调度资源(shut down)
 	 */
     public void stopAll() throws Exception {
         try {
             lock.lock();
-            this.start = false;
+            setEnableSchedule(false);
             if (this.initialThread != null) {
                 this.initialThread.stopThread();
             }
@@ -363,18 +416,13 @@ public class TBScheduleManagerFactory implements ApplicationContextAware {
                 this.timer = null;
             }
             this.stopServer(null);
-            if (this.zkManager != null) {
-                this.zkManager.close();
-            }
-            if (this.scheduleStrategyManager != null) {
+            if (this.storage != null) {
                 try {
-                    ZooKeeper zk = this.scheduleStrategyManager.getZooKeeper();
-                    if (zk != null) {
-                        zk.close();
-                    }
+                    this.storage.shutdown();
                 } catch (Exception e) {
-                    logger.error("stopAll zk getZooKeeper异常！", e);
+                    logger.error("Shut down storage failed", e);
                 }
+                this.storage = null;
             }
             this.uuid = null;
             logger.info("stopAll 停止服务成功！");
@@ -398,35 +446,16 @@ public class TBScheduleManagerFactory implements ApplicationContextAware {
 				this.timer.purge();
 			}
 			this.stopServer(null);
-			if (this.zkManager != null) {
-				this.zkManager.close();
-			}
 			this.uuid = null;
 			this.init();
 		} catch (Throwable e) {
 			logger.error("重启服务失败：" + e.getMessage(), e);
 		}
     }
-    public boolean isZookeeperInitialSucess() throws Exception{
-    	return this.zkManager.checkZookeeperState();
-    }
 	public String[] getScheduleTaskDealList() {
 		return applicationcontext.getBeanNamesForType(IScheduleTaskDeal.class);
 	}
     
-	public IScheduleDataManager getScheduleDataManager() {
-		if(this.scheduleDataManager == null){
-			throw new RuntimeException(this.errorMessage);
-		}
-		return scheduleDataManager;
-	}
-	public ScheduleStrategyDataManager4ZK getScheduleStrategyManager() {
-		if(this.scheduleStrategyManager == null){
-			throw new RuntimeException(this.errorMessage);
-		}
-		return scheduleStrategyManager;
-	}
-
     public void setApplicationContext(ApplicationContext aApplicationcontext) throws BeansException {
         applicationcontext = aApplicationcontext;
     }
@@ -451,25 +480,57 @@ public class TBScheduleManagerFactory implements ApplicationContextAware {
         return hostName;
     }
 
-    public void setStart(boolean isStart) {
-        this.start = isStart;
-    }
-
     public void setTimerInterval(int timerInterval) {
         this.timerInterval = timerInterval;
     }
 
+    /**
+     * @param zkConfig
+     * @deprecated in favor of
+     * {@link #setConfig(ScheduleConfig)}
+     */
     public void setZkConfig(Map<String, String> zkConfig) {
-        this.zkConfig = zkConfig;
+        setConfig(new ScheduleConfig(zkConfig));
     }
 
-    public ZKManager getZkManager() {
-        return this.zkManager;
-    }
-
+    /**
+     * @return
+     * @deprecated in favor of
+     * {@link #getConfig()}
+     */
     public Map<String, String> getZkConfig() {
+        Map<String, String> zkConfig = new HashMap<>(4);
+        zkConfig.put("address", getConfig().getAddress());
+        zkConfig.put("rootPath", getConfig().getRootPath());
+        zkConfig.put("username", getConfig().getUsername());
+        zkConfig.put("password", getConfig().getPassword());
         return zkConfig;
     }
+    
+    /**
+     * Using raw map to load config key value pairs
+     * 
+     * @param configMap
+     * @see {@link #setConfig(ScheduleConfig)}
+     */
+    public void setConfigMap(Map<String, String> configMap) {
+        this.config = new ScheduleConfig(configMap);
+    }
+    
+    /**
+     * @param config
+     */
+    public void setConfig(ScheduleConfig config) {
+        this.config = config;
+    }
+    
+    /**
+     * @return
+     */
+    public ScheduleConfig getConfig() {
+        return config;
+    }
+    
 }
 
 class ManagerFactoryTimerTask extends java.util.TimerTask {
@@ -484,14 +545,16 @@ class ManagerFactoryTimerTask extends java.util.TimerTask {
     public void run() {
         try {
             Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
-            if (this.factory.zkManager.checkZookeeperState() == false) {
+            if (this.factory.storage.test() == false) {
                 if (count > 5) {
-                    log.error("Zookeeper连接失败，关闭所有的任务后，重新连接Zookeeper服务器......");
+                    log.error("Storage status failed for several times, try to restart......");
                     this.factory.reStart();
                 } else {
-                    count = count + 1;
+                    count ++;
                 }
             } else {
+                // reset the timer once successfully
+                // refresh and refresh to make sure everything up to date
                 count = 0;
                 this.factory.refresh();
             }
@@ -522,14 +585,14 @@ class InitialThread extends Thread {
         factory.lock.lock();
         try {
             int count = 0;
-            while (factory.zkManager.checkZookeeperState() == false) {
-                count = count + 1;
+            final int interval = 20;
+            while (factory.storage.test() == false) {
+                count ++;
                 if (count % 50 == 0) {
-                    factory.errorMessage = "Zookeeper connecting ......" + factory.zkManager.getConnectStr()
-                            + " spendTime:" + count * 20 + "(ms)";
+                    factory.errorMessage = "Storage still initializing ...... spendTime: " + (count * interval) + "ms";
                     log.error(factory.errorMessage);
                 }
-                Thread.sleep(20);
+                Thread.sleep(interval);
                 if (this.isStop == true) {
                     return;
                 }
@@ -538,9 +601,6 @@ class InitialThread extends Thread {
                 return;
             }
             factory.initialData();
-        } catch (NoAuthException e) {
-            log.error("Authorize failure, maybe you set the wrong acl information");
-            needRestart = true;
         } catch (Throwable e) {
             log.error(e.getMessage(), e);
             /**

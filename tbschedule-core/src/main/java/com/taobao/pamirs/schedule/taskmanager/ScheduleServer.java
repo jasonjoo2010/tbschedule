@@ -75,15 +75,13 @@ public class ScheduleServer {
 	 */
 	private long version;
 	
-	private boolean isRegister;
-	
 	private String managerFactoryUUID;
 
 	public ScheduleServer() {
 
 	}
 
-	public static ScheduleServer createScheduleServer(IScheduleDataManager aScheduleCenter,String aBaseTaskType,
+	public static ScheduleServer createScheduleServer(long now, String aBaseTaskType,
 			String aOwnSign, int aThreadNum)
 			throws Exception {
 		ScheduleServer result = new ScheduleServer();
@@ -93,7 +91,7 @@ public class ScheduleServer {
 				aBaseTaskType, aOwnSign);
 		result.ip = ScheduleUtil.getLocalIP();
 		result.hostName = ScheduleUtil.getLocalHostName();
-		result.registerTime = new Timestamp(aScheduleCenter.getSystemTime());
+		result.registerTime = new Timestamp(now);
 		result.threadNum = aThreadNum;
 		result.heartBeatTime = null;
 		result.dealInfoDesc = "调度初始化";
@@ -103,7 +101,7 @@ public class ScheduleServer {
 				+ (UUID.randomUUID().toString().replaceAll("-", "")
 						.toUpperCase());
 		FastDateFormat DATA_FORMAT_yyyyMMdd = FastDateFormat.getInstance("yyMMdd");
-		String s = DATA_FORMAT_yyyyMMdd.format(aScheduleCenter.getSystemTime());
+		String s = DATA_FORMAT_yyyyMMdd.format(now);
 		result.id = Long.parseLong(s) * 100000000
 				+ Math.abs(result.uuid.hashCode() % 100000000);
 		return result;
@@ -259,14 +257,6 @@ public class ScheduleServer {
 
 	public long getId() {
 		return id;
-	}
-
-	public void setRegister(boolean isRegister) {
-		this.isRegister = isRegister;
-	}
-
-	public boolean isRegister() {
-		return isRegister;
 	}
 
 	public void setManagerFactoryUUID(String managerFactoryUUID) {

@@ -15,6 +15,14 @@ public class TaskItemDefine {
 	 */
 	private String parameter;
 	
+	public TaskItemDefine() {
+    }
+	
+	public TaskItemDefine(String taskItem, String parameter) {
+	    setTaskItemId(taskItem);
+	    setParameter(parameter);
+    }
+	
 	public void setParameter(String parameter) {
 		this.parameter = parameter;
 	}

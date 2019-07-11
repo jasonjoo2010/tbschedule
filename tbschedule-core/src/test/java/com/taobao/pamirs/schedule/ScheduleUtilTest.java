@@ -2,11 +2,14 @@ package com.taobao.pamirs.schedule;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 import org.junit.Test;
 
@@ -89,5 +92,27 @@ public class ScheduleUtilTest {
         assertArrayEquals(new int[] { 2, 2, 1, 1, 1, 1, 1, 1 }, ScheduleUtil.assignTaskNumber(8, 10, 3));
         assertArrayEquals(new int[] { 2, 1, 1, 1, 1, 1, 1, 1, 1 }, ScheduleUtil.assignTaskNumber(9, 10, 3));
         assertArrayEquals(new int[] { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 }, ScheduleUtil.assignTaskNumber(10,10,3));
+    }
+    
+    @Test
+    public void getLeader() {
+        List<String> serverList = new ArrayList<>();
+        serverList.add("$000005");
+        serverList.add("$000003");
+        serverList.add("$000001");
+        serverList.add("$000002");
+        assertEquals("$000001", ScheduleUtil.getLeader(serverList));
+    }
+    
+    @Test
+    public void isLeader() {
+        List<String> serverList = new ArrayList<>();
+        serverList.add("$000005");
+        serverList.add("$000003");
+        serverList.add("$000001");
+        serverList.add("$000002");
+        assertFalse(ScheduleUtil.isLeader("asdf", serverList));
+        assertFalse(ScheduleUtil.isLeader("$000002", serverList));
+        assertTrue(ScheduleUtil.isLeader("$000001", serverList));
     }
 }

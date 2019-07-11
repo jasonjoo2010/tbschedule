@@ -4,6 +4,8 @@ import java.sql.Timestamp;
 
 import org.apache.commons.lang3.builder.ToStringBuilder;
 
+import com.taobao.pamirs.schedule.ScheduleUtil;
+
 public class ScheduleTaskTypeRunningInfo {
 
     private long id;
@@ -36,6 +38,23 @@ public class ScheduleTaskTypeRunningInfo {
     private Timestamp gmtCreate;
 
     private Timestamp gmtModified;
+    
+    public ScheduleTaskTypeRunningInfo() {
+    }
+    
+    public ScheduleTaskTypeRunningInfo(String taskName, String ownSign) {
+        setBaseTaskType(taskName);
+        setOwnSign(ownSign);
+        setTaskType(ScheduleUtil.getTaskTypeByBaseAndOwnSign(taskName, ownSign));
+    }
+    
+    public ScheduleTaskTypeRunningInfo(String runningEntry) {
+        String taskName = ScheduleUtil.splitBaseTaskTypeFromTaskType(runningEntry);
+        String ownSign = ScheduleUtil.splitOwnsignFromTaskType(runningEntry);
+        setBaseTaskType(taskName);
+        setOwnSign(ownSign);
+        setTaskType(runningEntry);
+    }
 
     public String toString() {
         return ToStringBuilder.reflectionToString(this);

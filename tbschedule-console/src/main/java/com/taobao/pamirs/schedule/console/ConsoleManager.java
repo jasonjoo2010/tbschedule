@@ -1,4 +1,4 @@
-package com.taobao.pamirs.schedule;
+package com.taobao.pamirs.schedule.console;
 
 import java.io.File;
 import java.io.FileReader;
@@ -11,15 +11,23 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.taobao.pamirs.schedule.strategy.TBScheduleManagerFactory;
-import com.taobao.pamirs.schedule.taskmanager.IScheduleDataManager;
-import com.taobao.pamirs.schedule.zk.ScheduleStrategyDataManager4ZK;
-import com.taobao.pamirs.schedule.zk.ZKManager;
+import com.taobao.pamirs.schedule.taskmanager.IStorage;
+import com.taobao.pamirs.schedule.taskmanager.ScheduleConfig;
 
 public class ConsoleManager {
     protected static transient Logger log = LoggerFactory.getLogger(ConsoleManager.class);
 
     public final static String defaultConfigFile = "pamirsScheduleConfig.properties";
     public final static String configFile = System.getProperty("user.dir") + File.separator + defaultConfigFile;
+    static {
+        synchronized(ConsoleManager.class) {
+            try {
+                initial();
+            } catch (Exception e) {
+                log.error("Initial schedule factory failed", e);
+            }
+        }
+    }
 
     private static TBScheduleManagerFactory scheduleManagerFactory;
 
@@ -28,12 +36,12 @@ public class ConsoleManager {
     }
 
     public static boolean initial() throws Exception {
-        if (scheduleManagerFactory != null) {
+        if (isInitial()) {
             return true;
         }
         File file = new File(configFile);
         scheduleManagerFactory = new TBScheduleManagerFactory();
-        scheduleManagerFactory.start = false;
+        scheduleManagerFactory.setEnableSchedule(false);
         if (file.exists() == true) {
             // Console不启动调度能力
             Properties p = new Properties();
@@ -63,39 +71,44 @@ public class ConsoleManager {
         }
         return scheduleManagerFactory;
     }
-
-    public static IScheduleDataManager getScheduleDataManager() throws Exception {
-        if (isInitial() == false) {
-            initial();
-        }
-        return scheduleManagerFactory.getScheduleDataManager();
+    
+    public static IStorage getStorage() throws Exception {
+        return getScheduleManagerFactory().getStorage();
+    }
+    
+    private static Properties getDefaultProperties(){
+        Properties result = new Properties();
+        result.setProperty("address", "localhost:2181");
+        result.setProperty("rootPath", "/taobao-pamirs-schedule/huijin");
+        result.setProperty("username", "ScheduleAdmin");
+        result.setProperty("password", "password");
+        
+        return result;
     }
 
-    public static ScheduleStrategyDataManager4ZK getScheduleStrategyManager() throws Exception {
-        if (isInitial() == false) {
-            initial();
-        }
-        return scheduleManagerFactory.getScheduleStrategyManager();
-    }
-
-    public static Properties loadConfig() throws IOException {
+    public static ScheduleConfig loadConfig() throws IOException {
         File file = new File(configFile);
         Properties properties;
         if (file.exists() == false) {
-            properties = ZKManager.createProperties();
+            properties = getDefaultProperties();
         } else {
             properties = new Properties();
             FileReader reader = new FileReader(file);
             properties.load(reader);
             reader.close();
         }
-        return properties;
+        return new ScheduleConfig(properties);
     }
 
-    public static void saveConfigInfo(Properties p) throws Exception {
+    public static void saveConfigInfo(ScheduleConfig config) throws Exception {
         try {
             FileWriter writer = new FileWriter(configFile);
-            p.store(writer, "");
+            Properties result = new Properties();
+            result.setProperty("address", config.getAddress());
+            result.setProperty("rootPath", config.getRootPath());
+            result.setProperty("username", config.getUsername());
+            result.setProperty("password", config.getPassword());
+            result.store(writer, "");
             writer.close();
         } catch (Exception ex) {
             throw new Exception("不能写入配置信息到文件：" + configFile, ex);
@@ -103,12 +116,8 @@ public class ConsoleManager {
         if (scheduleManagerFactory == null) {
             initial();
         } else {
-            scheduleManagerFactory.reInit(p);
+            scheduleManagerFactory.reInit(config);
         }
-    }
-
-    public static void setScheduleManagerFactory(TBScheduleManagerFactory scheduleManagerFactory) {
-        ConsoleManager.scheduleManagerFactory = scheduleManagerFactory;
     }
 
 }

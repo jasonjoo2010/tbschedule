@@ -14,10 +14,11 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
 
-import com.taobao.pamirs.schedule.ConsoleManager;
+import com.taobao.pamirs.schedule.console.ConsoleManager;
 import com.taobao.pamirs.schedule.console.vo.StrategyVo;
 import com.taobao.pamirs.schedule.strategy.ScheduleStrategy;
-import com.taobao.pamirs.schedule.strategy.ScheduleStrategyRunntime;
+import com.taobao.pamirs.schedule.strategy.ScheduleStrategyRuntime;
+import com.taobao.pamirs.schedule.taskmanager.IStorage;
 import com.yoloho.enhanced.common.support.MsgBean;
 import com.yoloho.enhanced.common.util.JoinerSplitters;
 
@@ -32,15 +33,17 @@ public class StrategyController {
             response.sendRedirect("/config/modify");
             return null;
         }
-        try {
-            ConsoleManager.getScheduleStrategyManager();
-        } catch (Exception e) {
-            // This should be more elegant.
-            response.sendRedirect("/config/modify");
-            return null;
-        }
-        List<ScheduleStrategy> scheduleStrategyList = ConsoleManager.getScheduleStrategyManager()
-                .loadAllScheduleStrategy();
+        IStorage storage = ConsoleManager.getStorage();
+        List<ScheduleStrategy> scheduleStrategyList = storage.getStrategyNames().stream()
+                .map(name -> {
+                    try {
+                        return storage.getStrategy(name);
+                    } catch (Exception e) {
+                        return null;
+                    }
+                })
+                .filter(item -> item != null)
+                .collect(Collectors.toList());
         mav.addObject("strategyList", scheduleStrategyList.stream()
                 .map(g -> new StrategyVo(g))
                 .collect(Collectors.toList()));
@@ -53,11 +56,21 @@ public class StrategyController {
             @RequestParam(required = false) String uuid
             ) throws Exception {
         ModelAndView mav = new ModelAndView("strategy/runtime");
-        List<ScheduleStrategyRunntime> runtimeList = new ArrayList<>();
+        List<ScheduleStrategyRuntime> runtimeList = new ArrayList<>();
+        IStorage storage = ConsoleManager.getStorage();
         if (StringUtils.isNotEmpty(strategyName)) {
-            runtimeList = ConsoleManager.getScheduleStrategyManager().loadAllScheduleStrategyRunntimeByTaskType(strategyName);
+            runtimeList = storage.getStrategyRuntimes(strategyName);
         } else if (StringUtils.isNotEmpty(uuid)) {
-            runtimeList = ConsoleManager.getScheduleStrategyManager().loadAllScheduleStrategyRunntimeByUUID(uuid);
+            runtimeList = storage.getStrategyNames().stream()
+                    .map(name -> {
+                        try {
+                            return storage.getStrategyRuntime(name, uuid);
+                        } catch (Exception e) {
+                            return null;
+                        }
+                    })
+                    .filter(item -> item != null)
+                    .collect(Collectors.toList());
         }
         mav.addObject("runtimeList", runtimeList);
         return mav;
@@ -68,7 +81,7 @@ public class StrategyController {
         ModelAndView mav = new ModelAndView("strategy/edit");
         ScheduleStrategy strategy = null;
         if (!StringUtils.equalsIgnoreCase("-1", strategyName)) {
-            strategy = ConsoleManager.getScheduleStrategyManager().loadStrategy(strategyName);
+            strategy = ConsoleManager.getStorage().getStrategy(strategyName);
         }
         mav.addObject("isCreate", false);
         if (strategy == null) {
@@ -88,11 +101,18 @@ public class StrategyController {
         return mav;
     }
     
+    private void pauseResumeStrategy(String strategyName, String sts) throws Exception {
+        IStorage storage = ConsoleManager.getStorage();
+        ScheduleStrategy strategy = storage.getStrategy(strategyName);
+        strategy.setSts(sts);
+        storage.updateStrategy(strategy);
+    }
+    
     @RequestMapping("/pause")
     @ResponseBody
     public Map<String, Object> pause(String strategyName) throws Exception {
         MsgBean msgBean = new MsgBean();
-        ConsoleManager.getScheduleStrategyManager().pause(strategyName);
+        pauseResumeStrategy(strategyName, ScheduleStrategy.STS_PAUSE);
         return msgBean.returnMsg();
     }
     
@@ -100,7 +120,7 @@ public class StrategyController {
     @ResponseBody
     public Map<String, Object> resume(String strategyName) throws Exception {
         MsgBean msgBean = new MsgBean();
-        ConsoleManager.getScheduleStrategyManager().resume(strategyName);
+        pauseResumeStrategy(strategyName, ScheduleStrategy.STS_RESUME);
         return msgBean.returnMsg();
     }
     
@@ -108,7 +128,7 @@ public class StrategyController {
     @ResponseBody
     public Map<String, Object> remove(String strategyName) throws Exception {
         MsgBean msgBean = new MsgBean();
-        ConsoleManager.getScheduleStrategyManager().deleteMachineStrategy(strategyName);
+        ConsoleManager.getStorage().removeStrategy(strategyName);
         return msgBean.returnMsg();
     }
     
@@ -137,10 +157,11 @@ public class StrategyController {
         } else {
             strategy.setIPList(JoinerSplitters.getSplitter(",").splitToList(ips).toArray(new String[] {}));
         }
+        IStorage storage = ConsoleManager.getStorage();
         if (isCreate) {
-            ConsoleManager.getScheduleStrategyManager().createScheduleStrategy(strategy);
+            storage.createStrategy(strategy);
         } else {
-            ConsoleManager.getScheduleStrategyManager().updateScheduleStrategy(strategy);
+            storage.updateStrategy(strategy);
         }
         return msgBean.returnMsg();
     }

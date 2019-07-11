@@ -25,38 +25,32 @@ public class InitialDemoConfigData extends AbstractTest {
 	@Test
 	public void initialConfigData() throws Exception {
 		String baseTaskTypeName = "DemoTask";
-		while(this.scheduleManagerFactory.isZookeeperInitialSucess() == false){
-			Thread.sleep(1000);
-		}
 		scheduleManagerFactory.stopServer(null);
 		Thread.sleep(1000);
 		try {
-			this.scheduleManagerFactory.getScheduleDataManager()
-					.deleteTaskType(baseTaskTypeName);
+			this.scheduleManagerFactory.getStorage().removeTask(baseTaskTypeName);
 		} catch (Exception e) {
 
 		}
 		// 创建任务调度DemoTask的基本信息
-		ScheduleTaskType baseTaskType = new ScheduleTaskType();
-		baseTaskType.setBaseTaskType(baseTaskTypeName);
-		baseTaskType.setDealBeanName("demoTaskBean");
-		baseTaskType.setHeartBeatRate(2000);
-		baseTaskType.setJudgeDeadInterval(10000);
-		baseTaskType.setTaskParameter("AREA=杭州,YEAR>30");
-		baseTaskType.setTaskItems(ScheduleTaskType.splitTaskItem(
+		ScheduleTaskType task = new ScheduleTaskType();
+		task.setBaseTaskType(baseTaskTypeName);
+		task.setDealBeanName("demoTaskBean");
+		task.setHeartBeatRate(2000);
+		task.setJudgeDeadInterval(10000);
+		task.setTaskParameter("AREA=杭州,YEAR>30");
+		task.setTaskItems(ScheduleTaskType.splitTaskItem(
 				"0:{TYPE=A,KIND=1},1:{TYPE=A,KIND=2},2:{TYPE=A,KIND=3},3:{TYPE=A,KIND=4}," +
 				"4:{TYPE=A,KIND=5},5:{TYPE=A,KIND=6},6:{TYPE=A,KIND=7},7:{TYPE=A,KIND=8}," +
 				"8:{TYPE=A,KIND=9},9:{TYPE=A,KIND=10}"));
-		this.scheduleManagerFactory.getScheduleDataManager()
-				.createBaseTaskType(baseTaskType);
-		log.info("创建调度任务成功:" + baseTaskType.toString());
+        this.scheduleManagerFactory.getStorage().createTask(task);
+		log.info("创建调度任务成功:" + task.toString());
 
 		// 创建任务DemoTask的调度策略
 		String taskName = baseTaskTypeName + "$TEST";
-		String strategyName = baseTaskTypeName +"-Strategy";
+		String strategyName = baseTaskTypeName + "-Strategy";
 		try {
-			this.scheduleManagerFactory.getScheduleStrategyManager()
-					.deleteMachineStrategy(strategyName,true);
+			this.scheduleManagerFactory.getStorage().removeStrategy(strategyName);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -69,8 +63,7 @@ public class InitialDemoConfigData extends AbstractTest {
 		strategy.setNumOfSingleServer(1);
 		strategy.setAssignNum(10);
 		strategy.setIPList("127.0.0.1".split(","));
-		this.scheduleManagerFactory.getScheduleStrategyManager()
-				.createScheduleStrategy(strategy);
+        this.scheduleManagerFactory.getStorage().createStrategy(strategy);
 		log.info("创建调度策略成功:" + strategy.toString());
 
 	}

@@ -13,12 +13,14 @@
     <packaging>pom</packaging>
     <version>${revision}</version>
     <properties>
-        <revision>4.0.1</revision>
+        <revision>4.1.0</revision>
     </properties>
     <modules>
         <module>tbschedule-core</module>
         <module>tbschedule-console</module>
         <module>tbschedule-extension</module>
+        <module>tbschedule-storage</module>
+        <module>tbschedule-demo</module>
     </modules>
     <dependencyManagement>
         <dependencies>

@@ -5,6 +5,10 @@ import java.util.List;
 
 import org.apache.commons.lang3.builder.ToStringBuilder;
 
+import com.alibaba.fastjson.annotation.JSONField;
+import com.taobao.pamirs.schedule.TaskItemDefine;
+import com.yoloho.schedule.util.ScheduleTaskUtil;
+
 /**
  * 调度任务类型
  * @author xuannan
@@ -272,6 +276,11 @@ public class ScheduleTaskType implements java.io.Serializable {
 
     public String[] getTaskItems() {
         return taskItems;
+    }
+    
+    @JSONField(serialize = false)
+    public TaskItemDefine[] getTaskItemList() {
+        return ScheduleTaskUtil.parseItems(taskItems);
     }
 
     public void setSts(String sts) {

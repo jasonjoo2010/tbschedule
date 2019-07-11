@@ -10,6 +10,8 @@ import java.util.Date;
 import java.util.Enumeration;
 import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.commons.lang3.time.FastDateFormat;
 
 
@@ -19,7 +21,7 @@ import org.apache.commons.lang3.time.FastDateFormat;
  *
  */
 public class ScheduleUtil {
-	private static final String OWN_SIGN_BASE ="BASE";
+    private static final String OWN_SIGN_BASE = "BASE";
 
 	public static String getLocalHostName() {
 		try {
@@ -71,7 +73,7 @@ public class ScheduleUtil {
     }
 
     public static String getTaskTypeByBaseAndOwnSign(String baseType, String ownSign) {
-        if (ownSign.equals(OWN_SIGN_BASE) == true) {
+        if (StringUtils.isEmpty(ownSign) || ownSign.equals(OWN_SIGN_BASE) == true) {
             return baseType;
         }
         return baseType + "$" + ownSign;
@@ -169,4 +171,25 @@ public class ScheduleUtil {
 	    }
 	    return null;
 	}
+	
+    public static String getLeader(List<String> uuidList) {
+        if (uuidList == null || uuidList.size() == 0) {
+            return "";
+        }
+        long no = Long.MAX_VALUE;
+        long tmpNo = -1;
+        String leader = null;
+        for (String server : uuidList) {
+            tmpNo = NumberUtils.toLong(server.substring(server.lastIndexOf("$") + 1));
+            if (no > tmpNo) {
+                no = tmpNo;
+                leader = server;
+            }
+        }
+        return leader;
+    }
+
+    public static boolean isLeader(String uuid, List<String> uuidList) {
+        return uuid.equals(getLeader(uuidList));
+    }
 }

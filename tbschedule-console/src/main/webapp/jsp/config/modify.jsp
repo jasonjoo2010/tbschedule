@@ -17,11 +17,6 @@
 	<td>格式: IP地址：端口</td>
 </tr>
 <tr>
-	<td>Timeout:</td>
-	<td><input type="text" name="timeout" value="${timeout }" style="width:300"></td>
-	<td>单位毫秒</td>
-</tr>
-<tr>
 	<td>rootPath：</td>
 	<td><input type="text" name="rootPath" value="${rootPath }" style="width:300"></td>
 	<td>例如：/taobao-pamirs-schedule/huijin,，可以是一级目录，也可以是多级目录，注意不同调度域间不能有父子关系<br/>

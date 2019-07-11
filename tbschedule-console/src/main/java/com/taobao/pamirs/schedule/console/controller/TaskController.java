@@ -16,7 +16,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
 
-import com.taobao.pamirs.schedule.ConsoleManager;
+import com.taobao.pamirs.schedule.console.ConsoleManager;
+import com.taobao.pamirs.schedule.taskmanager.IStorage;
 import com.taobao.pamirs.schedule.taskmanager.ScheduleServer;
 import com.taobao.pamirs.schedule.taskmanager.ScheduleTaskItem;
 import com.taobao.pamirs.schedule.taskmanager.ScheduleTaskType;
@@ -35,7 +36,17 @@ public class TaskController {
             response.sendRedirect("/config/modify");
             return null;
         }
-        List<ScheduleTaskType> taskList = ConsoleManager.getScheduleDataManager().getAllTaskTypeBaseInfo();
+        IStorage storage = ConsoleManager.getStorage();
+        List<ScheduleTaskType> taskList = storage.getTaskNames().stream()
+                .map(name -> {
+                    try {
+                        return storage.getTask(name);
+                    } catch (Exception e) {
+                        return null;
+                    }
+                })
+                .filter(item -> item != null)
+                .collect(Collectors.toList());
         mav.addObject("taskList", taskList);
         return mav;
     }
@@ -43,7 +54,7 @@ public class TaskController {
     @RequestMapping("/edit")
     public ModelAndView edit(String taskName) throws Exception {
         ModelAndView mav = new ModelAndView("task/edit");
-        ScheduleTaskType task = ConsoleManager.getScheduleDataManager().loadTaskTypeBaseInfo(taskName);
+        ScheduleTaskType task = ConsoleManager.getStorage().getTask(taskName);
         mav.addObject("isCreate", false);
         if (task == null) {
             task = new ScheduleTaskType();
@@ -62,7 +73,10 @@ public class TaskController {
             @RequestParam(required = false) String ownSign
             ) throws Exception {
         ModelAndView mav = new ModelAndView("task/runtime");
-        List<ScheduleTaskTypeRunningInfo> infoList = ConsoleManager.getScheduleDataManager().getAllTaskTypeRunningInfo(taskName);
+        List<ScheduleTaskTypeRunningInfo> infoList = ConsoleManager.getStorage().getRunningEntryList(taskName).stream()
+                .map(entry -> new ScheduleTaskTypeRunningInfo(entry))
+                .collect(Collectors.toList());
+        IStorage storage = ConsoleManager.getStorage();
         if (StringUtils.isNotEmpty(ownSign)) {
             // filter by ownSign
             infoList = infoList.stream()
@@ -73,10 +87,10 @@ public class TaskController {
         Map<String, List<ScheduleServer>> strategyMap = new HashMap<>();
         Map<String, List<ScheduleTaskItem>> itemMap = new HashMap<>();
         for (ScheduleTaskTypeRunningInfo info : infoList) {
-            strategyMap.put(info.getTaskType(), ConsoleManager.getScheduleDataManager().selectAllValidScheduleServer(info.getTaskType()));
-            itemMap.put(info.getTaskType(), ConsoleManager.getScheduleDataManager().loadAllTaskItem(info.getTaskType()));
+            strategyMap.put(info.getTaskType(), ConsoleManager.getStorage().getServerList(info.getBaseTaskType(), info.getOwnSign()));
+            itemMap.put(info.getTaskType(), storage.getRunningTaskItems(info.getBaseTaskType(), info.getOwnSign()));
             if (!taskMap.containsKey(info.getBaseTaskType())) {
-                taskMap.put(info.getBaseTaskType(), ConsoleManager.getScheduleDataManager().loadTaskTypeBaseInfo(info.getBaseTaskType()));
+                taskMap.put(info.getBaseTaskType(), ConsoleManager.getStorage().getTask(info.getBaseTaskType()));
             }
         }
         mav.addObject("infoList", infoList);
@@ -91,7 +105,8 @@ public class TaskController {
     @ResponseBody
     public Map<String, Object> clean(String taskName) throws Exception {
         MsgBean msgBean = new MsgBean();
-        ConsoleManager.getScheduleDataManager().clearTaskType(taskName);
+        IStorage storage = ConsoleManager.getStorage();
+        storage.cleanTaskRunningInfo(taskName);
         msgBean.put("refresh", false);
         return msgBean.returnMsg();
     }
@@ -100,7 +115,7 @@ public class TaskController {
     @ResponseBody
     public Map<String, Object> remove(String taskName) throws Exception {
         MsgBean msgBean = new MsgBean();
-        ConsoleManager.getScheduleDataManager().deleteTaskType(taskName);
+        ConsoleManager.getStorage().removeTask(taskName);
         msgBean.put("refresh", true);
         return msgBean.returnMsg();
     }
@@ -148,10 +163,11 @@ public class TaskController {
         itemDefines = itemDefines.replace("\n", "");          
         taskType.setTaskItems(ScheduleTaskType.splitTaskItem(itemDefines));
         taskType.setSts(sts);
+        IStorage storage = ConsoleManager.getStorage();
         if (isCreate) {
-            ConsoleManager.getScheduleDataManager().createBaseTaskType(taskType);
+            storage.createTask(taskType);
         } else {
-            ConsoleManager.getScheduleDataManager().updateBaseTaskType(taskType);
+            storage.updateTask(taskType);
         }
         return msgBean.returnMsg();
     }

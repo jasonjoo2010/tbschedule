@@ -3,11 +3,10 @@ package com.taobao.pamirs.schedule.console.controller;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringReader;
-import java.io.StringWriter;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
+import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletResponse;
 
@@ -20,10 +19,14 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
 
+import com.alibaba.fastjson.JSON;
 import com.google.common.base.Preconditions;
 import com.google.common.io.CharStreams;
-import com.taobao.pamirs.schedule.ConsoleManager;
-import com.taobao.pamirs.schedule.zk.ZKManager;
+import com.taobao.pamirs.schedule.console.ConsoleManager;
+import com.taobao.pamirs.schedule.strategy.ScheduleStrategy;
+import com.taobao.pamirs.schedule.taskmanager.IStorage;
+import com.taobao.pamirs.schedule.taskmanager.ScheduleConfig;
+import com.taobao.pamirs.schedule.taskmanager.ScheduleTaskType;
 import com.yoloho.enhanced.common.support.MsgBean;
 
 @Controller
@@ -37,12 +40,11 @@ public class ConfigController {
         mav.addObject("isInitial", ConsoleManager.isInitial());
         mav.addObject("errorMessage", ConsoleManager.getScheduleManagerFactory().getErrorMessage());
         try {
-            Properties  p = ConsoleManager.loadConfig();
-            mav.addObject("address", p.getProperty(ZKManager.keys.zkConnectString.toString()));
-            mav.addObject("timeout", p.getProperty(ZKManager.keys.zkSessionTimeout.toString()));
-            mav.addObject("rootPath", p.getProperty(ZKManager.keys.rootPath.toString()));
-            mav.addObject("userName", p.getProperty(ZKManager.keys.userName.toString()));
-            mav.addObject("password", p.getProperty(ZKManager.keys.password.toString()));
+            ScheduleConfig config = ConsoleManager.loadConfig();
+            mav.addObject("address", config.getAddress());
+            mav.addObject("rootPath", config.getRootPath());
+            mav.addObject("userName", config.getUsername());
+            mav.addObject("password", config.getPassword());
         } catch (IOException e) {
             logger.warn("Loading configuration failed", e);
         }
@@ -59,26 +61,13 @@ public class ConfigController {
             String password) {
         Preconditions.checkArgument(timeout >= 5000, "Session timeout should be less than 5000 ms");
         MsgBean msgBean = new MsgBean();
-        Properties p = new Properties();
-        p.setProperty(ZKManager.keys.zkConnectString.toString(), address);
-        p.setProperty(ZKManager.keys.rootPath.toString(), rootPath);
-        p.setProperty(ZKManager.keys.userName.toString(), userName);
-        p.setProperty(ZKManager.keys.password.toString(), password);
-        p.setProperty(ZKManager.keys.zkSessionTimeout.toString(), String.valueOf(timeout));
+        ScheduleConfig config = new ScheduleConfig();
+        config.setAddress(address);
+        config.setRootPath(rootPath);
+        config.setUsername(userName);
+        config.setPassword(password);
         try {
-            ConsoleManager.saveConfigInfo(p);
-            int waitCount = 5;
-            while (waitCount >= 0) {
-                if (ConsoleManager.getScheduleManagerFactory().getZkManager().checkZookeeperState() 
-                        && ConsoleManager.isInitial()) {
-                    break;
-                }
-                Thread.sleep(1000);
-                waitCount --;
-            }
-            if (!ConsoleManager.getScheduleManagerFactory().getZkManager().checkZookeeperState()) {
-                return msgBean.failure("Cannot establish to the server").returnMsg();
-            }
+            ConsoleManager.saveConfigInfo(config);
         } catch (Exception e) {
             logger.warn("Save new configuration error", e);
             return msgBean.failure(e.getMessage()).returnMsg();
@@ -92,9 +81,7 @@ public class ConfigController {
             response.sendRedirect("/config/modify");
             return null;
         }
-        String rootPath = ConsoleManager.getScheduleStrategyManager().getRootPath();
         ModelAndView mav = new ModelAndView("config/export");
-        mav.addObject("rootPath", rootPath);
         return mav;
     }
     
@@ -102,36 +89,58 @@ public class ConfigController {
     @ResponseBody
     public Map<String, Object> exportData(boolean download, HttpServletResponse response) throws Exception {
         MsgBean msgBean = new MsgBean();
-        String rootPath = ConsoleManager.getScheduleStrategyManager().getRootPath();
-        StringWriter confWriter = new StringWriter();
         try {
-            StringBuffer buffer = null;
-            if (rootPath != null && rootPath.length() > 0) {
-                buffer = ConsoleManager.getScheduleStrategyManager()
-                        .exportConfig(rootPath, confWriter);
-            } else {
-                return msgBean.failure("No rootPath configured").returnMsg();
-            }
+            IStorage storage = ConsoleManager.getStorage();
             // Download
             if (download) {
                 // 导出进行保存
-                if (buffer != null) {
-                    response.setContentType("text/plain;charset=GBK");
-                    response.setHeader("Content-disposition",
-                            "attachment; filename=config.txt");
-                    PrintWriter out_ = response.getWriter();
-                    out_.print(buffer.toString());
-                    out_.close();
+                response.setContentType("text/plain;charset=GBK");
+                response.setHeader("Content-disposition",
+                        "attachment; filename=config.txt");
+                PrintWriter out_ = response.getWriter();
+                List<String> taskNames = storage.getTaskNames();
+                for (String taskName : taskNames) {
+                    ScheduleTaskType task = storage.getTask(taskName);
+                    if (task != null) {
+                        out_.write("TASK");
+                        out_.write(JSON.toJSONString(task));
+                        out_.write("\n");
+                    }
                 }
+                List<String> strategyNames = storage.getStrategyNames();
+                for (String strategyName : strategyNames) {
+                    ScheduleStrategy strategy = storage.getStrategy(strategyName);
+                    if (strategy != null) {
+                        out_.write("STRATEGY");
+                        out_.write(JSON.toJSONString(strategy));
+                        out_.write("\n");
+                    }
+                }
+                out_.close();
                 return null;
             } else {
-                msgBean.put("configData", confWriter.toString());
+                msgBean.put("taskList", storage.getTaskNames().stream()
+                        .map(name -> {
+                            try {
+                                return storage.getTask(name);
+                            } catch (Exception e) {
+                            }
+                            return null;
+                        }).filter(n -> n != null)
+                        .collect(Collectors.toList()));
+                msgBean.put("strategyList", storage.getStrategyNames().stream()
+                        .map(name -> {
+                            try {
+                                return storage.getStrategy(name);
+                            } catch (Exception e) {
+                            }
+                            return null;
+                        }).filter(n -> n != null)
+                        .collect(Collectors.toList()));
             }
         } catch (Exception e) {
             logger.error("Export configuration erorr", e);
             return msgBean.failure(e.getMessage()).returnMsg();
-        } finally {
-            confWriter.close();
         }
         return msgBean.returnMsg();
     }
@@ -153,8 +162,12 @@ public class ConfigController {
         if (StringUtils.isEmpty(content)) {
             return msgBean.failure("Config content is empty").returnMsg();
         }
-        StringWriter writer = new StringWriter();
+        int taskCount = 0;
+        int strategyCount = 0;
+        int taskSuccess = 0;
+        int strategySuccess = 0;
         try {
+            IStorage storage = ConsoleManager.getStorage();
             List<String> lines = CharStreams.readLines(new StringReader(content));
             Iterator<String> it = lines.iterator();
             String line;
@@ -164,18 +177,71 @@ public class ConfigController {
                     logger.info("Ignore empty line");
                     continue;
                 }
-                if (line.contains("strategy")
-                        || line.contains("baseTaskType")) {
-                    ConsoleManager.getScheduleStrategyManager()
-                            .importConfig(line, writer, force);
+                if (line.startsWith("TASK{")) {
+                    // Task
+                    String json = line.substring("TASK".length());
+                    try {
+                        ScheduleTaskType task = JSON.parseObject(json, ScheduleTaskType.class);
+                        if (task == null) {
+                            continue;
+                        }
+                        taskCount ++;
+                        if (StringUtils.isEmpty(task.getBaseTaskType())
+                                || StringUtils.isEmpty(task.getDealBeanName())) {
+                            continue;
+                        }
+                        if (storage.getTask(task.getBaseTaskType()) != null) {
+                            // update
+                            if (force) {
+                                storage.updateTask(task);
+                                taskSuccess ++;
+                            }
+                        } else {
+                            // new
+                            storage.createTask(task);
+                            taskSuccess ++;
+                        }
+                        taskSuccess ++;
+                    } catch (Exception e) {
+                    }
+                } else if (line.startsWith("STRATEGY{")) {
+                    // Strategy
+                    String json = line.substring("STRATEGY".length());
+                    try {
+                        ScheduleStrategy strategy = JSON.parseObject(json, ScheduleStrategy.class);
+                        if (strategy == null) {
+                            continue;
+                        }
+                        strategyCount ++;
+                        if (StringUtils.isEmpty(strategy.getStrategyName())
+                                || StringUtils.isEmpty(strategy.getTaskName())) {
+                            continue;
+                        }
+                        if (storage.getStrategy(strategy.getStrategyName()) != null) {
+                            // update
+                            if (force) {
+                                storage.createStrategy(strategy);
+                                strategySuccess ++;
+                            }
+                        } else {
+                            // new
+                            storage.updateStrategy(strategy);
+                            strategySuccess ++;
+                        }
+                    } catch (Exception e) {
+                    }
                 } else {
-                    logger.warn("Unrecognized configuration: {}", line);
+                    logger.warn("Ignore malformed line: {}", line);
                 }
             }
         } catch (Exception e) {
             logger.error("Import configuration error", e);
             return msgBean.failure(e.getMessage()).returnMsg();
         }
+        msgBean.put("taskCount", taskCount);
+        msgBean.put("taskSuccessCount", taskSuccess);
+        msgBean.put("strategyCount", strategyCount);
+        msgBean.put("strategySuccessCount", strategySuccess);
         return msgBean.returnMsg();
     }
     
@@ -187,17 +253,9 @@ public class ConfigController {
             response.sendRedirect("/config/modify");
             return null;
         }
-        if (StringUtils.isEmpty(path)) {
-            path = ConsoleManager.getScheduleStrategyManager().getRootPath();
-        }
         ModelAndView mav = new ModelAndView("config/dump");
-        StringWriter writer = new StringWriter();
-        try {
-            ConsoleManager.getScheduleStrategyManager().printTree(path, writer, "<br/>");
-            mav.addObject("data", writer.getBuffer().toString());
-        } finally {
-            writer.close();
-        }
+        IStorage storage = ConsoleManager.getStorage();
+        mav.addObject("data", storage.dump().replace("\n", "<br />"));
         return mav;
     }
 }

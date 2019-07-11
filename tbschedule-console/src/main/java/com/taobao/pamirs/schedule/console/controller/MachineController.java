@@ -2,14 +2,16 @@ package com.taobao.pamirs.schedule.console.controller;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
 
-import com.taobao.pamirs.schedule.ConsoleManager;
+import com.taobao.pamirs.schedule.console.ConsoleManager;
 import com.taobao.pamirs.schedule.strategy.ManagerFactoryInfo;
+import com.taobao.pamirs.schedule.taskmanager.IStorage;
 import com.yoloho.enhanced.common.support.MsgBean;
 
 @Controller
@@ -19,7 +21,17 @@ public class MachineController {
     @RequestMapping("/index")
     public ModelAndView index() throws Exception {
         ModelAndView mav = new ModelAndView("machine/index");
-        List<ManagerFactoryInfo> list =  ConsoleManager.getScheduleStrategyManager().loadAllManagerFactoryInfo();
+        IStorage storage = ConsoleManager.getStorage();
+        List<ManagerFactoryInfo> list = storage.getFactoryNames().stream()
+                .map(uuid -> {
+                    ManagerFactoryInfo obj = new ManagerFactoryInfo();
+                    obj.setUuid(uuid);
+                    try {
+                        obj.setStart(storage.isFactoryAllowExecute(uuid));
+                    } catch (Exception e) {
+                    }
+                    return obj;
+                }).collect(Collectors.toList());
         mav.addObject("machines", list);
         return mav;
     }
@@ -28,7 +40,7 @@ public class MachineController {
     @ResponseBody
     public Map<String, Object> start(String uuid) throws Exception {
         MsgBean msgBean = new MsgBean();
-        ConsoleManager.getScheduleStrategyManager().updateManagerFactoryInfo(uuid, true);
+        ConsoleManager.getStorage().setFactoryAllowExecute(uuid, true);
         return msgBean.returnMsg();
     }
     
@@ -36,7 +48,7 @@ public class MachineController {
     @ResponseBody
     public Map<String, Object> stop(String uuid) throws Exception {
         MsgBean msgBean = new MsgBean();
-        ConsoleManager.getScheduleStrategyManager().updateManagerFactoryInfo(uuid, false);
+        ConsoleManager.getStorage().setFactoryAllowExecute(uuid, false);
         return msgBean.returnMsg();
     }
     

@@ -1,12 +1,15 @@
 package com.taobao.pamirs.schedule.taskmanager;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
 
-import org.apache.zookeeper.data.Stat;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.taobao.pamirs.schedule.ScheduleUtil;
 import com.taobao.pamirs.schedule.TaskItemDefine;
 import com.taobao.pamirs.schedule.strategy.TBScheduleManagerFactory;
 
@@ -22,18 +25,17 @@ public class TBScheduleManagerStatic extends TBScheduleManager {
     private final Object NeedReloadTaskItemLock = new Object();
 
     public TBScheduleManagerStatic(TBScheduleManagerFactory aFactory, String baseTaskType, String ownSign,
-            IScheduleDataManager aScheduleCenter) throws Exception {
-        super(aFactory, baseTaskType, ownSign, aScheduleCenter);
+            IStorage storage) throws Exception {
+        super(aFactory, baseTaskType, ownSign, storage);
     }
 
     public void initialRunningInfo() throws Exception {
-        scheduleCenter.clearExpireScheduleServer(this.currenScheduleServer.getTaskType(),
-                this.taskTypeInfo.getJudgeDeadInterval());
-        List<String> list = scheduleCenter.loadScheduleServerNames(this.currenScheduleServer.getTaskType());
-        if (scheduleCenter.isLeader(this.currenScheduleServer.getUuid(), list)) {
-            // 是第一次启动，先清楚所有的垃圾数据
-            log.debug(this.currenScheduleServer.getUuid() + ":" + list.size());
-            this.scheduleCenter.initialRunningInfo4Static(this.currenScheduleServer.getBaseTaskType(),
+        cleanExpiredServer(this.taskTypeInfo.getJudgeDeadInterval());
+        if (isLeader()) {
+            // 是第一次启动，先清所有的垃圾数据
+            this.storage.initTaskRunningInfo(this.currenScheduleServer.getBaseTaskType(),
+                    this.currenScheduleServer.getOwnSign());
+            this.storage.initTaskItemsRunningInfo(this.currenScheduleServer.getBaseTaskType(),
                     this.currenScheduleServer.getOwnSign(), this.currenScheduleServer.getUuid());
         }
     }
@@ -51,7 +53,7 @@ public class TBScheduleManagerStatic extends TBScheduleManager {
  				      //log.error("isRuntimeInfoInitial = " + isRuntimeInfoInitial);
  				      try{
 					  initialRunningInfo();
-					  isRuntimeInfoInitial = scheduleCenter.isInitialRunningInfoSuccess(
+					  isRuntimeInfoInitial = storage.isInitialRunningInfoSuccess(
 										currenScheduleServer.getBaseTaskType(),
 										currenScheduleServer.getOwnSign());
  				      }catch(Throwable e){
@@ -62,8 +64,8 @@ public class TBScheduleManagerStatic extends TBScheduleManager {
     				      Thread.currentThread().sleep(1000);
 					  }
 					}
-    			   int count =0;
-    			   lastReloadTaskItemListTime = scheduleCenter.getSystemTime();
+    			   int count = 0;
+    			   lastReloadTaskItemListTime = storage.getGlobalTime();
 				   while(getCurrentScheduleTaskItemListNow().size() <= 0){
     				      if(isStopSchedule == true){
     				    	  log.debug("外部命令终止调度,退出调度队列获取：" + currenScheduleServer.getUuid());
@@ -83,7 +85,8 @@ public class TBScheduleManagerStatic extends TBScheduleManager {
     			   log.info("获取到任务处理队列，开始调度：" + tmpStr +"  of  "+ currenScheduleServer.getUuid());
     			   
     		    	//任务总量
-    		    	taskItemCount = scheduleCenter.loadAllTaskItem(currenScheduleServer.getTaskType()).size();
+                    taskItemCount = storage.getRunningTaskItems(currenScheduleServer.getBaseTaskType(),
+                            currenScheduleServer.getOwnSign()).size();
     		    	//只有在已经获取到任务处理队列后才开始启动任务处理器    			   
     			   computerStart();
     			}catch(Exception e){
@@ -145,29 +148,137 @@ public class TBScheduleManagerStatic extends TBScheduleManager {
 	 * @throws Exception
 	 */
 	public boolean isNeedReLoadTaskItemList() throws Exception{
-		return this.lastFetchVersion < this.scheduleCenter.getReloadTaskItemFlag(this.currenScheduleServer.getTaskType());
+        return this.lastFetchVersion < this.storage.getAllServerReload(this.currenScheduleServer.getBaseTaskType(),
+                this.currenScheduleServer.getOwnSign());
 	}
 	
-	/**判断某个任务对应的线程组是否处于僵尸状态。
-	 * true 表示有线程组处于僵尸状态。需要告警。
-	 * @param type
-	 * @param statMap
-	 * @return
-	 * @throws Exception
-	 */
-	private boolean isExistZombieServ(String type,Map<String,Stat> statMap) throws Exception{
+	/**
+     * 判断某个任务对应的线程组是否处于僵尸状态。 true 表示有线程组处于僵尸状态。需要告警。
+     * 
+     * @param runningEntry
+     * @param serverList
+     * @return
+     * @throws Exception
+     */
+    private boolean isExistZombieServ(String runningEntry, List<ScheduleServer> serverList) throws Exception {
         boolean exist = false;
-        for (String key : statMap.keySet()) {
-            Stat s = statMap.get(key);
-            if (this.scheduleCenter.getSystemTime() - s.getMtime() 
-                    > this.taskTypeInfo.getHeartBeatRate() * 40) {
-                log.error("zombie serverList exists! serv=" + key + " ,type=" + type + "超过40次心跳周期未更新");
+        for (ScheduleServer server : serverList) {
+            if (this.storage.getGlobalTime()
+                    - server.getHeartBeatTime().getTime() > this.taskTypeInfo.getHeartBeatRate() * 40) {
+                log.error("Detect zombie server! server={}, type={}", server.getUuid(), runningEntry);
                 exist = true;
             }
         }
-		return exist;
-		 
-	}
+        return exist;
+    }
+    
+    /**
+     * Release all the task items current server may operated which maybe held by invalid servers
+     * 
+     * @param taskType
+     * @param serverList
+     * @return
+     * @throws Exception
+     */
+    private int clearTaskItemsHeldByInvalidServer() throws Exception {
+        List<String> uuidList = this.storage.getServerUuidList(this.currenScheduleServer.getBaseTaskType(),
+                this.currenScheduleServer.getOwnSign());
+        List<ScheduleTaskItem> taskItemList = this.storage.getRunningTaskItems(currenScheduleServer.getBaseTaskType(),
+                currenScheduleServer.getOwnSign());
+        int result = 0;
+        for (ScheduleTaskItem item : taskItemList) {
+            if (StringUtils.isNotEmpty(item.getCurrentScheduleServer())) {
+                if (!uuidList.contains(item.getCurrentScheduleServer())) {
+                    // invalid server found
+                    this.storage.updateTaskItemCurrentServer(currenScheduleServer.getBaseTaskType(),
+                            currenScheduleServer.getOwnSign(), item.getTaskItem(), "");
+                    log.info("Clear invalid server's task items: {} -> {}", item.getTaskItem(),
+                            item.getCurrentScheduleServer());
+                    result++;
+                }
+            } else {
+                result = result + 1;
+            }
+        }
+        return result;
+    }
+    
+    private void assignTaskItem(int maxNumOfOneServer)
+            throws Exception {
+        List<String> serverList = this.storage.getServerUuidList(this.currenScheduleServer.getBaseTaskType(),
+                this.currenScheduleServer.getOwnSign());
+        String taskName = currenScheduleServer.getBaseTaskType();
+        String ownSign = currenScheduleServer.getOwnSign();
+        String currentUuid = currenScheduleServer.getUuid();
+        //设置初始化成功标准，避免在leader转换的时候，新增的线程组初始化失败
+        // flag success first
+        this.storage.setInitialRunningInfoSuccess(taskName, ownSign, currentUuid);
+        if (log.isDebugEnabled()) {
+            log.debug("{}: Begin to distribute task", currentUuid);
+        }
+        if (serverList.size() <= 0) {
+            // 在服务器动态调整的时候，可能出现服务器列表为空的清空
+            return;
+        }
+        List<ScheduleTaskItem> taskItemList = this.storage.getRunningTaskItems(taskName, ownSign);
+        // 20150323 有些任务分片，业务方其实是用数字的字符串排序的。优先以数字进行排序，否则以字符串排序
+        Collections.sort(taskItemList, new Comparator<ScheduleTaskItem>() {
+            public int compare(ScheduleTaskItem u1, ScheduleTaskItem u2) {
+                if (StringUtils.isNumeric(u1.getTaskItem()) && StringUtils.isNumeric(u2.getTaskItem())) {
+                    int iU1 = Integer.parseInt(u1.getTaskItem());
+                    int iU2 = Integer.parseInt(u2.getTaskItem());
+                    if (iU1 == iU2) {
+                        return 0;
+                    } else if (iU1 > iU2) {
+                        return 1;
+                    } else {
+                        return -1;
+                    }
+                } else {
+                    return u1.getTaskItem().compareTo(u2.getTaskItem());
+                }
+            }
+        });
+        int unModifyCount = 0;
+        int[] taskNums = ScheduleUtil.assignTaskNumber(serverList.size(), taskItemList.size(), maxNumOfOneServer);
+        int point = 0;
+        int count = 0;
+        String NO_SERVER_DEAL = "NO SERVER";
+        for (int i = 0; i < taskItemList.size(); i++) {
+            ScheduleTaskItem item = taskItemList.get(i);
+            if (point < serverList.size() && i >= count + taskNums[point]) {
+                count = count + taskNums[point];
+                point = point + 1;
+            }
+            String serverName = NO_SERVER_DEAL;
+            if (point < serverList.size()) {
+                serverName = serverList.get(point);
+            }
+            if (StringUtils.isEmpty(item.getCurrentScheduleServer()) || StringUtils.equals(item.getCurrentScheduleServer(), NO_SERVER_DEAL)) {
+                this.storage.updateTaskItemCurrentServer(taskName, ownSign, item.getTaskItem(), serverName);
+                this.storage.updateTaskItemRequestServer(taskName, ownSign, item.getTaskItem(), "");
+            } else if (StringUtils.equals(item.getCurrentScheduleServer(), serverName) 
+                    && StringUtils.isEmpty(item.getRequestScheduleServer())) {
+                // Do nothing
+                unModifyCount ++;
+            } else {
+                this.storage.updateTaskItemRequestServer(taskName, ownSign, item.getTaskItem(), serverName);
+            }
+        }
+
+        if (unModifyCount < taskItemList.size()) { // reload configuration
+            log.info("Request all nodes to reload configuration on {}${}, currentUuid {}", taskName, ownSign, currentUuid);
+            this.storage.requestAllServerReload(taskName, ownSign);
+        }
+        if (log.isDebugEnabled()) {
+            StringBuffer buffer = new StringBuffer();
+            for (ScheduleTaskItem taskItem : this.storage.getRunningTaskItems(taskName, ownSign)) {
+                buffer.append("\n").append(taskItem.toString());
+            }
+            log.debug(buffer.toString());
+        }
+    }
+    
 	/**
 	 * 根据当前调度服务器的信息，重新计算分配所有的调度任务
 	 * 任务的分配是需要加锁，避免数据分配错误。为了避免数据锁带来的负面作用，通过版本号来达到锁的目的
@@ -181,20 +292,15 @@ public class TBScheduleManagerStatic extends TBScheduleManager {
 	 * @throws Exception 
 	 */
 	public void assignScheduleTask() throws Exception {
-		scheduleCenter.clearExpireScheduleServer(this.currenScheduleServer.getTaskType(),this.taskTypeInfo.getJudgeDeadInterval());
-		List<String> serverList = scheduleCenter
-				.loadScheduleServerNames(this.currenScheduleServer.getTaskType());
-		
-		if(scheduleCenter.isLeader(this.currenScheduleServer.getUuid(), serverList)==false){
-			if(log.isDebugEnabled()){
-			   log.debug(this.currenScheduleServer.getUuid() +":不是负责任务分配的Leader,直接返回");
-			}
-			return;
-		}
-		//设置初始化成功标准，避免在leader转换的时候，新增的线程组初始化失败
-		scheduleCenter.setInitialRunningInfoSuccess(this.currenScheduleServer.getBaseTaskType(), this.currenScheduleServer.getTaskType(), this.currenScheduleServer.getUuid());
-		scheduleCenter.clearTaskItem(this.currenScheduleServer.getTaskType(), serverList);
-		scheduleCenter.assignTaskItem(this.currenScheduleServer.getTaskType(),this.currenScheduleServer.getUuid(),this.taskTypeInfo.getMaxTaskItemsOfOneThreadGroup(),serverList);
+	    if (!isLeader()) {
+	        if (log.isDebugEnabled()) {
+	            log.debug(this.currenScheduleServer.getUuid() + ": It's not the Leader, skip");
+	        }
+	        return;
+	    }
+        cleanExpiredServer(this.taskTypeInfo.getJudgeDeadInterval());
+        clearTaskItemsHeldByInvalidServer();
+        assignTaskItem(this.taskTypeInfo.getMaxTaskItemsOfOneThreadGroup());
 	}	
 	/**
 	 * 重新加载当前服务器的任务队列
@@ -223,72 +329,121 @@ public class TBScheduleManagerStatic extends TBScheduleManager {
 				this.isNeedReloadTaskItem = false;
 			}
 		}
-		this.lastReloadTaskItemListTime = this.scheduleCenter.getSystemTime();		
+		this.lastReloadTaskItemListTime = this.storage.getGlobalTime();		
 		return this.currentTaskItemList;		
 		}catch(Exception e){
 			throw new RuntimeException(e);
 		}
 	}
+	
+	/**
+	 * Get current schedule server's task items
+	 * 
+	 * @return
+	 * @throws Exception
+	 */
+	private List<TaskItemDefine> getTaskItemsShouldScheduled() throws Exception {
+        List<ScheduleTaskItem> taskItems = this.storage.getRunningTaskItems(currenScheduleServer.getBaseTaskType(),
+                currenScheduleServer.getOwnSign());
+        List<TaskItemDefine> result = new ArrayList<TaskItemDefine>();
+        for (ScheduleTaskItem item : taskItems) {
+            if (StringUtils.equals(currenScheduleServer.getUuid(), item.getCurrentScheduleServer())) {
+                // current server
+                result.add(new TaskItemDefine(item.getTaskItem(), item.getDealParameter()));
+            }
+        }
+        return result;
+    }
+	
+	/**
+	 * @throws Exception
+	 */
+	private void releaseTaskItemsIfNeeded() throws Exception {
+        int released = this.storage.releaseTaskItemByServer(currenScheduleServer.getBaseTaskType(),
+                currenScheduleServer.getOwnSign(), currenScheduleServer.getUuid());
+        if (released > 0) { // Request to reload
+            this.storage.requestAllServerReload(currenScheduleServer.getBaseTaskType(),
+                    currenScheduleServer.getOwnSign());
+        }
+    }
+	
 	//由于上面在数据执行时有使用到synchronized ，但是心跳线程并没有对应加锁。
 	//所以在此方法上加一下synchronized。20151015
 	protected synchronized List<TaskItemDefine> getCurrentScheduleTaskItemListNow() throws Exception {
 		//如果已经稳定了，理论上不需要加载去扫描所有的叶子结点
 		//20151019 by kongxuan.zlj
-		try{
-			Map<String, Stat> statMap= this.scheduleCenter.getCurrentServerStatList(this.currenScheduleServer.getTaskType());
-			//server下面的机器节点的运行时环境是否在刷新，如果
-			isExistZombieServ(this.currenScheduleServer.getTaskType(), statMap);
-		}catch(Exception e ){
-			log.error("zombie serverList exists， Exception:",e);
-		}
+        try {
+            List<ScheduleServer> serverList = this.storage.getServerList(this.currenScheduleServer.getBaseTaskType(),
+                    this.currenScheduleServer.getOwnSign());
+            // server下面的机器节点的运行时环境是否在刷新，如果
+            isExistZombieServ(this.currenScheduleServer.getTaskType(), serverList);
+        } catch (Exception e) {
+            log.error("zombie serverList exists", e);
+        }
 //		
 		
 		//获取最新的版本号
-		this.lastFetchVersion = this.scheduleCenter.getReloadTaskItemFlag(this.currenScheduleServer.getTaskType());
+        this.lastFetchVersion = this.storage.getAllServerReload(this.currenScheduleServer.getBaseTaskType(),
+                this.currenScheduleServer.getOwnSign());
 		log.debug(" this.currenScheduleServer.getTaskType()="+this.currenScheduleServer.getTaskType()+",  need reload="+ isNeedReloadTaskItem);
 		try{
-			//是否被人申请的队列
-			this.scheduleCenter.releaseDealTaskItem(this.currenScheduleServer.getTaskType(), this.currenScheduleServer.getUuid());
+			// Release task items if any
+		    releaseTaskItemsIfNeeded();
 			//重新查询当前服务器能够处理的队列
 			//为了避免在休眠切换的过程中出现队列瞬间的不一致，先清除内存中的队列
 			this.currentTaskItemList.clear();
-			this.currentTaskItemList = this.scheduleCenter.reloadDealTaskItem(
-					this.currenScheduleServer.getTaskType(), this.currenScheduleServer.getUuid());
+            this.currentTaskItemList = getTaskItemsShouldScheduled();
 			
 			//如果超过10个心跳周期还没有获取到调度队列，则报警
 			if(this.currentTaskItemList.size() ==0 && 
-					scheduleCenter.getSystemTime() - this.lastReloadTaskItemListTime
-					> this.taskTypeInfo.getHeartBeatRate() * 20){
-				StringBuffer buf =new StringBuffer();
-				buf.append("调度服务器");
-				buf.append( this.currenScheduleServer.getUuid());
-				buf.append("[TASK_TYPE=");
-				buf.append( this.currenScheduleServer.getTaskType() );
-				buf.append( "]自启动以来，超过20个心跳周期，还 没有获取到分配的任务队列;");
-				buf.append("  currentTaskItemList.size() ="+currentTaskItemList.size());
-				buf.append(" ,scheduleCenter.getSystemTime()="+scheduleCenter.getSystemTime());
-				buf.append(" ,lastReloadTaskItemListTime="+lastReloadTaskItemListTime);
-				buf.append(" ,taskTypeInfo.getHeartBeatRate()="+taskTypeInfo.getHeartBeatRate()*10);
-				log.warn(buf.toString());
+					storage.getGlobalTime() - this.lastReloadTaskItemListTime
+                    > this.taskTypeInfo.getHeartBeatRate() * 20) {
+                StringBuffer buf = new StringBuffer();
+                buf.append("调度服务器");
+                buf.append(this.currenScheduleServer.getUuid());
+                buf.append("[TASK_TYPE=");
+                buf.append(this.currenScheduleServer.getTaskType());
+                buf.append("]自启动以来，超过20个心跳周期，还 没有获取到分配的任务队列;");
+                buf.append("  currentTaskItemList.size() =" + currentTaskItemList.size());
+                buf.append(", scheduleCenter.getSystemTime()=" + storage.getGlobalTime());
+                buf.append(", lastReloadTaskItemListTime=" + lastReloadTaskItemListTime);
+                buf.append(", taskTypeInfo.getHeartBeatRate()=" + taskTypeInfo.getHeartBeatRate() * 10);
+                log.warn(buf.toString());
 			}
 			
 			if(this.currentTaskItemList.size() >0){
 				 //更新时间戳
-				 this.lastReloadTaskItemListTime = scheduleCenter.getSystemTime();
+				 this.lastReloadTaskItemListTime = storage.getGlobalTime();
 			}
-			
-			return this.currentTaskItemList;
-		}catch(Throwable e){
-			this.lastFetchVersion = -1; //必须把把版本号设置小，避免任务加载失败
-			if(e instanceof Exception ){
-				throw (Exception)e;
-			}else{
-				throw new Exception(e);
-			}
-		}
-	}	
+
+            return this.currentTaskItemList;
+        } catch (Throwable e) {
+            this.lastFetchVersion = -1; // 必须把把版本号设置小，避免任务加载失败
+            if (e instanceof Exception) {
+                throw (Exception) e;
+            } else {
+                throw new Exception(e);
+            }
+        }
+	}
+	
 	public int getTaskItemCount(){
 		 return this.taskItemCount;
 	}
+	
+	private int cleanExpiredServer(long expirationInMillis) throws Exception {
+	    String taskName = currenScheduleServer.getBaseTaskType();
+	    String ownSign = currenScheduleServer.getOwnSign();
+        List<ScheduleServer> list = this.storage.getServerList(taskName, ownSign);
+        long now = this.storage.getGlobalTime();
+        int clean_cnt = 0;
+        for (ScheduleServer server : list) {
+            if (now - server.getHeartBeatTime().getTime() > expirationInMillis) {
+                this.storage.unregisterServer(taskName, ownSign, server.getUuid());
+                clean_cnt ++;
+            }
+        }
+        return clean_cnt;
+    }
 
 }
