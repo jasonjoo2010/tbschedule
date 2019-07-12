@@ -2,26 +2,26 @@ package com.taobao.pamirs.schedule.console.vo;
 
 import org.apache.commons.lang3.StringUtils;
 
-import com.taobao.pamirs.schedule.strategy.ScheduleStrategy;
-import com.taobao.pamirs.schedule.strategy.ScheduleStrategy.Kind;
 import com.yoloho.enhanced.common.util.BeansUtil;
 import com.yoloho.enhanced.common.util.JoinerSplitters;
+import com.yoloho.schedule.types.Strategy;
+import com.yoloho.schedule.types.StrategyKind;
 
 public class StrategyVo {
     private String name;
     private boolean running;
-    private Kind kind;
+    private StrategyKind kind;
     private String taskName;
     private String parameter;
     private int assignNum;
     private int numOfSingleServer;
     private String ip;
     
-    public StrategyVo(ScheduleStrategy strategy) {
+    public StrategyVo(Strategy strategy) {
         BeansUtil.copyBean(strategy, this);
-        this.name = strategy.getStrategyName();
+        this.name = strategy.getName();
         this.parameter = strategy.getTaskParameter();
-        this.running = StringUtils.equalsIgnoreCase(ScheduleStrategy.STS_RESUME, strategy.getSts());
+        this.running = StringUtils.equalsIgnoreCase(Strategy.STS_RESUME, strategy.getSts());
         this.ip = JoinerSplitters.getJoiner(",").join(strategy.getIPList());
     }
 
@@ -41,11 +41,11 @@ public class StrategyVo {
         this.running = running;
     }
 
-    public Kind getKind() {
+    public StrategyKind getKind() {
         return kind;
     }
     
-    public void setKind(Kind kind) {
+    public void setKind(StrategyKind kind) {
         this.kind = kind;
     }
     

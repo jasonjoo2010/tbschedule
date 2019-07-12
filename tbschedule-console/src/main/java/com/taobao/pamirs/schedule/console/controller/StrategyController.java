@@ -16,11 +16,12 @@ import org.springframework.web.servlet.ModelAndView;
 
 import com.taobao.pamirs.schedule.console.ConsoleManager;
 import com.taobao.pamirs.schedule.console.vo.StrategyVo;
-import com.taobao.pamirs.schedule.strategy.ScheduleStrategy;
 import com.taobao.pamirs.schedule.strategy.ScheduleStrategyRuntime;
-import com.taobao.pamirs.schedule.taskmanager.IStorage;
 import com.yoloho.enhanced.common.support.MsgBean;
 import com.yoloho.enhanced.common.util.JoinerSplitters;
+import com.yoloho.schedule.interfaces.IStorage;
+import com.yoloho.schedule.types.Strategy;
+import com.yoloho.schedule.types.StrategyKind;
 
 @Controller
 @RequestMapping("/strategy")
@@ -34,7 +35,7 @@ public class StrategyController {
             return null;
         }
         IStorage storage = ConsoleManager.getStorage();
-        List<ScheduleStrategy> scheduleStrategyList = storage.getStrategyNames().stream()
+        List<Strategy> scheduleStrategyList = storage.getStrategyNames().stream()
                 .map(name -> {
                     try {
                         return storage.getStrategy(name);
@@ -79,15 +80,15 @@ public class StrategyController {
     @RequestMapping("/edit")
     public ModelAndView edit(String strategyName) throws Exception {
         ModelAndView mav = new ModelAndView("strategy/edit");
-        ScheduleStrategy strategy = null;
+        Strategy strategy = null;
         if (!StringUtils.equalsIgnoreCase("-1", strategyName)) {
             strategy = ConsoleManager.getStorage().getStrategy(strategyName);
         }
         mav.addObject("isCreate", false);
         if (strategy == null) {
-            strategy = new ScheduleStrategy();
-            strategy.setStrategyName("");
-            strategy.setKind(ScheduleStrategy.Kind.Schedule);
+            strategy = new Strategy();
+            strategy.setName("");
+            strategy.setKind(StrategyKind.Schedule);
             strategy.setTaskName("");
             strategy.setTaskParameter("");
             strategy.setNumOfSingleServer(0);
@@ -103,7 +104,7 @@ public class StrategyController {
     
     private void pauseResumeStrategy(String strategyName, String sts) throws Exception {
         IStorage storage = ConsoleManager.getStorage();
-        ScheduleStrategy strategy = storage.getStrategy(strategyName);
+        Strategy strategy = storage.getStrategy(strategyName);
         strategy.setSts(sts);
         storage.updateStrategy(strategy);
     }
@@ -112,7 +113,7 @@ public class StrategyController {
     @ResponseBody
     public Map<String, Object> pause(String strategyName) throws Exception {
         MsgBean msgBean = new MsgBean();
-        pauseResumeStrategy(strategyName, ScheduleStrategy.STS_PAUSE);
+        pauseResumeStrategy(strategyName, Strategy.STS_PAUSE);
         return msgBean.returnMsg();
     }
     
@@ -120,7 +121,7 @@ public class StrategyController {
     @ResponseBody
     public Map<String, Object> resume(String strategyName) throws Exception {
         MsgBean msgBean = new MsgBean();
-        pauseResumeStrategy(strategyName, ScheduleStrategy.STS_RESUME);
+        pauseResumeStrategy(strategyName, Strategy.STS_RESUME);
         return msgBean.returnMsg();
     }
     
@@ -145,9 +146,9 @@ public class StrategyController {
             String ips
             ) throws Exception {
         MsgBean msgBean = new MsgBean();
-        ScheduleStrategy strategy = new ScheduleStrategy();
-        strategy.setStrategyName(strategyName);
-        strategy.setKind(ScheduleStrategy.Kind.valueOf(kind));
+        Strategy strategy = new Strategy();
+        strategy.setName(strategyName);
+        strategy.setKind(StrategyKind.valueOf(kind));
         strategy.setTaskName(taskName);
         strategy.setTaskParameter(taskParameter);
         strategy.setNumOfSingleServer(numOfSingleServer);

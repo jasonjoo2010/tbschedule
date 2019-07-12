@@ -11,9 +11,9 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.taobao.pamirs.schedule.ScheduleUtil;
 import com.taobao.pamirs.schedule.taskmanager.ScheduleConfig;
-import com.taobao.pamirs.schedule.taskmanager.ScheduleTaskType;
+import com.yoloho.schedule.types.Task;
+import com.yoloho.schedule.util.ScheduleUtil;
 
 public class ZookeeperStorageTest {
     private ZookeeperStorage storage;
@@ -41,8 +41,8 @@ public class ZookeeperStorageTest {
         // remove first
         this.storage.removeTask(taskName);
         
-        ScheduleTaskType task = new ScheduleTaskType();
-        task.setBaseTaskType(taskName);
+        Task task = new Task();
+        task.setName(taskName);
         task.setTaskItems(new String[] {"a", "b:{c=1}"});
         task.setDealBeanName("testBean");
         task.setSleepTimeNoData(60000);
@@ -52,7 +52,7 @@ public class ZookeeperStorageTest {
         
         task = this.storage.getTask(taskName);
         assertNotNull(task);
-        assertEquals("task1", task.getBaseTaskType());
+        assertEquals("task1", task.getName());
         assertEquals("testBean", task.getDealBeanName());
         assertEquals(2, task.getTaskItemList().length);
         assertEquals("b", task.getTaskItemList()[1].getTaskItemId());
@@ -71,7 +71,7 @@ public class ZookeeperStorageTest {
         
         task = this.storage.getTask(taskName);
         assertNotNull(task);
-        assertEquals("task1", task.getBaseTaskType());
+        assertEquals("task1", task.getName());
         assertEquals("testBean1", task.getDealBeanName());
         assertEquals(2, task.getTaskItemList().length);
         assertEquals("b", task.getTaskItemList()[1].getTaskItemId());

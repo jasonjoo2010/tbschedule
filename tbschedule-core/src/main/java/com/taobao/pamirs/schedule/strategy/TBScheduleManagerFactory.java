@@ -20,11 +20,14 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 
 import com.google.common.base.Preconditions;
-import com.taobao.pamirs.schedule.IScheduleTaskDeal;
-import com.taobao.pamirs.schedule.ScheduleUtil;
-import com.taobao.pamirs.schedule.taskmanager.IStorage;
 import com.taobao.pamirs.schedule.taskmanager.ScheduleConfig;
-import com.taobao.pamirs.schedule.taskmanager.TBScheduleManagerStatic;
+import com.yoloho.schedule.interfaces.IScheduleTaskDeal;
+import com.yoloho.schedule.interfaces.IStorage;
+import com.yoloho.schedule.interfaces.IStrategyTask;
+import com.yoloho.schedule.processor.TBScheduleManagerStatic;
+import com.yoloho.schedule.types.Strategy;
+import com.yoloho.schedule.types.StrategyKind;
+import com.yoloho.schedule.util.ScheduleUtil;
 
 /**
  * 调度服务器构造器
@@ -165,22 +168,22 @@ public class TBScheduleManagerFactory implements ApplicationContextAware {
 	 * @return
 	 * @throws Exception
 	 */
-    public IStrategyTask createStrategyTask(ScheduleStrategy strategy) throws Exception {
+    public IStrategyTask createStrategyTask(Strategy strategy) throws Exception {
         IStrategyTask result = null;
         try {
-            if (ScheduleStrategy.Kind.Schedule == strategy.getKind()) {
+            if (StrategyKind.Schedule == strategy.getKind()) {
                 String baseTaskType = ScheduleUtil.splitBaseTaskTypeFromTaskType(strategy.getTaskName());
                 String ownSign = ScheduleUtil.splitOwnsignFromTaskType(strategy.getTaskName());
                 result = new TBScheduleManagerStatic(this, baseTaskType, ownSign, storage);
-            } else if (ScheduleStrategy.Kind.Java == strategy.getKind()) {
+            } else if (StrategyKind.Java == strategy.getKind()) {
                 result = (IStrategyTask) Class.forName(strategy.getTaskName()).newInstance();
-                result.initialTaskParameter(strategy.getStrategyName(), strategy.getTaskParameter());
-            } else if (ScheduleStrategy.Kind.Bean == strategy.getKind()) {
+                result.initialTaskParameter(strategy.getName(), strategy.getTaskParameter());
+            } else if (StrategyKind.Bean == strategy.getKind()) {
                 result = (IStrategyTask) this.getBean(strategy.getTaskName());
-                result.initialTaskParameter(strategy.getStrategyName(), strategy.getTaskParameter());
+                result.initialTaskParameter(strategy.getName(), strategy.getTaskParameter());
             }
         } catch (Exception e) {
-            logger.error("strategy 获取对应的java or bean 出错,schedule并没有加载该任务,请确认" + strategy.getStrategyName(), e);
+            logger.error("strategy 获取对应的java or bean 出错,schedule并没有加载该任务,请确认" + strategy.getName(), e);
         }
         return result;
     }
@@ -251,7 +254,7 @@ public class TBScheduleManagerFactory implements ApplicationContextAware {
             if (factoryList.size() == 0 || this.isLeader(this.uuid, factoryList) == false) {
                 continue;
             }
-            ScheduleStrategy scheduleStrategy = this.storage.getStrategy(run.getStrategyName());
+            Strategy scheduleStrategy = this.storage.getStrategy(run.getStrategyName());
 
             int[] nums = ScheduleUtil.assignTaskNumber(factoryList.size(), scheduleStrategy.getAssignNum(),
                     scheduleStrategy.getNumOfSingleServer());
@@ -353,11 +356,11 @@ public class TBScheduleManagerFactory implements ApplicationContextAware {
 					}
 				}
 		   //不足，增加调度器
-		   ScheduleStrategy strategy = this.storage.getStrategy(run.getStrategyName());
+		   Strategy strategy = this.storage.getStrategy(run.getStrategyName());
 		   while(list.size() < run.getRequestNum()){
 			   IStrategyTask result = this.createStrategyTask(strategy);
 			   if(null==result){
-				   logger.error("strategy 对应的配置有问题。strategy name="+strategy.getStrategyName());
+				   logger.error("strategy 对应的配置有问题。strategy name="+strategy.getName());
 			   }
 			   list.add(result);
 		    }

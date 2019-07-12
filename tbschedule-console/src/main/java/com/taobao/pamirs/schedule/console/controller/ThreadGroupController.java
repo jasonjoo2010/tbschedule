@@ -18,11 +18,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 
-import com.taobao.pamirs.schedule.ScheduleUtil;
 import com.taobao.pamirs.schedule.console.ConsoleManager;
-import com.taobao.pamirs.schedule.taskmanager.IStorage;
 import com.taobao.pamirs.schedule.taskmanager.ScheduleServer;
-import com.taobao.pamirs.schedule.taskmanager.ScheduleTaskType;
+import com.yoloho.schedule.interfaces.IStorage;
+import com.yoloho.schedule.types.Task;
+import com.yoloho.schedule.util.ScheduleUtil;
 
 @Controller
 @RequestMapping("/threadgroup")
@@ -187,12 +187,12 @@ public class ThreadGroupController {
         } else {
             list = selectScheduleServer(task, ownSign, ip, orderStr);
         }
-        Map<String, ScheduleTaskType> taskMap = new HashMap<>();
+        Map<String, Task> taskMap = new HashMap<>();
         for (ScheduleServer item : list) {
             if (taskMap.containsKey(item.getBaseTaskType())) {
                 continue;
             }
-            ScheduleTaskType base = ConsoleManager.getStorage().getTask(item.getBaseTaskType());
+            Task base = ConsoleManager.getStorage().getTask(item.getBaseTaskType());
             if (base == null) {
                 continue;
             }

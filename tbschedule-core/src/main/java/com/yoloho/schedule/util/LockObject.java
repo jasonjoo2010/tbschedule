@@ -1,6 +1,6 @@
-package com.taobao.pamirs.schedule.taskmanager;
+package com.yoloho.schedule.util;
 
-class LockObject {
+public class LockObject {
 	private int threadCount = 0;
 	private Object waitOnObject = new Object();
 

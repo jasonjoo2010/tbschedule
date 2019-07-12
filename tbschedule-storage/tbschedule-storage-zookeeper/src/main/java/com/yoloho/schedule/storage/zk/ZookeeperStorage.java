@@ -27,22 +27,22 @@ import org.slf4j.LoggerFactory;
 
 import com.alibaba.fastjson.JSON;
 import com.google.common.base.Preconditions;
-import com.taobao.pamirs.schedule.ScheduleUtil;
-import com.taobao.pamirs.schedule.TaskItemDefine;
-import com.taobao.pamirs.schedule.strategy.ScheduleStrategy;
 import com.taobao.pamirs.schedule.strategy.ScheduleStrategyRuntime;
 import com.taobao.pamirs.schedule.strategy.TBScheduleManagerFactory;
-import com.taobao.pamirs.schedule.taskmanager.IStorage;
 import com.taobao.pamirs.schedule.taskmanager.InitialResult;
 import com.taobao.pamirs.schedule.taskmanager.ScheduleConfig;
 import com.taobao.pamirs.schedule.taskmanager.ScheduleServer;
 import com.taobao.pamirs.schedule.taskmanager.ScheduleTaskItem;
 import com.taobao.pamirs.schedule.taskmanager.ScheduleTaskItem.TaskItemSts;
-import com.taobao.pamirs.schedule.taskmanager.ScheduleTaskType;
 import com.yoloho.enhanced.common.util.JoinerSplitters;
 import com.yoloho.enhanced.common.util.RandomUtil;
+import com.yoloho.schedule.interfaces.IStorage;
 import com.yoloho.schedule.storage.zk.util.PathUtil;
+import com.yoloho.schedule.types.Strategy;
+import com.yoloho.schedule.types.Task;
+import com.yoloho.schedule.types.TaskItem;
 import com.yoloho.schedule.util.DataVersion;
+import com.yoloho.schedule.util.ScheduleUtil;
 
 public class ZookeeperStorage implements IStorage {
     private static final Logger logger = LoggerFactory.getLogger(ZookeeperStorage.class.getSimpleName());
@@ -50,19 +50,23 @@ public class ZookeeperStorage implements IStorage {
     private long timeDelta = 0;
     
     private void checkParent() throws Exception {
-        List<String> list = JoinerSplitters.getSplitter("/").splitToList("/" + client.getNamespace());
+        CuratorFramework clientWithoutNamespace = client.usingNamespace(null);
+        String fullPath = "/" + client.getNamespace();
+        List<String> list = JoinerSplitters.getSplitter("/").splitToList(fullPath);
         StringBuilder builder = new StringBuilder();
         for (String segment : list) {
             if (StringUtils.isEmpty(segment))
                 continue;
             builder.append('/').append(segment);
+            if (builder.toString().equals(fullPath))
+                break;
             String path = builder.toString();
-            if (client.checkExists().forPath(path) == null)
+            if (clientWithoutNamespace.checkExists().forPath(path) == null)
                 throw new RuntimeException("Parent path can not be created: " + path);
-            byte[] data = client.getData().forPath(path);
+            byte[] data = clientWithoutNamespace.getData().forPath(path);
             if (data != null) {
                 String tmpVersion = new String(data);
-                if (tmpVersion.indexOf("taobao-pamirs-schedule-") >= 0) {
+                if (tmpVersion.indexOf("schedule-") >= 0) {
                     throw new Exception("[" + path
                             + "] is already a tbschedule instance's root directory, its any subdirectory cannot be any other's root directory");
                 }
@@ -274,17 +278,17 @@ public class ZookeeperStorage implements IStorage {
     }
     
     @Override
-    public void createTask(ScheduleTaskType task) throws Exception {
-        String zkPath = PathUtil.taskPath(task.getBaseTaskType());
+    public void createTask(Task task) throws Exception {
+        String zkPath = PathUtil.taskPath(task.getName());
         String json = JSON.toJSONString(task);
         if (!createNode(zkPath, json)) {
-            throw new Exception("Task [" + task.getBaseTaskType() + "] has been already existed.");
+            throw new Exception("Task [" + task.getName() + "] has been already existed.");
         }
     }
 
     @Override
-    public void updateTask(ScheduleTaskType task) throws Exception {
-        String zkPath = PathUtil.taskPath(task.getBaseTaskType());
+    public void updateTask(Task task) throws Exception {
+        String zkPath = PathUtil.taskPath(task.getName());
         String json = JSON.toJSONString(task);
         replaceNode(zkPath, json);
     }
@@ -314,7 +318,7 @@ public class ZookeeperStorage implements IStorage {
     }
     
     @Override
-    public ScheduleTaskType getTask(String taskName) throws Exception {
+    public Task getTask(String taskName) throws Exception {
         String path = PathUtil.taskPath(taskName);
         if (!exist(path)) {
             return null;
@@ -323,7 +327,7 @@ public class ZookeeperStorage implements IStorage {
         if (data == null) {
             return null;
         }
-        ScheduleTaskType task = JSON.parseObject(new String(data), ScheduleTaskType.class);
+        Task task = JSON.parseObject(new String(data), Task.class);
         return task;
     }
     
@@ -395,11 +399,11 @@ public class ZookeeperStorage implements IStorage {
     
     @Override
     public void initTaskItemsRunningInfo(String taskName, String ownSign, String uuid) throws Exception {
-        ScheduleTaskType task = getTask(taskName);
+        Task task = getTask(taskName);
         if (task != null) {
             // init task items
-            TaskItemDefine[] items = task.getTaskItemList();
-            for (TaskItemDefine define : items) {
+            TaskItem[] items = task.getTaskItemList();
+            for (TaskItem define : items) {
                 // init other properties
                 String itemPath = PathUtil.taskItemPath(taskName, ownSign, define.getTaskItemId());
                 createIfNotExist(itemPath);
@@ -625,7 +629,7 @@ public class ZookeeperStorage implements IStorage {
     }
     
     @Override
-    public ScheduleStrategy getStrategy(String strategyName) throws Exception {
+    public Strategy getStrategy(String strategyName) throws Exception {
         String path = PathUtil.strategyPath(strategyName);
         if (!exist(path)) {
             return null;
@@ -634,22 +638,22 @@ public class ZookeeperStorage implements IStorage {
         if (data == null) {
             return null;
         }
-        ScheduleStrategy strategy = JSON.parseObject(new String(data), ScheduleStrategy.class);
+        Strategy strategy = JSON.parseObject(new String(data), Strategy.class);
         return strategy;
     }
     
     @Override
-    public void createStrategy(ScheduleStrategy strategy) throws Exception {
-        String path = PathUtil.strategyPath(strategy.getStrategyName());
+    public void createStrategy(Strategy strategy) throws Exception {
+        String path = PathUtil.strategyPath(strategy.getName());
         String json = JSON.toJSONString(strategy);
         if (!createNode(path, json)) {
-            throw new Exception("Srategy [" + strategy.getStrategyName() + "] has been already existed.");
+            throw new Exception("Srategy [" + strategy.getName() + "] has been already existed.");
         }
     }
     
     @Override
-    public void updateStrategy(ScheduleStrategy strategy) throws Exception {
-        String path = PathUtil.strategyPath(strategy.getStrategyName());
+    public void updateStrategy(Strategy strategy) throws Exception {
+        String path = PathUtil.strategyPath(strategy.getName());
         String json = JSON.toJSONString(strategy);
         replaceNode(path, json);
     }
@@ -738,11 +742,11 @@ public class ZookeeperStorage implements IStorage {
         List<String> unregistered = new ArrayList<>();
         List<String> names = getStrategyNames();
         for (String strategyName : names) {
-            ScheduleStrategy strategy = getStrategy(strategyName);
+            Strategy strategy = getStrategy(strategyName);
             boolean isFind = false;
             // 暂停或者不在IP范围
             String zkPath = PathUtil.factoryForStrategyPath(strategyName, factory.getUuid());
-            if (ScheduleStrategy.STS_PAUSE.equalsIgnoreCase(strategy.getSts()) == false
+            if (Strategy.STS_PAUSE.equalsIgnoreCase(strategy.getSts()) == false
                     && strategy.getIPList() != null) {
                 for (String ip : strategy.getIPList()) {
                     if (ip.equals("127.0.0.1") || ip.equalsIgnoreCase("localhost") || ip.equals(factory.getIp())

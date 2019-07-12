@@ -17,12 +17,13 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
 
 import com.taobao.pamirs.schedule.console.ConsoleManager;
-import com.taobao.pamirs.schedule.taskmanager.IStorage;
 import com.taobao.pamirs.schedule.taskmanager.ScheduleServer;
 import com.taobao.pamirs.schedule.taskmanager.ScheduleTaskItem;
-import com.taobao.pamirs.schedule.taskmanager.ScheduleTaskType;
 import com.taobao.pamirs.schedule.taskmanager.ScheduleTaskTypeRunningInfo;
 import com.yoloho.enhanced.common.support.MsgBean;
+import com.yoloho.enhanced.common.util.JoinerSplitters;
+import com.yoloho.schedule.interfaces.IStorage;
+import com.yoloho.schedule.types.Task;
 
 @Controller
 @RequestMapping("/task")
@@ -37,7 +38,7 @@ public class TaskController {
             return null;
         }
         IStorage storage = ConsoleManager.getStorage();
-        List<ScheduleTaskType> taskList = storage.getTaskNames().stream()
+        List<Task> taskList = storage.getTaskNames().stream()
                 .map(name -> {
                     try {
                         return storage.getTask(name);
@@ -54,13 +55,12 @@ public class TaskController {
     @RequestMapping("/edit")
     public ModelAndView edit(String taskName) throws Exception {
         ModelAndView mav = new ModelAndView("task/edit");
-        ScheduleTaskType task = ConsoleManager.getStorage().getTask(taskName);
+        Task task = ConsoleManager.getStorage().getTask(taskName);
         mav.addObject("isCreate", false);
         if (task == null) {
-            task = new ScheduleTaskType();
-            task.setBaseTaskType("");
+            task = new Task();
+            task.setName("");
             task.setDealBeanName("");
-            task.setSts(ScheduleTaskType.STS_RESUME);
             mav.addObject("isCreate", true);
         }
         mav.addObject("task", task);
@@ -83,7 +83,7 @@ public class TaskController {
                     .filter(i -> StringUtils.equalsIgnoreCase(ownSign, i.getOwnSign()))
                     .collect(Collectors.toList());
         }
-        Map<String, ScheduleTaskType> taskMap = new HashMap<>();
+        Map<String, Task> taskMap = new HashMap<>();
         Map<String, List<ScheduleServer>> strategyMap = new HashMap<>();
         Map<String, List<ScheduleTaskItem>> itemMap = new HashMap<>();
         for (ScheduleTaskTypeRunningInfo info : infoList) {
@@ -138,11 +138,10 @@ public class TaskController {
             int maxTaskItemsOfOneThreadGroup,
             String taskParameter,
             String taskItems,
-            String sts,
             boolean isCreate) throws Exception {
         MsgBean msgBean = new MsgBean();
-        ScheduleTaskType taskType = new ScheduleTaskType();
-        taskType.setBaseTaskType(taskName);
+        Task taskType = new Task();
+        taskType.setName(taskName);
         taskType.setDealBeanName(dealBean);
         taskType.setHeartBeatRate((long) (heartBeatRate * 1000));
         taskType.setJudgeDeadInterval((long) (judgeDeadInterval * 1000));
@@ -161,8 +160,7 @@ public class TaskController {
         String itemDefines = taskItems;
         itemDefines = itemDefines.replace("\r", "");
         itemDefines = itemDefines.replace("\n", "");          
-        taskType.setTaskItems(ScheduleTaskType.splitTaskItem(itemDefines));
-        taskType.setSts(sts);
+        taskType.setTaskItems(JoinerSplitters.getSplitter(",").splitToList(itemDefines).toArray(new String[0]));
         IStorage storage = ConsoleManager.getStorage();
         if (isCreate) {
             storage.createTask(taskType);

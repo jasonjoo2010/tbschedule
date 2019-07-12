@@ -8,8 +8,8 @@ import java.util.Random;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.taobao.pamirs.schedule.IScheduleTaskDealMulti;
-import com.taobao.pamirs.schedule.TaskItemDefine;
+import com.yoloho.schedule.interfaces.IScheduleTaskDealMulti;
+import com.yoloho.schedule.types.TaskItem;
 
 /**
  * 单个任务处理实现
@@ -33,13 +33,13 @@ public class DemoTaskBeanMulti implements IScheduleTaskDealMulti<Long> {
 	}
 
 	public List<Long> selectTasks(String taskParameter,String ownSign, int taskItemNum,
-			List<TaskItemDefine> queryCondition, int fetchNum) throws Exception {
+			List<TaskItem> queryCondition, int fetchNum) throws Exception {
 		List<Long> result = new ArrayList<Long>();
 		int num = fetchNum / queryCondition.size();
 		Random random = new Random(System.currentTimeMillis());
 		String message = "获取数据...[ownSign=" + ownSign + ",taskParameter=\"" + taskParameter +"\"]:";
 		boolean isFirst = true;
-		for (TaskItemDefine s : queryCondition) {
+		for (TaskItem s : queryCondition) {
 			long taskItem = Long.parseLong(s.getTaskItemId()) * 10000000L;
 			for (int i = 0; i < num; i++) {
 				result.add(taskItem + random.nextLong()% 100000L);

@@ -3,11 +3,11 @@ package com.yoloho.schedule.storage.zk.util;
 import org.apache.commons.lang3.StringUtils;
 
 import com.google.common.base.Preconditions;
-import com.taobao.pamirs.schedule.ScheduleUtil;
+import com.yoloho.schedule.util.ScheduleUtil;
 
 public class PathUtil {
     public static String taskBasePath() {
-        return "/baseTaskType";
+        return "/task";
     }
     
     public static String strategyBasePath() {

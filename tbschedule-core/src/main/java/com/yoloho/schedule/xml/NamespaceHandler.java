@@ -1,4 +1,4 @@
-package com.taobao.pamirs.schedule.xml;
+package com.yoloho.schedule.xml;
 
 import org.springframework.beans.factory.xml.NamespaceHandlerSupport;
 

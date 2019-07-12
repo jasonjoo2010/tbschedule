@@ -1,4 +1,4 @@
-package com.taobao.pamirs.schedule.annotation;
+package com.yoloho.schedule.annotation;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
@@ -9,7 +9,7 @@ import java.lang.annotation.Target;
 
 import org.springframework.context.annotation.Import;
 
-import com.taobao.pamirs.schedule.config.EnableScheduleConfiguration;
+import com.yoloho.schedule.config.EnableScheduleConfiguration;
 
 /**
  * Enable tbschedule support<br>

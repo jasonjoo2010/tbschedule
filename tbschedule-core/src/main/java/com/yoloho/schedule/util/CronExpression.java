@@ -1,4 +1,4 @@
-package com.taobao.pamirs.schedule;
+package com.yoloho.schedule.util;
 
 import java.io.Serializable;
 import java.text.ParseException;
@@ -6,8 +6,10 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.SortedSet;
 import java.util.StringTokenizer;
 import java.util.TimeZone;
@@ -178,7 +180,6 @@ import java.util.TreeSet;
  * @author Contributions from Mads Henderson
  * @author Refactoring from CronTrigger to CronExpression by Aaron Craven
  */
-@SuppressWarnings( { "rawtypes", "unchecked" })
 public class CronExpression implements Serializable, Cloneable {
 
 	private static final long serialVersionUID = 12423409423L;
@@ -195,8 +196,8 @@ public class CronExpression implements Serializable, Cloneable {
 	protected static final Integer ALL_SPEC = new Integer(ALL_SPEC_INT);
 	protected static final Integer NO_SPEC = new Integer(NO_SPEC_INT);
 
-	protected static final Map monthMap = new HashMap(20);
-	protected static final Map dayMap = new HashMap(60);
+	protected static final Map<String, Integer> monthMap = new HashMap<>(20);
+	protected static final Map<String, Integer> dayMap = new HashMap<>(60);
 
 	protected static final int CronTrigger_YEAR_TO_GIVEUP_SCHEDULING_AT = 2299;
 
@@ -225,13 +226,13 @@ public class CronExpression implements Serializable, Cloneable {
 
 	private String cronExpression = null;
 	private TimeZone timeZone = null;
-	protected transient TreeSet seconds;
-	protected transient TreeSet minutes;
-	protected transient TreeSet hours;
-	protected transient TreeSet daysOfMonth;
-	protected transient TreeSet months;
-	protected transient TreeSet daysOfWeek;
-	protected transient TreeSet years;
+	protected transient TreeSet<Integer> seconds;
+	protected transient TreeSet<Integer> minutes;
+	protected transient TreeSet<Integer> hours;
+	protected transient TreeSet<Integer> daysOfMonth;
+	protected transient TreeSet<Integer> months;
+	protected transient TreeSet<Integer> daysOfWeek;
+	protected transient TreeSet<Integer> years;
 	protected transient MonLdaySet monLdaySet;
 
 	protected transient boolean lastdayOfWeek = false;
@@ -391,25 +392,25 @@ public class CronExpression implements Serializable, Cloneable {
 		try {
 
 			if (seconds == null) {
-				seconds = new TreeSet();
+				seconds = new TreeSet<>();
 			}
 			if (minutes == null) {
-				minutes = new TreeSet();
+				minutes = new TreeSet<>();
 			}
 			if (hours == null) {
-				hours = new TreeSet();
+				hours = new TreeSet<>();
 			}
 			if (daysOfMonth == null) {
-				daysOfMonth = new TreeSet();
+				daysOfMonth = new TreeSet<>();
 			}
 			if (months == null) {
-				months = new TreeSet();
+				months = new TreeSet<>();
 			}
 			if (daysOfWeek == null) {
-				daysOfWeek = new TreeSet();
+				daysOfWeek = new TreeSet<>();
 			}
 			if (years == null) {
-				years = new TreeSet();
+				years = new TreeSet<>();
 			}
 
 			int exprOn = SECOND;
@@ -453,8 +454,8 @@ public class CronExpression implements Serializable, Cloneable {
 				storeExpressionVals(0, "*", YEAR);
 			}
 
-			TreeSet dow = getSet(DAY_OF_WEEK);
-			TreeSet dom = getSet(DAY_OF_MONTH);
+			TreeSet<Integer> dow = getSet(DAY_OF_WEEK);
+			TreeSet<Integer> dom = getSet(DAY_OF_MONTH);
 
 			// Copying the logic from the UnsupportedOperationException below
 			boolean dayOfMSpec = !dom.contains(NO_SPEC);
@@ -702,7 +703,7 @@ public class CronExpression implements Serializable, Cloneable {
 				throw new ParseException("'L' option is not valid here. (pos="
 						+ i + ")", i);
 			}
-			TreeSet set = getSet(type);
+			TreeSet<Integer> set = getSet(type);
 			set.add(new Integer(val));
 			i++;
 			return i;
@@ -715,7 +716,7 @@ public class CronExpression implements Serializable, Cloneable {
 				throw new ParseException("'W' option is not valid here. (pos="
 						+ i + ")", i);
 			}
-			TreeSet set = getSet(type);
+			TreeSet<Integer> set = getSet(type);
 			set.add(new Integer(val));
 			i++;
 			return i;
@@ -738,7 +739,7 @@ public class CronExpression implements Serializable, Cloneable {
 						i);
 			}
 
-			TreeSet set = getSet(type);
+			TreeSet<Integer> set = getSet(type);
 			set.add(new Integer(val));
 			i++;
 			return i;
@@ -905,7 +906,7 @@ public class CronExpression implements Serializable, Cloneable {
 		return buf.toString();
 	}
 
-	protected String getExpressionSetSummary(java.util.Set set) {
+	protected String getExpressionSetSummary(Set<Integer> set) {
 
 		if (set.contains(NO_SPEC)) {
 			return "?";
@@ -916,7 +917,7 @@ public class CronExpression implements Serializable, Cloneable {
 
 		StringBuffer buf = new StringBuffer();
 
-		Iterator itr = set.iterator();
+		Iterator<Integer> itr = set.iterator();
 
 		if (!itr.hasNext() && lastdayOfMonth) {
 			buf
@@ -940,7 +941,7 @@ public class CronExpression implements Serializable, Cloneable {
 		return buf.toString();
 	}
 
-	protected String getExpressionSetSummary(java.util.ArrayList list) {
+	protected String getExpressionSetSummary(List<Integer> list) {
 
 		if (list.contains(NO_SPEC)) {
 			return "?";
@@ -951,10 +952,10 @@ public class CronExpression implements Serializable, Cloneable {
 
 		StringBuffer buf = new StringBuffer();
 
-		Iterator itr = list.iterator();
+		Iterator<Integer> itr = list.iterator();
 		boolean first = true;
 		while (itr.hasNext()) {
-			Integer iVal = (Integer) itr.next();
+			Integer iVal = itr.next();
 			String val = iVal.toString();
 			if (!first) {
 				buf.append(",");
@@ -985,7 +986,7 @@ public class CronExpression implements Serializable, Cloneable {
 	protected void addToSet(int val, int end, int incr, int type)
 			throws ParseException {
 
-		TreeSet set = getSet(type);
+		TreeSet<Integer> set = getSet(type);
 
 		if (type == SECOND || type == MINUTE) {
 			if ((val < 0 || val > 59 || end > 59) && (val != ALL_SPEC_INT)) {
@@ -1131,7 +1132,7 @@ public class CronExpression implements Serializable, Cloneable {
 		}
 	}
 
-	protected TreeSet getSet(int type) {
+	protected TreeSet<Integer> getSet(int type) {
 		switch (type) {
 		case SECOND:
 			return seconds;
@@ -1223,7 +1224,7 @@ public class CronExpression implements Serializable, Cloneable {
 				return null;
 			}
 
-			SortedSet st = null;
+			SortedSet<Integer> st = null;
 			int t = 0;
 
 			int sec = cl.get(Calendar.SECOND);

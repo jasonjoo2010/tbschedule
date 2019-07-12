@@ -1,22 +1,27 @@
-package com.taobao.pamirs.schedule.taskmanager;
+package com.yoloho.schedule.processor;
 
 import java.util.Date;
 import java.util.List;
 import java.util.Timer;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.taobao.pamirs.schedule.CronExpression;
-import com.taobao.pamirs.schedule.IScheduleTaskDeal;
-import com.taobao.pamirs.schedule.ScheduleUtil;
-import com.taobao.pamirs.schedule.TaskItemDefine;
-import com.taobao.pamirs.schedule.strategy.IStrategyTask;
 import com.taobao.pamirs.schedule.strategy.TBScheduleManagerFactory;
+import com.taobao.pamirs.schedule.taskmanager.InitialResult;
+import com.taobao.pamirs.schedule.taskmanager.ScheduleServer;
+import com.yoloho.schedule.interfaces.IScheduleTaskDeal;
+import com.yoloho.schedule.interfaces.IStorage;
+import com.yoloho.schedule.interfaces.IStrategyTask;
+import com.yoloho.schedule.interfaces.ITaskProcessor;
+import com.yoloho.schedule.types.StatisticsInfo;
+import com.yoloho.schedule.types.Task;
+import com.yoloho.schedule.types.TaskItem;
+import com.yoloho.schedule.util.CronExpression;
+import com.yoloho.schedule.util.ScheduleUtil;
 
 /**
  * 1、任务调度分配器的目标：	让所有的任务不重复，不遗漏的被快速处理。
@@ -37,7 +42,7 @@ import com.taobao.pamirs.schedule.strategy.TBScheduleManagerFactory;
  *
  */
 @SuppressWarnings({ "rawtypes", "unchecked" })
-abstract class TBScheduleManager implements IStrategyTask {
+public abstract class TBScheduleManager implements IStrategyTask {
 	private static transient Logger log = LoggerFactory.getLogger(TBScheduleManager.class);
 	/**
 	 * 用户标识不同线程的序号
@@ -51,7 +56,7 @@ abstract class TBScheduleManager implements IStrategyTask {
 	/**
 	 * 调度任务类型信息
 	 */
-	protected ScheduleTaskType taskTypeInfo;
+	protected Task taskTypeInfo;
 	/**
 	 * 当前调度服务的信息
 	 */
@@ -64,7 +69,7 @@ abstract class TBScheduleManager implements IStrategyTask {
     /**
      * 多线程任务处理器
      */
-	IScheduleProcessor processor;
+	ITaskProcessor processor;
     StatisticsInfo statisticsInfo = new StatisticsInfo();
     
     boolean isPauseSchedule = true;
@@ -73,7 +78,7 @@ abstract class TBScheduleManager implements IStrategyTask {
      *  当前处理任务队列清单
      *  ArrayList实现不是同步的。因多线程操作修改该列表，会造成ConcurrentModificationException
      */
-    protected List<TaskItemDefine> currentTaskItemList = new CopyOnWriteArrayList<TaskItemDefine>();
+    protected List<TaskItem> currentTaskItemList = new CopyOnWriteArrayList<TaskItem>();
     /**
      * 最近一起重新装载调度任务的时间。
      * 当前实际  - 上此装载时间  > intervalReloadTaskItemList，则向配置中心请求最新的任务分配情况
@@ -183,7 +188,7 @@ abstract class TBScheduleManager implements IStrategyTask {
 	public abstract void initial() throws Exception;
 	public abstract void refreshScheduleServerInfo() throws Exception;
 	public abstract void assignScheduleTask() throws Exception;
-	public abstract List<TaskItemDefine> getCurrentScheduleTaskItemList();
+	public abstract List<TaskItem> getCurrentScheduleTaskItemList();
 	public abstract int getTaskItemCount();
 	public String getTaskType(){
 		return this.currenScheduleServer.getTaskType();
@@ -368,9 +373,9 @@ abstract class TBScheduleManager implements IStrategyTask {
                 if (this.taskTypeInfo.getProcessorType() != null
                         && this.taskTypeInfo.getProcessorType().equalsIgnoreCase("NOTSLEEP") == true) {
                     this.taskTypeInfo.setProcessorType("NOTSLEEP");
-                    this.processor = new TBScheduleProcessorNotSleep(this, taskDealBean, this.statisticsInfo);
+                    this.processor = new TaskProcessorNotSleep(this, taskDealBean, this.statisticsInfo);
                 } else {
-                    this.processor = new TBScheduleProcessorSleep(this, taskDealBean, this.statisticsInfo);
+                    this.processor = new TaskProcessorSleep(this, taskDealBean, this.statisticsInfo);
                     this.taskTypeInfo.setProcessorType("SLEEP");
                 }
             }
@@ -426,7 +431,7 @@ abstract class TBScheduleManager implements IStrategyTask {
         }
     }
 
-    public ScheduleTaskType getTaskTypeInfo() {
+    public Task getTaskTypeInfo() {
         return taskTypeInfo;
     }
 
@@ -507,47 +512,4 @@ class PauseOrResumeScheduleTask extends java.util.TimerTask {
             log.error(ex.getMessage(), ex);
         }
     }
-}
-
-class StatisticsInfo {
-	private AtomicLong fetchDataNum = new AtomicLong(0);//读取次数
-	private AtomicLong fetchDataCount = new AtomicLong(0);//读取的数据量
-	private AtomicLong dealDataSucess = new AtomicLong(0);//处理成功的数据量
-	private AtomicLong dealDataFail = new AtomicLong(0);//处理失败的数据量
-	private AtomicLong dealSpendTime = new AtomicLong(0);//处理总耗时,没有做同步，可能存在一定的误差
-	private AtomicLong otherCompareCount = new AtomicLong(0);//特殊比较的次数
-
-    public void addFetchDataNum(long value) {
-        this.fetchDataNum.addAndGet(value);
-    }
-
-    public void addFetchDataCount(long value) {
-        this.fetchDataCount.addAndGet(value);
-    }
-
-    public void addDealDataSucess(long value) {
-        this.dealDataSucess.addAndGet(value);
-    }
-
-    public void addDealDataFail(long value) {
-        this.dealDataFail.addAndGet(value);
-    }
-
-    public void addDealSpendTime(long value) {
-        this.dealSpendTime.addAndGet(value);
-    }
-
-    public void addOtherCompareCount(long value) {
-        this.otherCompareCount.addAndGet(value);
-    }
-    public String getDealDescription(){
-        return new StringBuilder("FetchDataCount=").append(this.fetchDataCount)
-                .append(",FetchDataNum=").append(this.fetchDataNum)
-                .append(",DealDataSucess=").append(this.dealDataSucess)
-                .append(",DealDataFail=").append(this.dealDataFail)
-                .append(",DealSpendTime=").append(this.dealSpendTime)
-                .append(",otherCompareCount=").append(this.otherCompareCount)
-                .toString();  
-    }
-
 }

@@ -1,29 +1,26 @@
-package com.taobao.pamirs.schedule.taskmanager;
-
-import java.util.ArrayList;
-import java.util.List;
+package com.yoloho.schedule.types;
 
 import org.apache.commons.lang3.builder.ToStringBuilder;
 
 import com.alibaba.fastjson.annotation.JSONField;
-import com.taobao.pamirs.schedule.TaskItemDefine;
 import com.yoloho.schedule.util.ScheduleTaskUtil;
 
 /**
- * 调度任务类型
+ * Task
+ * 
  * @author xuannan
+ * 
+ * Restructured by 
+ * @author jason
  *
  */
-public class ScheduleTaskType implements java.io.Serializable {
+public class Task implements java.io.Serializable {
 	
 	/**
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
-	/**
-	 * 任务类型
-	 */
-	private String baseTaskType;
+	private String name;
     /**
      * 向配置中心更新心跳信息的频率
      */
@@ -100,69 +97,12 @@ public class ScheduleTaskType implements java.io.Serializable {
      * 每个线程组能处理的最大任务项目书目
      */
     private int maxTaskItemsOfOneThreadGroup = 0;
-    /**
-     * 版本号
-     */
-    private long version;
     
-    /**
-     * 服务状态: pause,resume
-     */
-    private String sts = STS_RESUME;
-	
-    public static String STS_PAUSE="pause";
-    public static String STS_RESUME="resume";
-    
-    public static String[] splitTaskItem(String str) {
-        List<String> list = new ArrayList<String>();
-        int start = 0;
-        int index = 0;
-        while (index < str.length()) {
-            if (str.charAt(index) == ':') {
-                index = str.indexOf('}', index) + 1;
-                list.add(str.substring(start, index).trim());
-                while (index < str.length()) {
-                    if (str.charAt(index) == ' ') {
-                        index = index + 1;
-                    } else {
-                        break;
-                    }
-                }
-                index = index + 1; // 跳过逗号
-                start = index;
-            } else if (str.charAt(index) == ',') {
-                list.add(str.substring(start, index).trim());
-                while (index < str.length()) {
-                    if (str.charAt(index) == ' ') {
-                        index = index + 1;
-                    } else {
-                        break;
-                    }
-                }
-                index = index + 1; // 跳过逗号
-                start = index;
-            } else {
-                index = index + 1;
-            }
-        }
-        if (start < str.length()) {
-            list.add(str.substring(start).trim());
-        }
-        return (String[]) list.toArray(new String[0]);
-    }
-    
-	public long getVersion() {
-		return version;
+	public String getName() {
+		return name;
 	}
-	public void setVersion(long version) {
-		this.version = version;
-	}
-	
-	public String getBaseTaskType() {
-		return baseTaskType;
-	}
-	public void setBaseTaskType(String baseTaskType) {
-		this.baseTaskType = baseTaskType;
+	public void setName(String name) {
+		this.name = name;
 	}
 	public long getHeartBeatRate() {
 		return heartBeatRate;
@@ -279,16 +219,8 @@ public class ScheduleTaskType implements java.io.Serializable {
     }
     
     @JSONField(serialize = false)
-    public TaskItemDefine[] getTaskItemList() {
+    public TaskItem[] getTaskItemList() {
         return ScheduleTaskUtil.parseItems(taskItems);
-    }
-
-    public void setSts(String sts) {
-        this.sts = sts;
-    }
-
-    public String getSts() {
-        return sts;
     }
 
     public void setTaskKind(String taskKind) {

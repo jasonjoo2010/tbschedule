@@ -8,6 +8,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.Test;
 
+import com.yoloho.schedule.util.LockObject;
+
 public class LockObjectTest {
     private LockObject lockObject = new LockObject();
     private AtomicInteger atomicInteger = new AtomicInteger(0);

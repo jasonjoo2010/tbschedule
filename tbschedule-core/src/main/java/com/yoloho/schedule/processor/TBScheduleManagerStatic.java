@@ -1,4 +1,4 @@
-package com.taobao.pamirs.schedule.taskmanager;
+package com.yoloho.schedule.processor;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -9,9 +9,12 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.taobao.pamirs.schedule.ScheduleUtil;
-import com.taobao.pamirs.schedule.TaskItemDefine;
 import com.taobao.pamirs.schedule.strategy.TBScheduleManagerFactory;
+import com.taobao.pamirs.schedule.taskmanager.ScheduleServer;
+import com.taobao.pamirs.schedule.taskmanager.ScheduleTaskItem;
+import com.yoloho.schedule.interfaces.IStorage;
+import com.yoloho.schedule.types.TaskItem;
+import com.yoloho.schedule.util.ScheduleUtil;
 
 public class TBScheduleManagerStatic extends TBScheduleManager {
 	private static transient Logger log = LoggerFactory.getLogger(TBScheduleManagerStatic.class);
@@ -313,7 +316,7 @@ public class TBScheduleManagerStatic extends TBScheduleManager {
 	 *   此方法的调用必须是在当前所有任务都处理完毕后才能调用，否则是否任务队列后可能数据被重复处理
 	 */
 	
-	public List<TaskItemDefine> getCurrentScheduleTaskItemList() {
+	public List<TaskItem> getCurrentScheduleTaskItemList() {
 		try{
 		if (this.isNeedReloadTaskItem == true) {			
 			//特别注意：需要判断数据队列是否已经空了，否则可能在队列切换的时候导致数据重复处理
@@ -342,14 +345,14 @@ public class TBScheduleManagerStatic extends TBScheduleManager {
 	 * @return
 	 * @throws Exception
 	 */
-	private List<TaskItemDefine> getTaskItemsShouldScheduled() throws Exception {
+	private List<TaskItem> getTaskItemsShouldScheduled() throws Exception {
         List<ScheduleTaskItem> taskItems = this.storage.getRunningTaskItems(currenScheduleServer.getBaseTaskType(),
                 currenScheduleServer.getOwnSign());
-        List<TaskItemDefine> result = new ArrayList<TaskItemDefine>();
+        List<TaskItem> result = new ArrayList<TaskItem>();
         for (ScheduleTaskItem item : taskItems) {
             if (StringUtils.equals(currenScheduleServer.getUuid(), item.getCurrentScheduleServer())) {
                 // current server
-                result.add(new TaskItemDefine(item.getTaskItem(), item.getDealParameter()));
+                result.add(new TaskItem(item.getTaskItem(), item.getDealParameter()));
             }
         }
         return result;
@@ -369,7 +372,7 @@ public class TBScheduleManagerStatic extends TBScheduleManager {
 	
 	//由于上面在数据执行时有使用到synchronized ，但是心跳线程并没有对应加锁。
 	//所以在此方法上加一下synchronized。20151015
-	protected synchronized List<TaskItemDefine> getCurrentScheduleTaskItemListNow() throws Exception {
+	protected synchronized List<TaskItem> getCurrentScheduleTaskItemListNow() throws Exception {
 		//如果已经稳定了，理论上不需要加载去扫描所有的叶子结点
 		//20151019 by kongxuan.zlj
         try {

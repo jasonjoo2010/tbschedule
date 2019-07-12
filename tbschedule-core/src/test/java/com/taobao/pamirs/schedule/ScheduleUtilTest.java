@@ -13,6 +13,8 @@ import java.util.List;
 
 import org.junit.Test;
 
+import com.yoloho.schedule.util.ScheduleUtil;
+
 public class ScheduleUtilTest {
 
     @Test

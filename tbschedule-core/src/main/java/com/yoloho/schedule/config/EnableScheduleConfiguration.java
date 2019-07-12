@@ -1,13 +1,11 @@
-package com.taobao.pamirs.schedule.config;
+package com.yoloho.schedule.config;
 
-import java.util.HashMap;
 import java.util.Map;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.math.NumberUtils;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
@@ -18,8 +16,9 @@ import org.springframework.context.annotation.ImportBeanDefinitionRegistrar;
 import org.springframework.core.type.AnnotationMetadata;
 
 import com.google.common.base.Preconditions;
-import com.taobao.pamirs.schedule.annotation.EnableSchedule;
 import com.taobao.pamirs.schedule.strategy.TBScheduleManagerFactory;
+import com.taobao.pamirs.schedule.taskmanager.ScheduleConfig;
+import com.yoloho.schedule.annotation.EnableSchedule;
 
 /**
  * Annotation support of tbschedule
@@ -35,19 +34,16 @@ public class EnableScheduleConfiguration implements DeferredImportSelector {
     public static class ScheduleInit implements ApplicationContextAware {
         private TBScheduleManagerFactory factory;
         
-        public ScheduleInit(String address, String rootPath, String username, String password, String timeout) {
-            int zkSessionTimeout = NumberUtils.toInt(timeout);
+        public ScheduleInit(String address, String rootPath, String username, String password) {
             Preconditions.checkArgument(StringUtils.isNotEmpty(address), "Address should not be empty");
             Preconditions.checkArgument(StringUtils.isNotEmpty(rootPath), "rootPath should not be empty");
-            Preconditions.checkArgument(zkSessionTimeout >= 2000, "timeout should not be less than 2000 milliseconds");
-            Map<String, String> zkConfig = new HashMap<>(5);
-            zkConfig.put("zkConnectString", address);
-            zkConfig.put("rootPath", rootPath);
-            zkConfig.put("zkSessionTimeout", String.valueOf(zkSessionTimeout));
-            zkConfig.put("userName", username);
-            zkConfig.put("password", password);
             factory = new TBScheduleManagerFactory();
-            factory.setZkConfig(zkConfig);
+            ScheduleConfig config = new ScheduleConfig();
+            config.setAddress(address);
+            config.setRootPath(rootPath);
+            config.setUsername(username);
+            config.setPassword(password);
+            factory.setConfig(config);
         }
         
         @PostConstruct
@@ -79,15 +75,13 @@ public class EnableScheduleConfiguration implements DeferredImportSelector {
             String rootPath = (String)map.get("rootPath");
             String username = (String)map.get("username");
             String password = (String)map.get("password");
-            String timeout = (String)map.get("timeout");
-            injectInitializerBean(registry, address, timeout, rootPath, username, password);
+            injectInitializerBean(registry, address, rootPath, username, password);
         }
     }
     
     public static void injectInitializerBean(
             BeanDefinitionRegistry registry,
             String address, 
-            String timeout, 
             String rootPath, 
             String username, 
             String password) {
@@ -97,7 +91,6 @@ public class EnableScheduleConfiguration implements DeferredImportSelector {
         builder.addConstructorArgValue(rootPath);
         builder.addConstructorArgValue(username);
         builder.addConstructorArgValue(password);
-        builder.addConstructorArgValue(timeout);
         builder.setLazyInit(false);
         registry.registerBeanDefinition(ScheduleInit.class.getName(), builder.getBeanDefinition());
     }

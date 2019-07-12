@@ -6,7 +6,7 @@ import java.util.UUID;
 
 import org.apache.commons.lang3.time.FastDateFormat;
 
-import com.taobao.pamirs.schedule.ScheduleUtil;
+import com.yoloho.schedule.util.ScheduleUtil;
 
 /**
  * 调度服务器信息定义

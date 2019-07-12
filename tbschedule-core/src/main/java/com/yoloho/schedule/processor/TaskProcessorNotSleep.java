@@ -1,4 +1,4 @@
-package com.taobao.pamirs.schedule.taskmanager;
+package com.yoloho.schedule.processor;
 
 import java.lang.reflect.Array;
 import java.sql.Timestamp;
@@ -12,10 +12,13 @@ import java.util.concurrent.locks.ReentrantLock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.taobao.pamirs.schedule.IScheduleTaskDeal;
-import com.taobao.pamirs.schedule.IScheduleTaskDealMulti;
-import com.taobao.pamirs.schedule.IScheduleTaskDealSingle;
-import com.taobao.pamirs.schedule.TaskItemDefine;
+import com.yoloho.schedule.interfaces.IScheduleTaskDeal;
+import com.yoloho.schedule.interfaces.IScheduleTaskDealMulti;
+import com.yoloho.schedule.interfaces.IScheduleTaskDealSingle;
+import com.yoloho.schedule.interfaces.ITaskProcessor;
+import com.yoloho.schedule.types.StatisticsInfo;
+import com.yoloho.schedule.types.Task;
+import com.yoloho.schedule.types.TaskItem;
 
 
 /**
@@ -25,9 +28,9 @@ import com.taobao.pamirs.schedule.TaskItemDefine;
  * 修改记录：
  * 	  为了简化处理逻辑，去处版本概率，增加可能重复的数据列表   by  扶苏 20110310
  */
-class TBScheduleProcessorNotSleep<T> implements IScheduleProcessor, Runnable {
+class TaskProcessorNotSleep<T> implements ITaskProcessor, Runnable {
 	
-	private static transient Logger logger = LoggerFactory.getLogger(TBScheduleProcessorNotSleep.class);
+	private static transient Logger logger = LoggerFactory.getLogger(TaskProcessorNotSleep.class);
 	
 	List<Thread> threadList = new CopyOnWriteArrayList<Thread>();
 	/**
@@ -37,7 +40,7 @@ class TBScheduleProcessorNotSleep<T> implements IScheduleProcessor, Runnable {
 	/**
 	 * 任务类型
 	 */
-	ScheduleTaskType taskTypeInfo;
+	Task taskTypeInfo;
 	
 	
 	/**
@@ -83,7 +86,7 @@ class TBScheduleProcessorNotSleep<T> implements IScheduleProcessor, Runnable {
 	 * @param aStatisticsInfo
 	 * @throws Exception
 	 */
-	public TBScheduleProcessorNotSleep(TBScheduleManager aManager,
+	public TaskProcessorNotSleep(TBScheduleManager aManager,
 			IScheduleTaskDeal<T> aTaskDealBean,StatisticsInfo aStatisticsInfo) throws Exception {
 		this.scheduleManager = aManager;
 		this.statisticsInfo = aStatisticsInfo;
@@ -240,13 +243,13 @@ class TBScheduleProcessorNotSleep<T> implements IScheduleProcessor, Runnable {
 			putLastRunningTaskList();// 将running队列的数据拷贝到可能重复的队列中
 
 			try {
-				List<TaskItemDefine> taskItems = this.scheduleManager
+				List<TaskItem> taskItems = this.scheduleManager
 						.getCurrentScheduleTaskItemList();
 				// 根据队列信息查询需要调度的数据，然后增加到任务列表中
 				if (taskItems.size() > 0) {
-					List<TaskItemDefine> tmpTaskList= new ArrayList<TaskItemDefine>();
+					List<TaskItem> tmpTaskList= new ArrayList<TaskItem>();
 					synchronized(taskItems){
-						for (TaskItemDefine taskItemDefine : taskItems) {
+						for (TaskItem taskItemDefine : taskItems) {
 							tmpTaskList.add(taskItemDefine);
 						}
 					}

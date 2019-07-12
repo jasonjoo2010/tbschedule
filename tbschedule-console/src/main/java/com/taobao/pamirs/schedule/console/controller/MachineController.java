@@ -11,8 +11,8 @@ import org.springframework.web.servlet.ModelAndView;
 
 import com.taobao.pamirs.schedule.console.ConsoleManager;
 import com.taobao.pamirs.schedule.strategy.ManagerFactoryInfo;
-import com.taobao.pamirs.schedule.taskmanager.IStorage;
 import com.yoloho.enhanced.common.support.MsgBean;
+import com.yoloho.schedule.interfaces.IStorage;
 
 @Controller
 @RequestMapping("/machine")

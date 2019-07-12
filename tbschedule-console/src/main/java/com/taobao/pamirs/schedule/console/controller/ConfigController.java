@@ -23,11 +23,11 @@ import com.alibaba.fastjson.JSON;
 import com.google.common.base.Preconditions;
 import com.google.common.io.CharStreams;
 import com.taobao.pamirs.schedule.console.ConsoleManager;
-import com.taobao.pamirs.schedule.strategy.ScheduleStrategy;
-import com.taobao.pamirs.schedule.taskmanager.IStorage;
 import com.taobao.pamirs.schedule.taskmanager.ScheduleConfig;
-import com.taobao.pamirs.schedule.taskmanager.ScheduleTaskType;
 import com.yoloho.enhanced.common.support.MsgBean;
+import com.yoloho.schedule.interfaces.IStorage;
+import com.yoloho.schedule.types.Strategy;
+import com.yoloho.schedule.types.Task;
 
 @Controller
 @RequestMapping("/config")
@@ -100,7 +100,7 @@ public class ConfigController {
                 PrintWriter out_ = response.getWriter();
                 List<String> taskNames = storage.getTaskNames();
                 for (String taskName : taskNames) {
-                    ScheduleTaskType task = storage.getTask(taskName);
+                    Task task = storage.getTask(taskName);
                     if (task != null) {
                         out_.write("TASK");
                         out_.write(JSON.toJSONString(task));
@@ -109,7 +109,7 @@ public class ConfigController {
                 }
                 List<String> strategyNames = storage.getStrategyNames();
                 for (String strategyName : strategyNames) {
-                    ScheduleStrategy strategy = storage.getStrategy(strategyName);
+                    Strategy strategy = storage.getStrategy(strategyName);
                     if (strategy != null) {
                         out_.write("STRATEGY");
                         out_.write(JSON.toJSONString(strategy));
@@ -181,16 +181,16 @@ public class ConfigController {
                     // Task
                     String json = line.substring("TASK".length());
                     try {
-                        ScheduleTaskType task = JSON.parseObject(json, ScheduleTaskType.class);
+                        Task task = JSON.parseObject(json, Task.class);
                         if (task == null) {
                             continue;
                         }
                         taskCount ++;
-                        if (StringUtils.isEmpty(task.getBaseTaskType())
+                        if (StringUtils.isEmpty(task.getName())
                                 || StringUtils.isEmpty(task.getDealBeanName())) {
                             continue;
                         }
-                        if (storage.getTask(task.getBaseTaskType()) != null) {
+                        if (storage.getTask(task.getName()) != null) {
                             // update
                             if (force) {
                                 storage.updateTask(task);
@@ -208,16 +208,16 @@ public class ConfigController {
                     // Strategy
                     String json = line.substring("STRATEGY".length());
                     try {
-                        ScheduleStrategy strategy = JSON.parseObject(json, ScheduleStrategy.class);
+                        Strategy strategy = JSON.parseObject(json, Strategy.class);
                         if (strategy == null) {
                             continue;
                         }
                         strategyCount ++;
-                        if (StringUtils.isEmpty(strategy.getStrategyName())
+                        if (StringUtils.isEmpty(strategy.getName())
                                 || StringUtils.isEmpty(strategy.getTaskName())) {
                             continue;
                         }
-                        if (storage.getStrategy(strategy.getStrategyName()) != null) {
+                        if (storage.getStrategy(strategy.getName()) != null) {
                             // update
                             if (force) {
                                 storage.createStrategy(strategy);

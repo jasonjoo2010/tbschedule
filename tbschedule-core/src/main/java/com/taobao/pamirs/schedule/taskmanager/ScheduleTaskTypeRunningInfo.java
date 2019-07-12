@@ -4,7 +4,7 @@ import java.sql.Timestamp;
 
 import org.apache.commons.lang3.builder.ToStringBuilder;
 
-import com.taobao.pamirs.schedule.ScheduleUtil;
+import com.yoloho.schedule.util.ScheduleUtil;
 
 public class ScheduleTaskTypeRunningInfo {
 

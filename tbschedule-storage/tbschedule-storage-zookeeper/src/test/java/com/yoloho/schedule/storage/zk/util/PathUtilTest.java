@@ -7,7 +7,7 @@ import org.junit.Test;
 public class PathUtilTest {
     @Test
     public void taskBasePath() {
-        assertEquals("/baseTaskType", PathUtil.taskBasePath());
+        assertEquals("/task", PathUtil.taskBasePath());
     }
     
     @Test
@@ -47,32 +47,32 @@ public class PathUtilTest {
     
     @Test
     public void taskPath() {
-        assertEquals("/baseTaskType/test", PathUtil.taskPath("test"));
+        assertEquals("/task/test", PathUtil.taskPath("test"));
     }
     
     @Test
     public void runningEntryPath() {
-        assertEquals("/baseTaskType/test/test$run", PathUtil.runningEntryPath("test", "run"));
+        assertEquals("/task/test/test$run", PathUtil.runningEntryPath("test", "run"));
     }
     
     @Test
     public void taskItemBasePath() {
-        assertEquals("/baseTaskType/test/test/taskItem", PathUtil.taskItemBasePath("test", "BASE"));
+        assertEquals("/task/test/test/taskItem", PathUtil.taskItemBasePath("test", "BASE"));
     }
     
     @Test
     public void taskItemPath() {
-        assertEquals("/baseTaskType/test/test$run/taskItem/item", PathUtil.taskItemPath("test", "run", "item"));
+        assertEquals("/task/test/test$run/taskItem/item", PathUtil.taskItemPath("test", "run", "item"));
     }
     
     @Test
     public void serverBasePath() {
-        assertEquals("/baseTaskType/test/test$run/server", PathUtil.serverBasePath("test", "run"));
+        assertEquals("/task/test/test$run/server", PathUtil.serverBasePath("test", "run"));
     }
     
     @Test
     public void serverPath() {
-        assertEquals("/baseTaskType/test/test$run/server/test", PathUtil.serverPath("test", "run", "test"));
+        assertEquals("/task/test/test$run/server/test", PathUtil.serverPath("test", "run", "test"));
     }
     
     @Test(expected = IllegalArgumentException.class)
@@ -87,6 +87,6 @@ public class PathUtilTest {
     
     @Test
     public void factoryPath() {
-        assertEquals("/strategy/as$d", PathUtil.factoryPath("as$d"));
+        assertEquals("/factory/as$d", PathUtil.factoryPath("as$d"));
     }
 }

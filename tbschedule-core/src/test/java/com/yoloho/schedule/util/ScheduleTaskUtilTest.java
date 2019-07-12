@@ -5,13 +5,13 @@ import static org.junit.Assert.assertNotNull;
 
 import org.junit.Test;
 
-import com.taobao.pamirs.schedule.TaskItemDefine;
+import com.yoloho.schedule.types.TaskItem;
 import com.yoloho.schedule.util.ScheduleTaskUtil;
 
 public class ScheduleTaskUtilTest {
     @Test
     public void parseItem() {
-        TaskItemDefine item = ScheduleTaskUtil.parseItem("a");
+        TaskItem item = ScheduleTaskUtil.parseItem("a");
         assertEquals("a", item.getTaskItemId());
         
         item = ScheduleTaskUtil.parseItem("a:{b=3}");
@@ -21,7 +21,7 @@ public class ScheduleTaskUtilTest {
     
     @Test
     public void parseItems() {
-        TaskItemDefine[] items = ScheduleTaskUtil.parseItems(new String[]{"a", "b:{c=3}"});
+        TaskItem[] items = ScheduleTaskUtil.parseItems(new String[]{"a", "b:{c=3}"});
         assertNotNull(items);
         assertEquals(2, items.length);
         assertEquals("a", items[0].getTaskItemId());

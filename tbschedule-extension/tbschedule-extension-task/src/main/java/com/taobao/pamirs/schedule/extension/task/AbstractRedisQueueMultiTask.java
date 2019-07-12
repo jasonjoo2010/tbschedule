@@ -3,8 +3,8 @@ package com.taobao.pamirs.schedule.extension.task;
 import java.util.Comparator;
 import java.util.List;
 
-import com.taobao.pamirs.schedule.IScheduleTaskDealMulti;
-import com.taobao.pamirs.schedule.TaskItemDefine;
+import com.yoloho.schedule.interfaces.IScheduleTaskDealMulti;
+import com.yoloho.schedule.types.TaskItem;
 
 /**
  * 任务的抽象类，提供以redis为队列的简单抽象
@@ -16,7 +16,7 @@ public abstract class AbstractRedisQueueMultiTask<T> extends AbstractRedisQueueT
         implements IScheduleTaskDealMulti<T> {
     
     @Override
-    public List<T> selectTasks(String taskParameter, String ownSign, int taskItemNum, List<TaskItemDefine> taskItemList,
+    public List<T> selectTasks(String taskParameter, String ownSign, int taskItemNum, List<TaskItem> taskItemList,
             int eachFetchDataNum) throws Exception {
         return getTaskList(eachFetchDataNum);
     }

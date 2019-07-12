@@ -5,7 +5,6 @@
 <%@ page isELIgnored="false" %>
 <jsp:include page="../header.jsp"/>
 <form id="frmTask" method="get" action="save">
-<input type="hidden" name="sts" value="${task.sts}"/>
 <input type="hidden" name="isCreate" value="${isCreate }" />
 <table>
 <tr>

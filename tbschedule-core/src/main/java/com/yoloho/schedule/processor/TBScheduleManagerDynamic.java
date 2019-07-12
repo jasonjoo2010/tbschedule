@@ -1,9 +1,10 @@
-package com.taobao.pamirs.schedule.taskmanager;
+package com.yoloho.schedule.processor;
 
 import java.util.List;
 
-import com.taobao.pamirs.schedule.TaskItemDefine;
 import com.taobao.pamirs.schedule.strategy.TBScheduleManagerFactory;
+import com.yoloho.schedule.interfaces.IStorage;
+import com.yoloho.schedule.types.TaskItem;
 
 public class TBScheduleManagerDynamic extends TBScheduleManager {
 	//private static transient Log log = LogFactory.getLog(TBScheduleManagerDynamic.class);
@@ -35,7 +36,7 @@ public class TBScheduleManagerDynamic extends TBScheduleManager {
 
     }
 
-    public List<TaskItemDefine> getCurrentScheduleTaskItemList() {
+    public List<TaskItem> getCurrentScheduleTaskItemList() {
         throw new RuntimeException("没有实现");
     }
 

@@ -6,9 +6,11 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.taobao.pamirs.schedule.strategy.ScheduleStrategy;
 import com.taobao.pamirs.schedule.strategy.TBScheduleManagerFactory;
-import com.taobao.pamirs.schedule.taskmanager.ScheduleTaskType;
+import com.yoloho.enhanced.common.util.JoinerSplitters;
+import com.yoloho.schedule.types.Strategy;
+import com.yoloho.schedule.types.StrategyKind;
+import com.yoloho.schedule.types.Task;
 
 
 public class InitialDemoConfigData extends AbstractTest {
@@ -33,16 +35,16 @@ public class InitialDemoConfigData extends AbstractTest {
 
 		}
 		// 创建任务调度DemoTask的基本信息
-		ScheduleTaskType task = new ScheduleTaskType();
-		task.setBaseTaskType(baseTaskTypeName);
+		Task task = new Task();
+		task.setName(baseTaskTypeName);
 		task.setDealBeanName("demoTaskBean");
 		task.setHeartBeatRate(2000);
 		task.setJudgeDeadInterval(10000);
 		task.setTaskParameter("AREA=杭州,YEAR>30");
-		task.setTaskItems(ScheduleTaskType.splitTaskItem(
+		task.setTaskItems(JoinerSplitters.getSplitter(",").splitToList(
 				"0:{TYPE=A,KIND=1},1:{TYPE=A,KIND=2},2:{TYPE=A,KIND=3},3:{TYPE=A,KIND=4}," +
 				"4:{TYPE=A,KIND=5},5:{TYPE=A,KIND=6},6:{TYPE=A,KIND=7},7:{TYPE=A,KIND=8}," +
-				"8:{TYPE=A,KIND=9},9:{TYPE=A,KIND=10}"));
+				"8:{TYPE=A,KIND=9},9:{TYPE=A,KIND=10}").toArray(new String[0]));
         this.scheduleManagerFactory.getStorage().createTask(task);
 		log.info("创建调度任务成功:" + task.toString());
 
@@ -54,9 +56,9 @@ public class InitialDemoConfigData extends AbstractTest {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		ScheduleStrategy strategy = new ScheduleStrategy();
-		strategy.setStrategyName(strategyName);
-		strategy.setKind(ScheduleStrategy.Kind.Schedule);
+		Strategy strategy = new Strategy();
+		strategy.setName(strategyName);
+		strategy.setKind(StrategyKind.Schedule);
 		strategy.setTaskName(taskName);
 		strategy.setTaskParameter("中国");
 		

@@ -1,4 +1,4 @@
-package com.taobao.pamirs.schedule;
+package com.yoloho.schedule.util;
 
 import java.net.InetAddress;
 import java.net.InterfaceAddress;

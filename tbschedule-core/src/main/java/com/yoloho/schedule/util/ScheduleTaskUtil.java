@@ -3,7 +3,7 @@ package com.yoloho.schedule.util;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import com.taobao.pamirs.schedule.TaskItemDefine;
+import com.yoloho.schedule.types.TaskItem;
 
 public class ScheduleTaskUtil {
     private static final Pattern PATTERN_TASK_ITEM = Pattern.compile("^(.+):\\{([^}]*)\\}$");
@@ -14,9 +14,9 @@ public class ScheduleTaskUtil {
      * @param item
      * @return
      */
-    public static TaskItemDefine parseItem(String item) {
+    public static TaskItem parseItem(String item) {
         Matcher m = PATTERN_TASK_ITEM.matcher(item);
-        TaskItemDefine taskItem = new TaskItemDefine();
+        TaskItem taskItem = new TaskItem();
         if (m.find()) {
             taskItem.setTaskItemId(m.group(1));
             taskItem.setParameter(m.group(2));
@@ -32,8 +32,8 @@ public class ScheduleTaskUtil {
      * @param items
      * @return
      */
-    public static TaskItemDefine[] parseItems(String[] items) {
-        TaskItemDefine[] taskItems = new TaskItemDefine[items.length];
+    public static TaskItem[] parseItems(String[] items) {
+        TaskItem[] taskItems = new TaskItem[items.length];
         for (int i = 0; i < taskItems.length; i++) {
             taskItems[i] = parseItem(items[i]);
         }

@@ -1,6 +1,6 @@
 package com.taobao.pamirs.schedule.strategy;
 
-import com.taobao.pamirs.schedule.strategy.ScheduleStrategy.Kind;
+import com.yoloho.schedule.types.StrategyKind;
 
 public class ScheduleStrategyRuntime {
 	
@@ -11,7 +11,7 @@ public class ScheduleStrategyRuntime {
 	String uuid;
 	String ip;
 	
-	private Kind kind; 
+	private StrategyKind kind; 
 	
 	/**
 	 * Schedule Name,Class Name、Bean Name
@@ -56,10 +56,10 @@ public class ScheduleStrategyRuntime {
 	public void setStrategyName(String strategyName) {
 		this.strategyName = strategyName;
 	}
-	public Kind getKind() {
+	public StrategyKind getKind() {
 		return kind;
 	}
-	public void setKind(Kind kind) {
+	public void setKind(StrategyKind kind) {
 		this.kind = kind;
 	}
 	public String getTaskName() {

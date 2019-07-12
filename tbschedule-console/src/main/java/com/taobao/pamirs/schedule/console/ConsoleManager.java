@@ -11,8 +11,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.taobao.pamirs.schedule.strategy.TBScheduleManagerFactory;
-import com.taobao.pamirs.schedule.taskmanager.IStorage;
 import com.taobao.pamirs.schedule.taskmanager.ScheduleConfig;
+import com.yoloho.schedule.interfaces.IStorage;
 
 public class ConsoleManager {
     protected static transient Logger log = LoggerFactory.getLogger(ConsoleManager.class);

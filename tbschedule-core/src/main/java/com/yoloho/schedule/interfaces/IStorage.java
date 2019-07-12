@@ -1,10 +1,15 @@
-package com.taobao.pamirs.schedule.taskmanager;
+package com.yoloho.schedule.interfaces;
 
 import java.util.List;
 
-import com.taobao.pamirs.schedule.strategy.ScheduleStrategy;
 import com.taobao.pamirs.schedule.strategy.ScheduleStrategyRuntime;
 import com.taobao.pamirs.schedule.strategy.TBScheduleManagerFactory;
+import com.taobao.pamirs.schedule.taskmanager.InitialResult;
+import com.taobao.pamirs.schedule.taskmanager.ScheduleConfig;
+import com.taobao.pamirs.schedule.taskmanager.ScheduleServer;
+import com.taobao.pamirs.schedule.taskmanager.ScheduleTaskItem;
+import com.yoloho.schedule.types.Strategy;
+import com.yoloho.schedule.types.Task;
 
 /**
  * @author jason
@@ -25,9 +30,9 @@ public interface IStorage {
 
     void shutdown();
 
-    void createTask(ScheduleTaskType task) throws Exception;
+    void createTask(Task task) throws Exception;
 
-    void updateTask(ScheduleTaskType task) throws Exception;
+    void updateTask(Task task) throws Exception;
     
     boolean removeTask(String taskName) throws Exception;
     
@@ -54,7 +59,7 @@ public interface IStorage {
      */
     void initTaskRunningInfo(String taskName, String ownSign);
 
-    ScheduleTaskType getTask(String taskName) throws Exception;
+    Task getTask(String taskName) throws Exception;
 
     void initTaskItemsRunningInfo(String taskName, String ownSign, String uuid) throws Exception;
 
@@ -173,11 +178,11 @@ public interface IStorage {
      */
     String dump();
 
-    void createStrategy(ScheduleStrategy strategy) throws Exception;
+    void createStrategy(Strategy strategy) throws Exception;
 
-    void updateStrategy(ScheduleStrategy strategy) throws Exception;
+    void updateStrategy(Strategy strategy) throws Exception;
 
-    ScheduleStrategy getStrategy(String strategyName) throws Exception;
+    Strategy getStrategy(String strategyName) throws Exception;
     
     /**
      * Remove a strategy which is stopped

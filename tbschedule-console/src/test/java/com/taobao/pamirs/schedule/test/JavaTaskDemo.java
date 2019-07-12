@@ -3,9 +3,9 @@ package com.taobao.pamirs.schedule.test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.taobao.pamirs.schedule.strategy.IStrategyTask;
+import com.yoloho.schedule.interfaces.IStrategyTask;
 
-public class JavaTaskDemo implements IStrategyTask,Runnable {
+public class JavaTaskDemo implements IStrategyTask, Runnable {
 	protected static transient Logger log = LoggerFactory.getLogger(JavaTaskDemo.class);
 
 

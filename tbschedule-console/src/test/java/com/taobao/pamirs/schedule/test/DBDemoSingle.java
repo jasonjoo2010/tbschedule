@@ -13,8 +13,8 @@ import javax.sql.DataSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.taobao.pamirs.schedule.IScheduleTaskDealSingle;
-import com.taobao.pamirs.schedule.TaskItemDefine;
+import com.yoloho.schedule.interfaces.IScheduleTaskDealSingle;
+import com.yoloho.schedule.types.TaskItem;
 
 /**
  * 单个任务处理实现
@@ -41,7 +41,7 @@ public class DBDemoSingle implements	IScheduleTaskDealSingle<Long> {
 	}
 
 	public List<Long> selectTasks(String taskParameter, String ownSign, int taskItemNum,
-			List<TaskItemDefine> queryCondition, int fetchNum) throws Exception {
+			List<TaskItem> queryCondition, int fetchNum) throws Exception {
 		List<Long> result = new ArrayList<Long>();
 		if (queryCondition.size() == 0) {
 			return result;

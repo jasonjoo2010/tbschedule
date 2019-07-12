@@ -1,4 +1,4 @@
-package com.taobao.pamirs.schedule.taskmanager;
+package com.yoloho.schedule.processor;
 
 import java.lang.reflect.Array;
 import java.sql.Timestamp;
@@ -9,10 +9,14 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.taobao.pamirs.schedule.IScheduleTaskDeal;
-import com.taobao.pamirs.schedule.IScheduleTaskDealMulti;
-import com.taobao.pamirs.schedule.IScheduleTaskDealSingle;
-import com.taobao.pamirs.schedule.TaskItemDefine;
+import com.yoloho.schedule.interfaces.IScheduleTaskDeal;
+import com.yoloho.schedule.interfaces.IScheduleTaskDealMulti;
+import com.yoloho.schedule.interfaces.IScheduleTaskDealSingle;
+import com.yoloho.schedule.interfaces.ITaskProcessor;
+import com.yoloho.schedule.types.StatisticsInfo;
+import com.yoloho.schedule.types.Task;
+import com.yoloho.schedule.types.TaskItem;
+import com.yoloho.schedule.util.LockObject;
 
 /**
  * 任务调度器，在TBScheduleManager的管理下实现多线程数据处理
@@ -20,9 +24,9 @@ import com.taobao.pamirs.schedule.TaskItemDefine;
  *
  * @param <T>
  */
-class TBScheduleProcessorSleep<T> implements IScheduleProcessor,Runnable {
+public class TaskProcessorSleep<T> implements ITaskProcessor,Runnable {
 	
-	private static transient Logger logger = LoggerFactory.getLogger(TBScheduleProcessorSleep.class);
+	private static transient Logger logger = LoggerFactory.getLogger(TaskProcessorSleep.class);
 	final  LockObject   m_lockObject = new LockObject();
 	List<Thread> threadList =  new CopyOnWriteArrayList<Thread>();
 	/**
@@ -32,7 +36,7 @@ class TBScheduleProcessorSleep<T> implements IScheduleProcessor,Runnable {
 	/**
 	 * 任务类型
 	 */
-	ScheduleTaskType taskTypeInfo;
+	Task taskTypeInfo;
 	
 	/**
 	 * 任务处理的接口类
@@ -67,7 +71,7 @@ class TBScheduleProcessorSleep<T> implements IScheduleProcessor,Runnable {
 	 * @param aStatisticsInfo
 	 * @throws Exception
 	 */
-	public TBScheduleProcessorSleep(TBScheduleManager aManager,
+	public TaskProcessorSleep(TBScheduleManager aManager,
 			IScheduleTaskDeal<T> aTaskDealBean,	StatisticsInfo aStatisticsInfo) throws Exception {
 		this.scheduleManager = aManager;
 		this.statisticsInfo = aStatisticsInfo;
@@ -175,12 +179,12 @@ class TBScheduleProcessorSleep<T> implements IScheduleProcessor,Runnable {
 				}
 			}
 			
-			List<TaskItemDefine> taskItems = this.scheduleManager.getCurrentScheduleTaskItemList();
+			List<TaskItem> taskItems = this.scheduleManager.getCurrentScheduleTaskItemList();
 			// 根据队列信息查询需要调度的数据，然后增加到任务列表中
 			if (taskItems.size() > 0) {
-				List<TaskItemDefine> tmpTaskList= new ArrayList<TaskItemDefine>();
+				List<TaskItem> tmpTaskList= new ArrayList<TaskItem>();
 				synchronized(taskItems){
-					for (TaskItemDefine taskItemDefine : taskItems) {
+					for (TaskItem taskItemDefine : taskItems) {
 						tmpTaskList.add(taskItemDefine);
 					}
 				}
