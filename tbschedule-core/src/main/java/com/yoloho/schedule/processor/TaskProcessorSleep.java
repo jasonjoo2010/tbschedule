@@ -16,7 +16,7 @@ import com.yoloho.schedule.interfaces.ITaskProcessor;
 import com.yoloho.schedule.types.StatisticsInfo;
 import com.yoloho.schedule.types.Task;
 import com.yoloho.schedule.types.TaskItem;
-import com.yoloho.schedule.util.LockObject;
+import com.yoloho.schedule.util.ThreadGroupLock;
 
 /**
  * 任务调度器，在TBScheduleManager的管理下实现多线程数据处理
@@ -27,7 +27,7 @@ import com.yoloho.schedule.util.LockObject;
 public class TaskProcessorSleep<T> implements ITaskProcessor,Runnable {
 	
 	private static transient Logger logger = LoggerFactory.getLogger(TaskProcessorSleep.class);
-	final  LockObject   m_lockObject = new LockObject();
+	private final  ThreadGroupLock threadGroupLock = new ThreadGroupLock();
 	List<Thread> threadList =  new CopyOnWriteArrayList<Thread>();
 	/**
 	 * 任务管理器
@@ -36,7 +36,7 @@ public class TaskProcessorSleep<T> implements ITaskProcessor,Runnable {
 	/**
 	 * 任务类型
 	 */
-	Task taskTypeInfo;
+	private Task taskTypeInfo;
 	
 	/**
 	 * 任务处理的接口类
@@ -215,12 +215,12 @@ public class TaskProcessorSleep<T> implements ITaskProcessor,Runnable {
 	      try {
 	        long startTime =0;
 	        while(true){
-	          this.m_lockObject.addThread();
+	          this.threadGroupLock.addThread();
 	          Object executeTask;
 	          while (true) {
 	            if(this.isStopSchedule == true){//停止队列调度
-	              this.m_lockObject.releaseThread();
-	              this.m_lockObject.notifyOtherThread();//通知所有的休眠线程
+	              this.threadGroupLock.releaseThread();
+	              this.threadGroupLock.signalGroup();//通知所有的休眠线程
 				  synchronized (this.threadList) {			
 					  this.threadList.remove(Thread.currentThread());
 					  if(this.threadList.size()==0){
@@ -279,16 +279,16 @@ public class TaskProcessorSleep<T> implements ITaskProcessor,Runnable {
 	          }
 	          //当前队列中所有的任务都已经完成了。
 	            if(logger.isTraceEnabled()){
-				   logger.trace(Thread.currentThread().getName() +"：当前运行线程数量:" +this.m_lockObject.count());
+				   logger.trace(Thread.currentThread().getName() +"：当前运行线程数量:" +this.threadGroupLock.count());
 			    }
-				if (this.m_lockObject.releaseThreadButNotLast() == false) {
+				if (this.threadGroupLock.releaseThreadButNotLast() == false) {
 					int size = 0;
 					Thread.currentThread().sleep(100);
 					startTime =scheduleManager.getGlobalTime();
 					// 装载数据
 					size = this.loadScheduleData();
 					if (size > 0) {
-						this.m_lockObject.notifyOtherThread();
+						this.threadGroupLock.signalGroup();
 					} else {
 						//判断当没有数据的是否，是否需要退出调度
 						if (this.isStopSchedule == false && this.scheduleManager.isContinueWhenData()== true ){						 
@@ -304,15 +304,15 @@ public class TaskProcessorSleep<T> implements ITaskProcessor,Runnable {
 							}
 						}else{
 							//没有数据，退出调度，唤醒所有沉睡线程
-							this.m_lockObject.notifyOtherThread();
+							this.threadGroupLock.signalGroup();
 						}
 					}
-					this.m_lockObject.releaseThread();
+					this.threadGroupLock.releaseThread();
 				} else {// 将当前线程放置到等待队列中。直到有线程装载到了新的任务数据
 					if(logger.isTraceEnabled()){
 						   logger.trace("不是最后一个线程，sleep");
 					}
-					this.m_lockObject.waitCurrentThread();
+					this.threadGroupLock.waitSignal();
 				}
 	        }
 	      }

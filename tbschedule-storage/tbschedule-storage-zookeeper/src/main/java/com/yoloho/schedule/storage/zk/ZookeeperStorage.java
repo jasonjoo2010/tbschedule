@@ -307,7 +307,7 @@ public class ZookeeperStorage implements IStorage {
     public void cleanTaskRunningInfo(String taskName) throws Exception {
         List<String> list = getRunningEntryList(taskName);
         for (String runningEntry : list) {
-            String ownSign = ScheduleUtil.splitOwnsignFromTaskType(runningEntry);
+            String ownSign = ScheduleUtil.ownsignFromRunningEntry(runningEntry);
             cleanTaskRunningInfo(taskName, ownSign);
         }
     }
@@ -447,7 +447,7 @@ public class ZookeeperStorage implements IStorage {
             ScheduleTaskItem item = new ScheduleTaskItem();
             item.setBaseTaskType(taskName);
             item.setOwnSign(ownSign);
-            item.setTaskType(ScheduleUtil.getTaskTypeByBaseAndOwnSign(taskName, ownSign));
+            item.setTaskType(ScheduleUtil.runningEntryFromTaskName(taskName, ownSign));
             item.setCurrentScheduleServer(getNode(taskItemPath + "/cur_server"));
             item.setRequestScheduleServer(getNode(taskItemPath + "/req_server"));
             item.setSts(TaskItemSts.valueOf(getNode(taskItemPath + "/sts")));

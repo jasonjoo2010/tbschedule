@@ -45,12 +45,12 @@ public class ScheduleTaskTypeRunningInfo {
     public ScheduleTaskTypeRunningInfo(String taskName, String ownSign) {
         setBaseTaskType(taskName);
         setOwnSign(ownSign);
-        setTaskType(ScheduleUtil.getTaskTypeByBaseAndOwnSign(taskName, ownSign));
+        setTaskType(ScheduleUtil.runningEntryFromTaskName(taskName, ownSign));
     }
     
     public ScheduleTaskTypeRunningInfo(String runningEntry) {
-        String taskName = ScheduleUtil.splitBaseTaskTypeFromTaskType(runningEntry);
-        String ownSign = ScheduleUtil.splitOwnsignFromTaskType(runningEntry);
+        String taskName = ScheduleUtil.taskNameFromRunningEntry(runningEntry);
+        String ownSign = ScheduleUtil.ownsignFromRunningEntry(runningEntry);
         setBaseTaskType(taskName);
         setOwnSign(ownSign);
         setTaskType(runningEntry);

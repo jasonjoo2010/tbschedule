@@ -44,7 +44,7 @@ public class PathUtil {
     
     public static String runningEntryPath(String taskName, String ownSign) {
         ownSign = StringUtils.strip(ownSign, "/");
-        String runningEntry = ScheduleUtil.getTaskTypeByBaseAndOwnSign(taskName, ownSign);
+        String runningEntry = ScheduleUtil.runningEntryFromTaskName(taskName, ownSign);
         return taskPath(taskName) + "/" + runningEntry;
     }
     

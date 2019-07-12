@@ -172,8 +172,8 @@ public class TBScheduleManagerFactory implements ApplicationContextAware {
         IStrategyTask result = null;
         try {
             if (StrategyKind.Schedule == strategy.getKind()) {
-                String baseTaskType = ScheduleUtil.splitBaseTaskTypeFromTaskType(strategy.getTaskName());
-                String ownSign = ScheduleUtil.splitOwnsignFromTaskType(strategy.getTaskName());
+                String baseTaskType = ScheduleUtil.taskNameFromRunningEntry(strategy.getTaskName());
+                String ownSign = ScheduleUtil.ownsignFromRunningEntry(strategy.getTaskName());
                 result = new TBScheduleManagerStatic(this, baseTaskType, ownSign, storage);
             } else if (StrategyKind.Java == strategy.getKind()) {
                 result = (IStrategyTask) Class.forName(strategy.getTaskName()).newInstance();
@@ -256,7 +256,7 @@ public class TBScheduleManagerFactory implements ApplicationContextAware {
             }
             Strategy scheduleStrategy = this.storage.getStrategy(run.getStrategyName());
 
-            int[] nums = ScheduleUtil.assignTaskNumber(factoryList.size(), scheduleStrategy.getAssignNum(),
+            int[] nums = ScheduleUtil.generateSequence(factoryList.size(), scheduleStrategy.getAssignNum(),
                     scheduleStrategy.getNumOfSingleServer());
             {
                 /**

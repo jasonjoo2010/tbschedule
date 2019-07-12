@@ -8,10 +8,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.Test;
 
-import com.yoloho.schedule.util.LockObject;
+import com.yoloho.schedule.util.ThreadGroupLock;
 
 public class LockObjectTest {
-    private LockObject lockObject = new LockObject();
+    private ThreadGroupLock lockObject = new ThreadGroupLock();
     private AtomicInteger atomicInteger = new AtomicInteger(0);
     
     @Test
@@ -26,7 +26,7 @@ public class LockObjectTest {
                     lockObject.addThread();
                     atomicInteger.incrementAndGet();
                     try {
-                        lockObject.waitCurrentThread();
+                        lockObject.waitSignal();
                     } catch (Exception e) {
                         e.printStackTrace();
                         assertFalse(true);
@@ -46,7 +46,7 @@ public class LockObjectTest {
         assertEquals(threadNum, atomicInteger.get());
         assertEquals(threadNum, lockObject.count());
         try {
-            lockObject.notifyOtherThread();
+            lockObject.signalGroup();
         } catch (Exception e1) {
             e1.printStackTrace();
             assertFalse(true);

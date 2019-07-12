@@ -87,7 +87,7 @@ public class ScheduleServer {
 		ScheduleServer result = new ScheduleServer();
 		result.baseTaskType = aBaseTaskType;
 		result.ownSign = aOwnSign;
-		result.taskType = ScheduleUtil.getTaskTypeByBaseAndOwnSign(
+		result.taskType = ScheduleUtil.runningEntryFromTaskName(
 				aBaseTaskType, aOwnSign);
 		result.ip = ScheduleUtil.getLocalIP();
 		result.hostName = ScheduleUtil.getLocalHostName();

@@ -243,7 +243,7 @@ public class TBScheduleManagerStatic extends TBScheduleManager {
             }
         });
         int unModifyCount = 0;
-        int[] taskNums = ScheduleUtil.assignTaskNumber(serverList.size(), taskItemList.size(), maxNumOfOneServer);
+        int[] taskNums = ScheduleUtil.generateSequence(serverList.size(), taskItemList.size(), maxNumOfOneServer);
         int point = 0;
         int count = 0;
         String NO_SERVER_DEAL = "NO SERVER";

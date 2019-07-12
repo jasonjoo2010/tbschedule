@@ -3,7 +3,7 @@ package com.yoloho.schedule.types;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 
 import com.alibaba.fastjson.annotation.JSONField;
-import com.yoloho.schedule.util.ScheduleTaskUtil;
+import com.yoloho.schedule.util.TaskItemUtil;
 
 /**
  * Task
@@ -220,7 +220,7 @@ public class Task implements java.io.Serializable {
     
     @JSONField(serialize = false)
     public TaskItem[] getTaskItemList() {
-        return ScheduleTaskUtil.parseItems(taskItems);
+        return TaskItemUtil.parseItems(taskItems);
     }
 
     public void setTaskKind(String taskKind) {

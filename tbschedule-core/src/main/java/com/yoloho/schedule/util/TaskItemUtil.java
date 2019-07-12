@@ -5,7 +5,13 @@ import java.util.regex.Pattern;
 
 import com.yoloho.schedule.types.TaskItem;
 
-public class ScheduleTaskUtil {
+/**
+ * Utilities for {@link TaskItem}
+ * 
+ * @author jason
+ *
+ */
+public class TaskItemUtil {
     private static final Pattern PATTERN_TASK_ITEM = Pattern.compile("^(.+):\\{([^}]*)\\}$");
     
     /**

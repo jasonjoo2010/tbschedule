@@ -131,7 +131,7 @@ public abstract class TBScheduleManager implements IStrategyTask {
         long diff = (long) (expireDays * 24 * 3600 * 1000);
         long now = this.storage.getGlobalTime();
         for (String runningEntryName : list) {
-            String ownSign = ScheduleUtil.splitOwnsignFromTaskType(runningEntryName);
+            String ownSign = ScheduleUtil.ownsignFromRunningEntry(runningEntryName);
             List<ScheduleServer> serverList = this.storage.getServerList(taskName, ownSign);
             InitialResult result = this.storage.getInitialRunningInfoResult(taskName, ownSign);
             if (!serverList.isEmpty()) {
@@ -282,7 +282,7 @@ public abstract class TBScheduleManager implements IStrategyTask {
     				new PauseOrResumeScheduleTask(this,this.heartBeatTimer,
     						PauseOrResumeScheduleTask.TYPE_RESUME,tmpStr), 
     						firstStartTime);
-			this.currenScheduleServer.setNextRunStartTime(ScheduleUtil.transferDataToString(firstStartTime));	
+			this.currenScheduleServer.setNextRunStartTime(ScheduleUtil.dataToString(firstStartTime));	
 			if( this.taskTypeInfo.getPermitRunEndTime() == null
     		   || this.taskTypeInfo.getPermitRunEndTime().equals("-1")){
 				this.currenScheduleServer.setNextRunEndTime("当不能获取到数据的时候pause");				
@@ -300,7 +300,7 @@ public abstract class TBScheduleManager implements IStrategyTask {
 		    				new PauseOrResumeScheduleTask(this,this.heartBeatTimer,
 		    						PauseOrResumeScheduleTask.TYPE_PAUSE,tmpEndStr), 
 		    						firstEndTime);
-					this.currenScheduleServer.setNextRunEndTime(ScheduleUtil.transferDataToString(firstEndTime));
+					this.currenScheduleServer.setNextRunEndTime(ScheduleUtil.dataToString(firstEndTime));
 				} catch (Exception e) {
 					log.error("计算第一次执行时间出现异常:" + currenScheduleServer.getUuid(), e);
 					throw new Exception("计算第一次执行时间出现异常:" + currenScheduleServer.getUuid(), e);
@@ -501,10 +501,10 @@ class PauseOrResumeScheduleTask extends java.util.TimerTask {
             Date nextTime = cexp.getNextValidTimeAfter(current);
             if (this.type == TYPE_PAUSE) {
                 manager.pause("到达终止时间,pause调度");
-                this.manager.getScheduleServer().setNextRunEndTime(ScheduleUtil.transferDataToString(nextTime));
+                this.manager.getScheduleServer().setNextRunEndTime(ScheduleUtil.dataToString(nextTime));
             } else {
                 manager.resume("到达开始时间,resume调度");
-                this.manager.getScheduleServer().setNextRunStartTime(ScheduleUtil.transferDataToString(nextTime));
+                this.manager.getScheduleServer().setNextRunStartTime(ScheduleUtil.dataToString(nextTime));
             }
             this.timer.schedule(new PauseOrResumeScheduleTask(this.manager, this.timer, this.type, this.cronTabExpress),
                     nextTime);

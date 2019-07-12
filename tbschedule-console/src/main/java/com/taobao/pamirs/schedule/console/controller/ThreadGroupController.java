@@ -106,8 +106,8 @@ public class ThreadGroupController {
         } else if(StringUtils.isNotEmpty(taskName) && StringUtils.isEmpty(ownSign)) {
             // not limit to one ownsign, thus, all runningEntries
             for (String runningEnty : storage.getRunningEntryList(taskName)) {
-                names.add(Pair.of(ScheduleUtil.splitBaseTaskTypeFromTaskType(runningEnty),
-                        ScheduleUtil.splitOwnsignFromTaskType(runningEnty)));
+                names.add(Pair.of(ScheduleUtil.taskNameFromRunningEntry(runningEnty),
+                        ScheduleUtil.ownsignFromRunningEntry(runningEnty)));
             }
         } else if (StringUtils.isEmpty(taskName)) {
             List<String> taskNameList = storage.getTaskNames();
@@ -116,8 +116,8 @@ public class ThreadGroupController {
                     names.add(Pair.of(name, ownSign));
                 } else {
                     for (String runningEnty : storage.getRunningEntryList(name)) {
-                        names.add(Pair.of(ScheduleUtil.splitBaseTaskTypeFromTaskType(runningEnty),
-                                ScheduleUtil.splitOwnsignFromTaskType(runningEnty)));
+                        names.add(Pair.of(ScheduleUtil.taskNameFromRunningEntry(runningEnty),
+                                ScheduleUtil.ownsignFromRunningEntry(runningEnty)));
                     }
                 }
             }
@@ -147,7 +147,7 @@ public class ThreadGroupController {
         for (String taskName : taskNameList) {
             List<String> runningEntryList = storage.getRunningEntryList(taskName);
             for (String runningEntry : runningEntryList) {
-                String ownSign = ScheduleUtil.splitOwnsignFromTaskType(runningEntry);
+                String ownSign = ScheduleUtil.ownsignFromRunningEntry(runningEntry);
                 List<ScheduleServer> list = storage.getServerList(taskName, ownSign);
                 Iterator<ScheduleServer> it = list.iterator();
                 while (it.hasNext()) {
