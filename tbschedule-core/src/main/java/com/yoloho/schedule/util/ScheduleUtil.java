@@ -104,12 +104,12 @@ public class ScheduleUtil {
     /**
      * Fetch ownsign from running entry name
      * 
-     * @param taskType
+     * @param runningEntry
      * @return
      */
-    public static String ownsignFromRunningEntry(String taskType) {
-        if (taskType.indexOf("$") >= 0) {
-            return taskType.substring(taskType.indexOf("$") + 1);
+    public static String ownsignFromRunningEntry(String runningEntry) {
+        if (runningEntry.indexOf("$") >= 0) {
+            return runningEntry.substring(runningEntry.indexOf("$") + 1);
         } else {
             return OWN_SIGN_BASE;
         }

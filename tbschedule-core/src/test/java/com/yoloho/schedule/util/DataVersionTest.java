@@ -5,8 +5,6 @@ import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
-import com.yoloho.schedule.util.DataVersion;
-
 public class DataVersionTest {
     @Test
     public void getVersionTest() {

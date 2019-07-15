@@ -2,13 +2,13 @@ package com.yoloho.schedule.interfaces;
 
 import java.util.List;
 
-import com.taobao.pamirs.schedule.strategy.ScheduleStrategyRuntime;
-import com.taobao.pamirs.schedule.strategy.TBScheduleManagerFactory;
-import com.taobao.pamirs.schedule.taskmanager.InitialResult;
-import com.taobao.pamirs.schedule.taskmanager.ScheduleConfig;
-import com.taobao.pamirs.schedule.taskmanager.ScheduleServer;
-import com.taobao.pamirs.schedule.taskmanager.ScheduleTaskItem;
+import com.yoloho.schedule.ScheduleManagerFactory;
+import com.yoloho.schedule.types.InitialResult;
+import com.yoloho.schedule.types.ScheduleConfig;
+import com.yoloho.schedule.types.ScheduleServer;
+import com.yoloho.schedule.types.TaskItemRuntime;
 import com.yoloho.schedule.types.Strategy;
+import com.yoloho.schedule.types.StrategyRuntime;
 import com.yoloho.schedule.types.Task;
 
 /**
@@ -80,7 +80,7 @@ public interface IStorage {
      */
     List<String> getTaskNames() throws Exception;
 
-    List<ScheduleTaskItem> getRunningTaskItems(String taskName, String ownSign) throws Exception;
+    List<TaskItemRuntime> getRunningTaskItems(String taskName, String ownSign) throws Exception;
 
     void updateTaskItemRequestServer(String taskName, String ownSign, String taskItem, String server) throws Exception;
 
@@ -210,7 +210,7 @@ public interface IStorage {
      * @return strategyName collection that need to be unregisterd
      * @throws Exception
      */
-    List<String> registerFactory(TBScheduleManagerFactory factory) throws Exception;
+    List<String> registerFactory(ScheduleManagerFactory factory) throws Exception;
 
     /**
      * @param strategyName
@@ -218,7 +218,7 @@ public interface IStorage {
      * @return
      * @throws Exception 
      */
-    ScheduleStrategyRuntime getStrategyRuntime(String strategyName, String factoryUUID) throws Exception;
+    StrategyRuntime getStrategyRuntime(String strategyName, String factoryUUID) throws Exception;
 
     /**
      * Get runtime list of specified strategy
@@ -227,7 +227,7 @@ public interface IStorage {
      * @return
      * @throws Exception
      */
-    List<ScheduleStrategyRuntime> getStrategyRuntimes(String strategyName) throws Exception;
+    List<StrategyRuntime> getStrategyRuntimes(String strategyName) throws Exception;
 
     /**
      * Update runtime information for a factory and strategy pair
@@ -235,7 +235,7 @@ public interface IStorage {
      * @param runtime
      * @throws Exception
      */
-    void updateStrategyRuntime(ScheduleStrategyRuntime runtime) throws Exception;
+    void updateStrategyRuntime(StrategyRuntime runtime) throws Exception;
 
     /**
      * Whether the factory allows to run.

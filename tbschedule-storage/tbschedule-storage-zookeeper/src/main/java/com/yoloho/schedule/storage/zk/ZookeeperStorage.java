@@ -27,20 +27,20 @@ import org.slf4j.LoggerFactory;
 
 import com.alibaba.fastjson.JSON;
 import com.google.common.base.Preconditions;
-import com.taobao.pamirs.schedule.strategy.ScheduleStrategyRuntime;
-import com.taobao.pamirs.schedule.strategy.TBScheduleManagerFactory;
-import com.taobao.pamirs.schedule.taskmanager.InitialResult;
-import com.taobao.pamirs.schedule.taskmanager.ScheduleConfig;
-import com.taobao.pamirs.schedule.taskmanager.ScheduleServer;
-import com.taobao.pamirs.schedule.taskmanager.ScheduleTaskItem;
-import com.taobao.pamirs.schedule.taskmanager.ScheduleTaskItem.TaskItemSts;
 import com.yoloho.enhanced.common.util.JoinerSplitters;
 import com.yoloho.enhanced.common.util.RandomUtil;
+import com.yoloho.schedule.ScheduleManagerFactory;
 import com.yoloho.schedule.interfaces.IStorage;
 import com.yoloho.schedule.storage.zk.util.PathUtil;
+import com.yoloho.schedule.types.InitialResult;
+import com.yoloho.schedule.types.ScheduleConfig;
+import com.yoloho.schedule.types.ScheduleServer;
+import com.yoloho.schedule.types.TaskItemRuntime;
 import com.yoloho.schedule.types.Strategy;
+import com.yoloho.schedule.types.StrategyRuntime;
 import com.yoloho.schedule.types.Task;
 import com.yoloho.schedule.types.TaskItem;
+import com.yoloho.schedule.types.TaskItemRuntime.TaskItemSts;
 import com.yoloho.schedule.util.DataVersion;
 import com.yoloho.schedule.util.ScheduleUtil;
 
@@ -409,7 +409,7 @@ public class ZookeeperStorage implements IStorage {
                 createIfNotExist(itemPath);
                 createIfNotExist(itemPath + "/cur_server");
                 createIfNotExist(itemPath + "/req_server");
-                replaceNode(itemPath + "/sts", ScheduleTaskItem.TaskItemSts.ACTIVTE.toString());
+                replaceNode(itemPath + "/sts", TaskItemRuntime.TaskItemSts.ACTIVTE.toString());
                 replaceNode(itemPath + "/parameter", define.getParameter());
                 replaceNode(itemPath + "/deal_desc", "");
             }
@@ -432,7 +432,7 @@ public class ZookeeperStorage implements IStorage {
     }
     
     @Override
-    public List<ScheduleTaskItem> getRunningTaskItems(String taskName, String ownSign) throws Exception {
+    public List<TaskItemRuntime> getRunningTaskItems(String taskName, String ownSign) throws Exception {
         String path = PathUtil.taskItemBasePath(taskName, ownSign);
         if (!exist(path)) {
             return Collections.emptyList();
@@ -441,13 +441,12 @@ public class ZookeeperStorage implements IStorage {
         if (names == null || names.isEmpty()) {
             return Collections.emptyList();
         }
-        List<ScheduleTaskItem> result = new ArrayList<>(names.size());
+        List<TaskItemRuntime> result = new ArrayList<>(names.size());
         for (String name : names) {
             String taskItemPath = PathUtil.taskItemPath(taskName, ownSign, name);
-            ScheduleTaskItem item = new ScheduleTaskItem();
-            item.setBaseTaskType(taskName);
+            TaskItemRuntime item = new TaskItemRuntime();
+            item.setTaskName(taskName);
             item.setOwnSign(ownSign);
-            item.setTaskType(ScheduleUtil.runningEntryFromTaskName(taskName, ownSign));
             item.setCurrentScheduleServer(getNode(taskItemPath + "/cur_server"));
             item.setRequestScheduleServer(getNode(taskItemPath + "/req_server"));
             item.setSts(TaskItemSts.valueOf(getNode(taskItemPath + "/sts")));
@@ -462,9 +461,9 @@ public class ZookeeperStorage implements IStorage {
     
     @Override
     public int releaseTaskItemByServer(String taskName, String ownSign, String uuid) throws Exception {
-        List<ScheduleTaskItem> items = getRunningTaskItems(taskName, ownSign);
+        List<TaskItemRuntime> items = getRunningTaskItems(taskName, ownSign);
         int released = 0;
-        for (ScheduleTaskItem item : items) {
+        for (TaskItemRuntime item : items) {
             if (StringUtils.isNotEmpty(item.getCurrentScheduleServer()) && StringUtils.isNotEmpty(item.getRequestScheduleServer())) {
                 if (StringUtils.equals(item.getCurrentScheduleServer(), uuid)) {
                     String path = PathUtil.taskItemPath(taskName, ownSign, item.getTaskItem());
@@ -535,7 +534,7 @@ public class ZookeeperStorage implements IStorage {
     
     @Override
     public boolean heartbeatServer(ScheduleServer server) throws Exception {
-        String taskName = server.getBaseTaskType();
+        String taskName = server.getTaskName();
         String ownSign = server.getOwnSign();
         String path = PathUtil.serverPath(taskName, ownSign, server.getUuid());
         if (!exist(path)) {
@@ -558,7 +557,7 @@ public class ZookeeperStorage implements IStorage {
     
     @Override
     public void registerServer(ScheduleServer server) throws Exception {
-        String taskName = server.getBaseTaskType();
+        String taskName = server.getTaskName();
         String ownSign = server.getOwnSign();
         if (StringUtils.isNotEmpty(server.getUuid())) {
             String path = PathUtil.serverPath(taskName, ownSign, server.getUuid());
@@ -570,7 +569,7 @@ public class ZookeeperStorage implements IStorage {
         createIfNotExist(PathUtil.serverBasePath(taskName, ownSign));
         if (StringUtils.isEmpty(server.getUuid())) {
             // 此处必须增加UUID作为唯一性保障
-            String baseUUID = server.getTaskType() + "$" + server.getIp() + "$"
+            String baseUUID = server.getRunningEntry() + "$" + server.getIp() + "$"
                     + (UUID.randomUUID().toString().replaceAll("-", "").toUpperCase()) + "$";
             String zkServerPath = PathUtil.serverPath(taskName, ownSign, baseUUID);
             realPath = client.create().withMode(CreateMode.PERSISTENT_SEQUENTIAL).forPath(zkServerPath);
@@ -722,7 +721,7 @@ public class ZookeeperStorage implements IStorage {
     }
     
     @Override
-    public List<String> registerFactory(TBScheduleManagerFactory factory) throws Exception {
+    public List<String> registerFactory(ScheduleManagerFactory factory) throws Exception {
         // register to factory list
         if (StringUtils.isEmpty(factory.getUuid())) {
             // generate uuid first
@@ -771,7 +770,7 @@ public class ZookeeperStorage implements IStorage {
     }
     
     @Override
-    public List<ScheduleStrategyRuntime> getStrategyRuntimes(String strategyName) throws Exception {
+    public List<StrategyRuntime> getStrategyRuntimes(String strategyName) throws Exception {
         String path = PathUtil.strategyPath(strategyName);
         List<String> list = client.getChildren().forPath(path);
         if (list == null || list.isEmpty()) {
@@ -783,9 +782,9 @@ public class ZookeeperStorage implements IStorage {
                         .compareTo(u2.substring(u2.lastIndexOf("$") + 1));
             }
         });
-        List<ScheduleStrategyRuntime> result = new ArrayList<>(list.size());
+        List<StrategyRuntime> result = new ArrayList<>(list.size());
         for (String factoryUUID : list) {
-            ScheduleStrategyRuntime runtime = getStrategyRuntime(strategyName, factoryUUID);
+            StrategyRuntime runtime = getStrategyRuntime(strategyName, factoryUUID);
             if (runtime != null) {
                 result.add(runtime);
             }
@@ -794,7 +793,7 @@ public class ZookeeperStorage implements IStorage {
     }
     
     @Override
-    public ScheduleStrategyRuntime getStrategyRuntime(String strategyName, String factoryUUID) throws Exception {
+    public StrategyRuntime getStrategyRuntime(String strategyName, String factoryUUID) throws Exception {
         String path = PathUtil.factoryForStrategyPath(strategyName, factoryUUID);
         if (!exist(path)) {
             return null;
@@ -804,7 +803,7 @@ public class ZookeeperStorage implements IStorage {
             return null;
         }
         try {
-            ScheduleStrategyRuntime runtime = JSON.parseObject(json, ScheduleStrategyRuntime.class);
+            StrategyRuntime runtime = JSON.parseObject(json, StrategyRuntime.class);
             Preconditions.checkArgument(StringUtils.isNotEmpty(runtime.getUuid()), "Factory UUID of runtime is empty");
             Preconditions.checkArgument(StringUtils.isNotEmpty(runtime.getStrategyName()), "Strategy name of runtime is empty");
             return runtime;
@@ -814,7 +813,7 @@ public class ZookeeperStorage implements IStorage {
     }
     
     @Override
-    public void updateStrategyRuntime(ScheduleStrategyRuntime runtime) throws Exception {
+    public void updateStrategyRuntime(StrategyRuntime runtime) throws Exception {
         Preconditions.checkArgument(StringUtils.isNotEmpty(runtime.getUuid()), "Factory UUID of runtime is empty");
         Preconditions.checkArgument(StringUtils.isNotEmpty(runtime.getStrategyName()), "Strategy name of runtime is empty");
         String path = PathUtil.factoryForStrategyPath(runtime.getStrategyName(), runtime.getUuid());

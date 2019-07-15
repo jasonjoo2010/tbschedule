@@ -24,32 +24,36 @@
 <tr>
 	<td>Task Name:</td>
 	<td><input type="text" id="taskName" name="taskName"  value="${strategy.taskName}" width="30"></td>
-	<td>与任务类型匹配的名称例如：1、任务管理中配置的任务名称(对应Schedule) 2、Class名称(对应java) 3、Bean的名称(对应Bean)</td>
+	<td>
+        For <b>Schedule</b> Type: Task Name (Append "$" for OwnSign, eg. "Task1", "Task1$develop")<br />
+        For <b>Class</b> Type: Class name (Full name including package). Each thread will new an instance.<br />
+        For <b>Bean</b> Type: Bean Id in spring's IoC.
+    </td>
 </tr>
 <tr>
 	<td>Task Parameter:</td>
 	<td><input type="text" id="taskParameter" name="taskParameter"   value="${strategy.taskParameter}" width="30"></td>
-	<td>逗号分隔的Key-Value。 对任务类型为Schedule的无效，需要通过任务管理来配置的</td>
+	<td>Key-Value pair separated by comma. For <b>Schedule</b> type please remain empty because parameter is configured in task's properties.</td>
 </tr>
 
 <tr>
 	<td>Limit Count Single JVM</td>
 	<td><input type="text" name="numOfSingleServer" value="${strategy.numOfSingleServer}" width="30"></td>
-	<td>单JVM最大线程组数量，如果是0，则表示没有限制.每台机器运行的线程组数量 =总量/机器数 </td>
+	<td>Maximum thread group's count per one JVM process. 0 for unlimited.</td>
 </tr>
 <tr>
 	<td>Total Runner Count</td>
 	<td><input type="text" name="assignNum" value="${strategy.assignNum}"  width="30"></td>
-	<td>所有服务器总共运行的最大数量</td>
+	<td>Global thread group's count</td>
 </tr>
 <tr>
 	<td>Targets(Separated by comma): </td>
 	<td><input type="text" name="ips" value="${ips}" width="30"></td>
-	<td>Fill it with <b>127.0.0.1</b> or <b>localhost</b> indicating no limit</td>
+	<td>Filled with <b>127.0.0.1</b> or <b>localhost</b> as unlimited</td>
 </tr>
 </table>
 <br/>
-<input type="submit" value="保存" style="width:100px" >
+<input type="submit" value="Save" style="width:100px" >
 </form>
 <script>
 $(function() {
@@ -59,11 +63,11 @@ $(function() {
             var strategyName = document.all("strategyName").value;
         	var reg = /.*[\u4e00-\u9fa5]+.*$/; 
         	if(reg.test(strategyName)){
-        	   alert('任务类型不能含中文');
+        	   alert('No special character in name');
         	   return false;
         	}
         	if(strategyName == null || strategyName == '' || isContainSpace(strategyName)) {
-        		alert('任务类型不能为空或存在空格');
+        		alert('Task type cannot be empty');
         		return false;
         	}
         	return true;

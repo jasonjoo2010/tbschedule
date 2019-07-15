@@ -1,4 +1,4 @@
-package com.taobao.pamirs.schedule.taskmanager;
+package com.yoloho.schedule.types;
 
 import java.sql.Timestamp;
 
@@ -6,23 +6,15 @@ import org.apache.commons.lang3.builder.ToStringBuilder;
 
 import com.yoloho.schedule.util.ScheduleUtil;
 
-public class ScheduleTaskTypeRunningInfo {
+public class RunningEntryRuntime {
 
     private long id;
 
     /**
-     * 任务类型：原始任务类型+"-"+ownSign
+     * taskName$ownSign
      */
-    private String taskType;
-
-    /**
-     * 原始任务类型
-     */
-    private String baseTaskType;
-
-    /**
-     * 环境
-     */
+    private String runningEntry;
+    private String taskName;
     private String ownSign;
 
     /**
@@ -39,21 +31,21 @@ public class ScheduleTaskTypeRunningInfo {
 
     private Timestamp gmtModified;
     
-    public ScheduleTaskTypeRunningInfo() {
+    public RunningEntryRuntime() {
     }
     
-    public ScheduleTaskTypeRunningInfo(String taskName, String ownSign) {
-        setBaseTaskType(taskName);
+    public RunningEntryRuntime(String taskName, String ownSign) {
+        setTaskName(taskName);
         setOwnSign(ownSign);
-        setTaskType(ScheduleUtil.runningEntryFromTaskName(taskName, ownSign));
+        setRunningEntry(ScheduleUtil.runningEntryFromTaskName(taskName, ownSign));
     }
     
-    public ScheduleTaskTypeRunningInfo(String runningEntry) {
+    public RunningEntryRuntime(String runningEntry) {
         String taskName = ScheduleUtil.taskNameFromRunningEntry(runningEntry);
         String ownSign = ScheduleUtil.ownsignFromRunningEntry(runningEntry);
-        setBaseTaskType(taskName);
+        setTaskName(taskName);
         setOwnSign(ownSign);
-        setTaskType(runningEntry);
+        setRunningEntry(runningEntry);
     }
 
     public String toString() {
@@ -76,12 +68,12 @@ public class ScheduleTaskTypeRunningInfo {
         this.ownSign = ownSign;
     }
 
-    public String getTaskType() {
-        return taskType;
+    public String getRunningEntry() {
+        return runningEntry;
     }
 
-    public void setTaskType(String taskType) {
-        this.taskType = taskType;
+    public void setRunningEntry(String runningEntry) {
+        this.runningEntry = runningEntry;
     }
 
     public Timestamp getLastAssignTime() {
@@ -116,12 +108,12 @@ public class ScheduleTaskTypeRunningInfo {
         this.gmtModified = gmtModified;
     }
 
-    public String getBaseTaskType() {
-        return baseTaskType;
+    public String getTaskName() {
+        return taskName;
     }
 
-    public void setBaseTaskType(String baseTaskType) {
-        this.baseTaskType = baseTaskType;
+    public void setTaskName(String taskName) {
+        this.taskName = taskName;
     }
 
 }

@@ -5,7 +5,7 @@ import javax.annotation.Resource;
 
 import org.junit.Test;
 
-import com.taobao.pamirs.schedule.strategy.TBScheduleManagerFactory;
+import com.yoloho.schedule.ScheduleManagerFactory;
 
 /**
  * 调度测试
@@ -14,10 +14,10 @@ import com.taobao.pamirs.schedule.strategy.TBScheduleManagerFactory;
  */
 public class StartDemoSchedule extends AbstractTest {
 	@Resource
-	TBScheduleManagerFactory scheduleManagerFactory;
+	ScheduleManagerFactory scheduleManagerFactory;
 	
     public void setScheduleManagerFactory(
-			TBScheduleManagerFactory tbScheduleManagerFactory) {
+			ScheduleManagerFactory tbScheduleManagerFactory) {
 		this.scheduleManagerFactory = tbScheduleManagerFactory;
 	}
 	@Test    

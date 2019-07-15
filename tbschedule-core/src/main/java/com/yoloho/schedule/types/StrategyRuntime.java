@@ -1,8 +1,6 @@
-package com.taobao.pamirs.schedule.strategy;
+package com.yoloho.schedule.types;
 
-import com.yoloho.schedule.types.StrategyKind;
-
-public class ScheduleStrategyRuntime {
+public class StrategyRuntime {
 	
 	/**
 	 * 任务类型

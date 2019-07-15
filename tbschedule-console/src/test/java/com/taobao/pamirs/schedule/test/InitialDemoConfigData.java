@@ -6,8 +6,8 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.taobao.pamirs.schedule.strategy.TBScheduleManagerFactory;
 import com.yoloho.enhanced.common.util.JoinerSplitters;
+import com.yoloho.schedule.ScheduleManagerFactory;
 import com.yoloho.schedule.types.Strategy;
 import com.yoloho.schedule.types.StrategyKind;
 import com.yoloho.schedule.types.Task;
@@ -17,10 +17,10 @@ public class InitialDemoConfigData extends AbstractTest {
 	protected static transient Logger log = LoggerFactory
 			.getLogger(InitialDemoConfigData.class);
 	@Resource
-	TBScheduleManagerFactory scheduleManagerFactory;
+	ScheduleManagerFactory scheduleManagerFactory;
 
 	public void setScheduleManagerFactory(
-			TBScheduleManagerFactory tbScheduleManagerFactory) {
+			ScheduleManagerFactory tbScheduleManagerFactory) {
 		this.scheduleManagerFactory = tbScheduleManagerFactory;
 	}
 

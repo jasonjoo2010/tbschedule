@@ -1,4 +1,4 @@
-package com.taobao.pamirs.schedule.taskmanager;
+package com.yoloho.schedule.types;
 
 import java.sql.Timestamp;
 import java.util.Date;
@@ -14,22 +14,11 @@ import com.yoloho.schedule.util.ScheduleUtil;
  *
  */
 public class ScheduleServer {
-	/**
-	 * 全局唯一编号
-	 */
 	private String uuid;
 	private long id;
-	/**
-	 * 任务类型
-	 */
-	private String taskType;
-
-	/**
-	 * 原始任务类型
-	 */
-	private String baseTaskType;
-
+	private String taskName;
 	private String ownSign;
+	private String runningEntry;
 	/**
 	 * 机器IP地址
 	 */
@@ -81,31 +70,25 @@ public class ScheduleServer {
 
 	}
 
-	public static ScheduleServer createScheduleServer(long now, String aBaseTaskType,
-			String aOwnSign, int aThreadNum)
-			throws Exception {
-		ScheduleServer result = new ScheduleServer();
-		result.baseTaskType = aBaseTaskType;
-		result.ownSign = aOwnSign;
-		result.taskType = ScheduleUtil.runningEntryFromTaskName(
-				aBaseTaskType, aOwnSign);
-		result.ip = ScheduleUtil.getLocalIP();
-		result.hostName = ScheduleUtil.getLocalHostName();
-		result.registerTime = new Timestamp(now);
-		result.threadNum = aThreadNum;
-		result.heartBeatTime = null;
-		result.dealInfoDesc = "调度初始化";
-		result.version = 0;
-		result.uuid = result.ip
-				+ "$"
-				+ (UUID.randomUUID().toString().replaceAll("-", "")
-						.toUpperCase());
-		FastDateFormat DATA_FORMAT_yyyyMMdd = FastDateFormat.getInstance("yyMMdd");
-		String s = DATA_FORMAT_yyyyMMdd.format(now);
-		result.id = Long.parseLong(s) * 100000000
-				+ Math.abs(result.uuid.hashCode() % 100000000);
-		return result;
-	}
+    public static ScheduleServer createScheduleServer(long now, String taskName, String ownSign, int threadNum)
+            throws Exception {
+        ScheduleServer result = new ScheduleServer();
+        result.taskName = taskName;
+        result.ownSign = ownSign;
+        result.runningEntry = ScheduleUtil.runningEntryFromTaskName(taskName, ownSign);
+        result.ip = ScheduleUtil.getLocalIP();
+        result.hostName = ScheduleUtil.getLocalHostName();
+        result.registerTime = new Timestamp(now);
+        result.threadNum = threadNum;
+        result.heartBeatTime = null;
+        result.dealInfoDesc = "调度初始化";
+        result.version = 0;
+        result.uuid = result.ip + "$" + (UUID.randomUUID().toString().replaceAll("-", "").toUpperCase());
+        FastDateFormat DATA_FORMAT_yyyyMMdd = FastDateFormat.getInstance("yyMMdd");
+        String s = DATA_FORMAT_yyyyMMdd.format(now);
+        result.id = Long.parseLong(s) * 100000000 + Math.abs(result.uuid.hashCode() % 100000000);
+        return result;
+    }
 
 	public String getUuid() {
 		return uuid;
@@ -124,16 +107,14 @@ public class ScheduleServer {
 	}
 
 	/**
-	 * XXX Maybe we should call it strategy?
-	 * 
 	 * @return
 	 */
-	public String getTaskType() {
-		return taskType;
+	public String getRunningEntry() {
+		return runningEntry;
 	}
 
-	public void setTaskType(String taskType) {
-		this.taskType = taskType;
+	public void setRunningEntry(String runningEntry) {
+		this.runningEntry = runningEntry;
 	}
 
 	public int getThreadNum() {
@@ -247,12 +228,12 @@ public class ScheduleServer {
 		this.ownSign = ownSign;
 	}
 
-	public String getBaseTaskType() {
-		return baseTaskType;
+	public String getTaskName() {
+		return taskName;
 	}
 
-	public void setBaseTaskType(String baseTaskType) {
-		this.baseTaskType = baseTaskType;
+	public void setTaskName(String taskName) {
+		this.taskName = taskName;
 	}
 
 	public long getId() {

@@ -10,9 +10,9 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
 
 import com.taobao.pamirs.schedule.console.ConsoleManager;
-import com.taobao.pamirs.schedule.strategy.ManagerFactoryInfo;
 import com.yoloho.enhanced.common.support.MsgBean;
 import com.yoloho.schedule.interfaces.IStorage;
+import com.yoloho.schedule.types.FactoryInfo;
 
 @Controller
 @RequestMapping("/machine")
@@ -22,9 +22,9 @@ public class MachineController {
     public ModelAndView index() throws Exception {
         ModelAndView mav = new ModelAndView("machine/index");
         IStorage storage = ConsoleManager.getStorage();
-        List<ManagerFactoryInfo> list = storage.getFactoryNames().stream()
+        List<FactoryInfo> list = storage.getFactoryNames().stream()
                 .map(uuid -> {
-                    ManagerFactoryInfo obj = new ManagerFactoryInfo();
+                    FactoryInfo obj = new FactoryInfo();
                     obj.setUuid(uuid);
                     try {
                         obj.setStart(storage.isFactoryAllowExecute(uuid));

@@ -16,12 +16,12 @@ import org.springframework.web.servlet.ModelAndView;
 
 import com.taobao.pamirs.schedule.console.ConsoleManager;
 import com.taobao.pamirs.schedule.console.vo.StrategyVo;
-import com.taobao.pamirs.schedule.strategy.ScheduleStrategyRuntime;
 import com.yoloho.enhanced.common.support.MsgBean;
 import com.yoloho.enhanced.common.util.JoinerSplitters;
 import com.yoloho.schedule.interfaces.IStorage;
 import com.yoloho.schedule.types.Strategy;
 import com.yoloho.schedule.types.StrategyKind;
+import com.yoloho.schedule.types.StrategyRuntime;
 
 @Controller
 @RequestMapping("/strategy")
@@ -57,7 +57,7 @@ public class StrategyController {
             @RequestParam(required = false) String uuid
             ) throws Exception {
         ModelAndView mav = new ModelAndView("strategy/runtime");
-        List<ScheduleStrategyRuntime> runtimeList = new ArrayList<>();
+        List<StrategyRuntime> runtimeList = new ArrayList<>();
         IStorage storage = ConsoleManager.getStorage();
         if (StringUtils.isNotEmpty(strategyName)) {
             runtimeList = storage.getStrategyRuntimes(strategyName);

@@ -19,8 +19,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 
 import com.taobao.pamirs.schedule.console.ConsoleManager;
-import com.taobao.pamirs.schedule.taskmanager.ScheduleServer;
 import com.yoloho.schedule.interfaces.IStorage;
+import com.yoloho.schedule.types.ScheduleServer;
 import com.yoloho.schedule.types.Task;
 import com.yoloho.schedule.util.ScheduleUtil;
 
@@ -62,7 +62,7 @@ public class ThreadGroupController {
             int result = 0;
             for (String name : orderFields) {
                 if (name.equals("TASK_TYPE")) {
-                    result = compareObject(o1.getTaskType(), o2.getTaskType());
+                    result = compareObject(o1.getRunningEntry(), o2.getRunningEntry());
                     if (result != 0) {
                         return result;
                     }
@@ -160,7 +160,7 @@ public class ThreadGroupController {
         }
         Collections.sort(result, new Comparator<ScheduleServer>() {
             public int compare(ScheduleServer u1, ScheduleServer u2) {
-                int result = u1.getTaskType().compareTo(u2.getTaskType());
+                int result = u1.getRunningEntry().compareTo(u2.getRunningEntry());
                 if (result == 0) {
                     String s1 = u1.getUuid();
                     String s2 = u2.getUuid();
@@ -189,14 +189,14 @@ public class ThreadGroupController {
         }
         Map<String, Task> taskMap = new HashMap<>();
         for (ScheduleServer item : list) {
-            if (taskMap.containsKey(item.getBaseTaskType())) {
+            if (taskMap.containsKey(item.getTaskName())) {
                 continue;
             }
-            Task base = ConsoleManager.getStorage().getTask(item.getBaseTaskType());
+            Task base = ConsoleManager.getStorage().getTask(item.getTaskName());
             if (base == null) {
                 continue;
             }
-            taskMap.put(item.getBaseTaskType(), base);
+            taskMap.put(item.getTaskName(), base);
         }
         mav.addObject("now", System.currentTimeMillis());
         mav.addObject("taskMap", taskMap);

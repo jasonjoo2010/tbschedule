@@ -11,7 +11,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.taobao.pamirs.schedule.taskmanager.ScheduleConfig;
+import com.yoloho.schedule.types.ScheduleConfig;
 import com.yoloho.schedule.types.Task;
 import com.yoloho.schedule.util.ScheduleUtil;
 

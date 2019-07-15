@@ -1,6 +1,6 @@
-package com.taobao.pamirs.schedule.strategy;
+package com.yoloho.schedule.types;
 
-public class ManagerFactoryInfo {
+public class FactoryInfo {
 	private String uuid;
 	private boolean start;
 

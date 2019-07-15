@@ -1,4 +1,4 @@
-package com.taobao.pamirs.schedule.strategy;
+package com.yoloho.schedule;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -20,13 +20,14 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 
 import com.google.common.base.Preconditions;
-import com.taobao.pamirs.schedule.taskmanager.ScheduleConfig;
 import com.yoloho.schedule.interfaces.IScheduleTaskDeal;
 import com.yoloho.schedule.interfaces.IStorage;
 import com.yoloho.schedule.interfaces.IStrategyTask;
-import com.yoloho.schedule.processor.TBScheduleManagerStatic;
+import com.yoloho.schedule.processor.ScheduleManagerStatic;
+import com.yoloho.schedule.types.ScheduleConfig;
 import com.yoloho.schedule.types.Strategy;
 import com.yoloho.schedule.types.StrategyKind;
+import com.yoloho.schedule.types.StrategyRuntime;
 import com.yoloho.schedule.util.ScheduleUtil;
 
 /**
@@ -35,9 +36,8 @@ import com.yoloho.schedule.util.ScheduleUtil;
  * @author xuannan
  * 
  */
-public class TBScheduleManagerFactory implements ApplicationContextAware {
-
-	protected static transient Logger logger = LoggerFactory.getLogger(TBScheduleManagerFactory.class);
+public class ScheduleManagerFactory implements ApplicationContextAware {
+	protected static transient Logger logger = LoggerFactory.getLogger(ScheduleManagerFactory.class);
 	
     private ScheduleConfig config;
 	
@@ -69,7 +69,7 @@ public class TBScheduleManagerFactory implements ApplicationContextAware {
 	volatile String  errorMessage = "No config Zookeeper connect infomation";
 	private InitialThread initialThread;
 	
-    public TBScheduleManagerFactory() {
+    public ScheduleManagerFactory() {
         this.ip = ScheduleUtil.getLocalIP();
         this.hostName = ScheduleUtil.getLocalHostName();
     }
@@ -161,24 +161,27 @@ public class TBScheduleManagerFactory implements ApplicationContextAware {
         }
     }
 
-	/**
-	 * 创建调度服务器
-	 * @param baseTaskType
-	 * @param ownSign
-	 * @return
-	 * @throws Exception
-	 */
-    public IStrategyTask createStrategyTask(Strategy strategy) throws Exception {
+    /**
+     * Create task by type
+     * 
+     * @param strategy
+     * @return
+     * @throws Exception
+     */
+    private IStrategyTask createStrategyTask(Strategy strategy) throws Exception {
         IStrategyTask result = null;
         try {
             if (StrategyKind.Schedule == strategy.getKind()) {
-                String baseTaskType = ScheduleUtil.taskNameFromRunningEntry(strategy.getTaskName());
+                // schedule a task
+                String taskName = ScheduleUtil.taskNameFromRunningEntry(strategy.getTaskName());
                 String ownSign = ScheduleUtil.ownsignFromRunningEntry(strategy.getTaskName());
-                result = new TBScheduleManagerStatic(this, baseTaskType, ownSign, storage);
+                result = new ScheduleManagerStatic(this, taskName, ownSign, storage);
             } else if (StrategyKind.Java == strategy.getKind()) {
+                // new instance
                 result = (IStrategyTask) Class.forName(strategy.getTaskName()).newInstance();
                 result.initialTaskParameter(strategy.getName(), strategy.getTaskParameter());
             } else if (StrategyKind.Bean == strategy.getKind()) {
+                // reference to a bean
                 result = (IStrategyTask) this.getBean(strategy.getTaskName());
                 result.initialTaskParameter(strategy.getName(), strategy.getTaskParameter());
             }
@@ -232,11 +235,11 @@ public class TBScheduleManagerFactory implements ApplicationContextAware {
         return storage;
     }
     
-    private List<ScheduleStrategyRuntime> getStrategyRunntimeByUUID(String factoryUUID) throws Exception {
-        List<ScheduleStrategyRuntime> result = new ArrayList<>();
+    private List<StrategyRuntime> getStrategyRunntimeByUUID(String factoryUUID) throws Exception {
+        List<StrategyRuntime> result = new ArrayList<>();
         List<String> strategyNames = this.storage.getStrategyNames();
         for (String strategyName : strategyNames) {
-            ScheduleStrategyRuntime runtime = this.storage.getStrategyRuntime(strategyName, factoryUUID);
+            StrategyRuntime runtime = this.storage.getStrategyRuntime(strategyName, factoryUUID);
             if (runtime != null) {
                 result.add(runtime);
             }
@@ -249,8 +252,8 @@ public class TBScheduleManagerFactory implements ApplicationContextAware {
 	 * @throws Exception
 	 */
     public void assignScheduleServer() throws Exception {
-        for (ScheduleStrategyRuntime run : getStrategyRunntimeByUUID(getUuid())) {
-            List<ScheduleStrategyRuntime> factoryList = this.storage.getStrategyRuntimes(run.getStrategyName());
+        for (StrategyRuntime run : getStrategyRunntimeByUUID(getUuid())) {
+            List<StrategyRuntime> factoryList = this.storage.getStrategyRuntimes(run.getStrategyName());
             if (factoryList.size() == 0 || this.isLeader(this.uuid, factoryList) == false) {
                 continue;
             }
@@ -270,7 +273,7 @@ public class TBScheduleManagerFactory implements ApplicationContextAware {
                  */
                 List<Integer> oldNums = new ArrayList<Integer>();
                 for (int i = 0; i < factoryList.size(); i++) {
-                    ScheduleStrategyRuntime factory = factoryList.get(i);
+                    StrategyRuntime factory = factoryList.get(i);
                     oldNums.add(factory.getRequestNum());
                 }
                 Collections.sort(oldNums, Collections.reverseOrder());
@@ -294,7 +297,7 @@ public class TBScheduleManagerFactory implements ApplicationContextAware {
                 Collections.shuffle(factoryList);
             }
             for (int i = 0; i < factoryList.size(); i++) {
-                ScheduleStrategyRuntime factory = factoryList.get(i);
+                StrategyRuntime factory = factoryList.get(i);
                 // Update request num
                 updateStrategyRuntimeRequestNum(run.getStrategyName(), factory.getUuid(), nums[i]);
             }
@@ -311,11 +314,11 @@ public class TBScheduleManagerFactory implements ApplicationContextAware {
      */
     private void updateStrategyRuntimeRequestNum(String strategyName, String factoryUUID, int requestNum)
             throws Exception {
-        ScheduleStrategyRuntime runtime = this.storage.getStrategyRuntime(strategyName, factoryUUID);
+        StrategyRuntime runtime = this.storage.getStrategyRuntime(strategyName, factoryUUID);
         if(runtime !=null){
             runtime.setRequestNum(requestNum);
         } else {
-            runtime = new ScheduleStrategyRuntime();
+            runtime = new StrategyRuntime();
             runtime.setStrategyName(strategyName);
             runtime.setUuid(factoryUUID);
             runtime.setRequestNum(requestNum);
@@ -324,10 +327,10 @@ public class TBScheduleManagerFactory implements ApplicationContextAware {
         this.storage.updateStrategyRuntime(runtime);
     }
 	
-	public boolean isLeader(String uuid, List<ScheduleStrategyRuntime> factoryList) {
+	public boolean isLeader(String uuid, List<StrategyRuntime> factoryList) {
 		try {
 			long no = Long.parseLong(uuid.substring(uuid.lastIndexOf("$") + 1));
-			for (ScheduleStrategyRuntime server : factoryList) {
+			for (StrategyRuntime server : factoryList) {
 				if (no > Long.parseLong(server.getUuid().substring(
 						server.getUuid().lastIndexOf("$") + 1))) {
 					return false;
@@ -341,7 +344,7 @@ public class TBScheduleManagerFactory implements ApplicationContextAware {
 	}	
 	
 	public void reRunScheduleServer() throws Exception{
-		for (ScheduleStrategyRuntime run : getStrategyRunntimeByUUID(getUuid())) {
+		for (StrategyRuntime run : getStrategyRunntimeByUUID(getUuid())) {
 			List<IStrategyTask> list = this.managerMap.get(run.getStrategyName());
 			if(list == null){
 				list = new ArrayList<IStrategyTask>();
@@ -370,7 +373,7 @@ public class TBScheduleManagerFactory implements ApplicationContextAware {
 	/**
 	 * 终止一类任务
 	 * 
-	 * @param taskType
+	 * @param strategyName
 	 * @throws Exception
 	 */
 	public void stopServer(String strategyName) throws Exception {
@@ -538,10 +541,10 @@ public class TBScheduleManagerFactory implements ApplicationContextAware {
 
 class ManagerFactoryTimerTask extends java.util.TimerTask {
     private static transient Logger log = LoggerFactory.getLogger(ManagerFactoryTimerTask.class);
-    TBScheduleManagerFactory factory;
+    ScheduleManagerFactory factory;
     int count = 0;
 
-    public ManagerFactoryTimerTask(TBScheduleManagerFactory aFactory) {
+    public ManagerFactoryTimerTask(ScheduleManagerFactory aFactory) {
         this.factory = aFactory;
     }
 
@@ -571,10 +574,10 @@ class ManagerFactoryTimerTask extends java.util.TimerTask {
 
 class InitialThread extends Thread {
     private static transient Logger log = LoggerFactory.getLogger(InitialThread.class);
-    TBScheduleManagerFactory factory;
+    ScheduleManagerFactory factory;
     boolean isStop = false;
 
-    public InitialThread(TBScheduleManagerFactory aFactory) {
+    public InitialThread(ScheduleManagerFactory aFactory) {
         this.factory = aFactory;
     }
 

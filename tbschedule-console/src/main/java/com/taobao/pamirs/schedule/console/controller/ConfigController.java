@@ -23,9 +23,9 @@ import com.alibaba.fastjson.JSON;
 import com.google.common.base.Preconditions;
 import com.google.common.io.CharStreams;
 import com.taobao.pamirs.schedule.console.ConsoleManager;
-import com.taobao.pamirs.schedule.taskmanager.ScheduleConfig;
 import com.yoloho.enhanced.common.support.MsgBean;
 import com.yoloho.schedule.interfaces.IStorage;
+import com.yoloho.schedule.types.ScheduleConfig;
 import com.yoloho.schedule.types.Strategy;
 import com.yoloho.schedule.types.Task;
 

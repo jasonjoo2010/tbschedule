@@ -1,4 +1,4 @@
-package com.taobao.pamirs.schedule.taskmanager;
+package com.yoloho.schedule.types;
 
 import java.util.Map;
 import java.util.Properties;

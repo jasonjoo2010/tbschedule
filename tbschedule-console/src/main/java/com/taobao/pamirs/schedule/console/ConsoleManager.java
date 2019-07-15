@@ -10,9 +10,9 @@ import java.util.Properties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.taobao.pamirs.schedule.strategy.TBScheduleManagerFactory;
-import com.taobao.pamirs.schedule.taskmanager.ScheduleConfig;
+import com.yoloho.schedule.ScheduleManagerFactory;
 import com.yoloho.schedule.interfaces.IStorage;
+import com.yoloho.schedule.types.ScheduleConfig;
 
 public class ConsoleManager {
     protected static transient Logger log = LoggerFactory.getLogger(ConsoleManager.class);
@@ -29,7 +29,7 @@ public class ConsoleManager {
         }
     }
 
-    private static TBScheduleManagerFactory scheduleManagerFactory;
+    private static ScheduleManagerFactory scheduleManagerFactory;
 
     public static boolean isInitial() throws Exception {
         return scheduleManagerFactory != null;
@@ -40,7 +40,7 @@ public class ConsoleManager {
             return true;
         }
         File file = new File(configFile);
-        scheduleManagerFactory = new TBScheduleManagerFactory();
+        scheduleManagerFactory = new ScheduleManagerFactory();
         scheduleManagerFactory.setEnableSchedule(false);
         if (file.exists() == true) {
             // Console不启动调度能力
@@ -65,7 +65,7 @@ public class ConsoleManager {
         return false;
     }
 
-    public static TBScheduleManagerFactory getScheduleManagerFactory() throws Exception {
+    public static ScheduleManagerFactory getScheduleManagerFactory() throws Exception {
         if (isInitial() == false) {
             initial();
         }

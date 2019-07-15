@@ -17,12 +17,12 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
 
 import com.taobao.pamirs.schedule.console.ConsoleManager;
-import com.taobao.pamirs.schedule.taskmanager.ScheduleServer;
-import com.taobao.pamirs.schedule.taskmanager.ScheduleTaskItem;
-import com.taobao.pamirs.schedule.taskmanager.ScheduleTaskTypeRunningInfo;
 import com.yoloho.enhanced.common.support.MsgBean;
 import com.yoloho.enhanced.common.util.JoinerSplitters;
 import com.yoloho.schedule.interfaces.IStorage;
+import com.yoloho.schedule.types.RunningEntryRuntime;
+import com.yoloho.schedule.types.ScheduleServer;
+import com.yoloho.schedule.types.TaskItemRuntime;
 import com.yoloho.schedule.types.Task;
 
 @Controller
@@ -73,8 +73,8 @@ public class TaskController {
             @RequestParam(required = false) String ownSign
             ) throws Exception {
         ModelAndView mav = new ModelAndView("task/runtime");
-        List<ScheduleTaskTypeRunningInfo> infoList = ConsoleManager.getStorage().getRunningEntryList(taskName).stream()
-                .map(entry -> new ScheduleTaskTypeRunningInfo(entry))
+        List<RunningEntryRuntime> infoList = ConsoleManager.getStorage().getRunningEntryList(taskName).stream()
+                .map(entry -> new RunningEntryRuntime(entry))
                 .collect(Collectors.toList());
         IStorage storage = ConsoleManager.getStorage();
         if (StringUtils.isNotEmpty(ownSign)) {
@@ -85,12 +85,12 @@ public class TaskController {
         }
         Map<String, Task> taskMap = new HashMap<>();
         Map<String, List<ScheduleServer>> strategyMap = new HashMap<>();
-        Map<String, List<ScheduleTaskItem>> itemMap = new HashMap<>();
-        for (ScheduleTaskTypeRunningInfo info : infoList) {
-            strategyMap.put(info.getTaskType(), ConsoleManager.getStorage().getServerList(info.getBaseTaskType(), info.getOwnSign()));
-            itemMap.put(info.getTaskType(), storage.getRunningTaskItems(info.getBaseTaskType(), info.getOwnSign()));
-            if (!taskMap.containsKey(info.getBaseTaskType())) {
-                taskMap.put(info.getBaseTaskType(), ConsoleManager.getStorage().getTask(info.getBaseTaskType()));
+        Map<String, List<TaskItemRuntime>> itemMap = new HashMap<>();
+        for (RunningEntryRuntime info : infoList) {
+            strategyMap.put(info.getRunningEntry(), ConsoleManager.getStorage().getServerList(info.getTaskName(), info.getOwnSign()));
+            itemMap.put(info.getRunningEntry(), storage.getRunningTaskItems(info.getTaskName(), info.getOwnSign()));
+            if (!taskMap.containsKey(info.getTaskName())) {
+                taskMap.put(info.getTaskName(), ConsoleManager.getStorage().getTask(info.getTaskName()));
             }
         }
         mav.addObject("infoList", infoList);

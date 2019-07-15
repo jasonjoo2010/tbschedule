@@ -1,12 +1,14 @@
-package com.taobao.pamirs.schedule.taskmanager;
+package com.yoloho.schedule.types;
+
+import com.yoloho.schedule.util.ScheduleUtil;
 
 /**
- * 任务队列类型
+ * Task Item Runtime
  * 
  * @author xuannan
  *
  */
-public class ScheduleTaskItem {
+public class TaskItemRuntime {
     public enum TaskItemSts {
         ACTIVTE, FINISH, HALT
     }
@@ -14,12 +16,9 @@ public class ScheduleTaskItem {
     /**
      * 处理任务类型
      */
-    private String taskType;
-
-    /**
-     * 原始任务类型
-     */
-    private String baseTaskType;
+    private String runningEntry;
+    private String taskName;
+    private String ownSign;
 
     /**
      * 完成状态
@@ -36,18 +35,14 @@ public class ScheduleTaskItem {
      */
     private String dealDesc = "";
 
-    public String getBaseTaskType() {
-        return baseTaskType;
+    public String getTaskName() {
+        return taskName;
     }
 
-    public void setBaseTaskType(String baseTaskType) {
-        this.baseTaskType = baseTaskType;
+    public void setTaskName(String taskName) {
+        this.taskName = taskName;
+        this.runningEntry = ScheduleUtil.runningEntryFromTaskName(taskName, ownSign);
     }
-
-    /**
-     * 队列的环境标识
-     */
-    private String ownSign;
 
     /**
      * 任务队列ID
@@ -62,17 +57,8 @@ public class ScheduleTaskItem {
      */
     private String requestScheduleServer;
 
-    /**
-     * 数据版本号
-     */
-    private long version;
-
-    public String getTaskType() {
-        return taskType;
-    }
-
-    public void setTaskType(String taskType) {
-        this.taskType = taskType;
+    public String getRunningEntry() {
+        return runningEntry;
     }
 
     public String getTaskItem() {
@@ -99,24 +85,17 @@ public class ScheduleTaskItem {
         this.requestScheduleServer = requestScheduleServer;
     }
 
-    public long getVersion() {
-        return version;
-    }
-
-    public void setVersion(long version) {
-        this.version = version;
-    }
-
     public String getOwnSign() {
         return ownSign;
     }
 
     public void setOwnSign(String ownSign) {
         this.ownSign = ownSign;
+        this.runningEntry = ScheduleUtil.runningEntryFromTaskName(taskName, ownSign);
     }
 
     public String toString() {
-        return new StringBuilder("TASK_TYPE=").append(this.taskType)
+        return new StringBuilder("RUNNING_ENTRY=").append(this.runningEntry)
                 .append(":TASK_ITEM=").append(this.taskItem)
                 .append(":CUR_SERVER=").append(this.currentScheduleServer)
                 .append(":REQ_SERVER=").append(this.requestScheduleServer)

@@ -2,18 +2,22 @@ package com.yoloho.schedule.interfaces;
 
 public interface ITaskProcessor {
 	 /**
-	  * 是否已经处理完内存中所有的数据，在进行队列切换的时候，
-	  * 必须保证所有内存的数据处理完毕
+	  * Whether it still has remained task to deal with
+	  * 
 	  * @return
 	  */
-	 boolean isDealFinishAllData();
+	 boolean hasRemainedTask();
+	 
 	 /**
-	  * 判断进程是否处于休眠状态
+	  * Whether it's sleeping
+	  * 
 	  * @return
 	  */
 	 boolean isSleeping();
+	 
 	 /**
-	  * 停止任务处理器
+	  * Stop the scheduling
+	  * 
 	  * @throws Exception
 	  */
 	 void stopSchedule() throws Exception;

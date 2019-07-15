@@ -16,9 +16,9 @@ import org.springframework.context.annotation.ImportBeanDefinitionRegistrar;
 import org.springframework.core.type.AnnotationMetadata;
 
 import com.google.common.base.Preconditions;
-import com.taobao.pamirs.schedule.strategy.TBScheduleManagerFactory;
-import com.taobao.pamirs.schedule.taskmanager.ScheduleConfig;
+import com.yoloho.schedule.ScheduleManagerFactory;
 import com.yoloho.schedule.annotation.EnableSchedule;
+import com.yoloho.schedule.types.ScheduleConfig;
 
 /**
  * Annotation support of tbschedule
@@ -32,12 +32,12 @@ public class EnableScheduleConfiguration implements DeferredImportSelector {
      * 
      */
     public static class ScheduleInit implements ApplicationContextAware {
-        private TBScheduleManagerFactory factory;
+        private ScheduleManagerFactory factory;
         
         public ScheduleInit(String address, String rootPath, String username, String password) {
             Preconditions.checkArgument(StringUtils.isNotEmpty(address), "Address should not be empty");
             Preconditions.checkArgument(StringUtils.isNotEmpty(rootPath), "rootPath should not be empty");
-            factory = new TBScheduleManagerFactory();
+            factory = new ScheduleManagerFactory();
             ScheduleConfig config = new ScheduleConfig();
             config.setAddress(address);
             config.setRootPath(rootPath);
