@@ -30,16 +30,16 @@ a {
      </thead>
      <tbody>
     <c:forEach items="${taskList }" var="t" varStatus="s">
-     <tr class="dataRow" data-name="${t.baseTaskType }">
+     <tr class="dataRow" data-name="${t.name }">
      	<td>${s.index + 1 }</td>
      	<c:if test="${isManager }">
      	<td width="120" align="center">
-     		<a target="taskDetail" href="edit?taskName=${t.baseTaskType }">Edit</a>
-     		<a class="op" href="clean?taskName=${t.baseTaskType }">Clean</a>
-     		<a class="op" href="remove?taskName=${t.baseTaskType }">Remove</a>
+     		<a target="taskDetail" href="edit?taskName=${t.name }">Edit</a>
+     		<a class="op" href="clean?taskName=${t.name }">Clean</a>
+     		<a class="op" href="remove?taskName=${t.name }">Remove</a>
      	</td>
 		</c:if>
-     	<td>${t.baseTaskType}</td>
+     	<td>${t.name}</td>
      	<td>${t.dealBeanName}</td>
      	<td>${t.heartBeatRate / 1000}/${t.judgeDeadInterval / 1000}</td>
      	<td>${t.executeNumber}(${t.threadNumber})/${t.fetchDataNumber}</td>

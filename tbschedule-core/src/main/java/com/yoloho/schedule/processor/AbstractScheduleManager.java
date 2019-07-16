@@ -1,15 +1,19 @@
 package com.yoloho.schedule.processor;
 
+import java.sql.Timestamp;
 import java.util.Date;
 import java.util.List;
 import java.util.Timer;
+import java.util.UUID;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Preconditions;
 import com.yoloho.schedule.ScheduleManagerFactory;
 import com.yoloho.schedule.interfaces.IScheduleTaskDeal;
 import com.yoloho.schedule.interfaces.IStorage;
@@ -127,33 +131,51 @@ public abstract class AbstractScheduleManager implements IStrategyTask {
             this.storage.cleanTaskRunningInfo(taskName, ownSign);
         }
     }
-
-    AbstractScheduleManager(ScheduleManagerFactory aFactory, String taskName, String ownSign, IStorage storage)
+    
+    private ScheduleServer createServer(long now, String taskName, String ownSign, int threadNum)
             throws Exception {
-        this.factory = aFactory;
+        ScheduleServer result = new ScheduleServer();
+        result.setTaskName(taskName);
+        result.setOwnSign(ownSign);
+        result.setRunningEntry(ScheduleUtil.runningEntryFromTaskName(taskName, ownSign));
+        result.setIp(ScheduleUtil.getLocalIP());
+        result.setHostName(ScheduleUtil.getLocalHostName());
+        result.setRegisterTime(new Timestamp(now));
+        result.setThreadNum(threadNum);
+        result.setDealInfoDesc("INIT");
+        result.setVersion(0);
+        String uniqueId = result.getRunningEntry() + "$" + result.getIp() + "$"
+                + (UUID.randomUUID().toString().replaceAll("-", "").toUpperCase()) + "$";
+        result.setUuid(storage.generateServerUUID(taskName, ownSign, uniqueId));
+        return result;
+    }
+
+    AbstractScheduleManager(ScheduleManagerFactory factory, String taskName, String ownSign, IStorage storage)
+            throws Exception {
+        this.factory = factory;
         this.storage = storage;
         this.currentSerialNumber = serialNumber();
         this.task = this.storage.getTask(taskName);
-        logger.info("create TBScheduleManager for taskType:" + taskName);
+        logger.info("create TBScheduleManager for task: {}({})", taskName, ownSign);
 		//清除已经过期1天的TASK,OWN_SIGN的组合。超过一天没有活动server的视为过期
         clearExpireTaskTypeRunningInfo(taskName, this.task.getExpireOwnSignInterval());
 
-        Object dealBean = aFactory.getBean(this.task.getDealBeanName());
+        Object dealBean = factory.getBean(this.task.getDealBeanName());
         if (dealBean == null) {
-            throw new Exception("SpringBean " + this.task.getDealBeanName() + " 不存在");
+            throw new Exception("SpringBean " + this.task.getDealBeanName() + " doesn't exist");
         }
         if (dealBean instanceof IScheduleTaskDeal == false) {
-            throw new Exception("SpringBean " + this.task.getDealBeanName() + " 没有实现 IScheduleTaskDeal接口");
+            throw new Exception("SpringBean " + this.task.getDealBeanName() + " doesn't implement IScheduleTaskDeal接口");
         }
         this.taskDealBean = (IScheduleTaskDeal) dealBean;
 
     	if(this.task.getJudgeDeadInterval() < this.task.getHeartBeatRate() * 5){
-    		throw new Exception("数据配置存在问题，死亡的时间间隔，至少要大于心跳线程的5倍。当前配置数据：JudgeDeadInterval = "
+    		throw new Exception("Configuration malformed, dead interval must greater or equal than 5 * heartbeat interval: JudgeDeadInterval="
     				+ this.task.getJudgeDeadInterval() 
-    				+ ",HeartBeatRate = " + this.task.getHeartBeatRate());
+    				+ ", HeartBeatRate=" + this.task.getHeartBeatRate());
         }
-        this.currentServer = ScheduleServer.createScheduleServer(getGlobalTime(), taskName, ownSign,
-                this.task.getThreadNumber());
+        this.currentServer = createServer(getGlobalTime(), taskName, ownSign, this.task.getThreadNumber());
+        Preconditions.checkArgument(StringUtils.isNotEmpty(this.currentServer.getUuid()));
         this.currentServer.setManagerFactoryUUID(this.factory.getUuid());
         this.storage.registerServer(this.currentServer);
         this.heartBeatTimer = new Timer(

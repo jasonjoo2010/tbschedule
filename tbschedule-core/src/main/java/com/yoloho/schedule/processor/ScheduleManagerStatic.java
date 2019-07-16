@@ -52,7 +52,7 @@ public class ScheduleManagerStatic extends AbstractScheduleManager {
             @SuppressWarnings("static-access")
             public void run() {
                 try {
-                    logger.info("开始获取调度任务队列...... of " + currentServer().getUuid());
+                    logger.info("Fetching task items for {}", currentServer().getUuid());
                     while (isRuntimeInfoInitial == false) {
                         if (isStopSchedule == true) {
                             logger.debug("外部命令终止调度,退出调度队列获取：" + currentServer().getUuid());
@@ -90,7 +90,7 @@ public class ScheduleManagerStatic extends AbstractScheduleManager {
                         }
                         tmpStr = tmpStr + currentTaskItemList.get(i);
                     }
-                    logger.info("获取到任务处理队列，开始调度：" + tmpStr + "  of  " + currentServer().getUuid());
+                    logger.info("Got task item(s), begin to schedule {} of {}", tmpStr, currentServer().getUuid());
 
                     // 任务总量
                     taskItemCount = storage.getRunningTaskItems(currentServer().getTaskName(),
@@ -158,7 +158,7 @@ public class ScheduleManagerStatic extends AbstractScheduleManager {
 	 * @return
 	 * @throws Exception
 	 */
-	public boolean isNeedReLoadTaskItemList() throws Exception{
+	private boolean isNeedReLoadTaskItemList() throws Exception{
         return this.lastFetchVersion < this.storage.getAllServerReload(this.currentServer().getTaskName(),
                 this.currentServer().getOwnSign());
 	}
@@ -303,13 +303,13 @@ public class ScheduleManagerStatic extends AbstractScheduleManager {
 	 * @throws Exception 
 	 */
 	public void assignScheduleTask() throws Exception {
+	    cleanExpiredServer(getTask().getJudgeDeadInterval());
 	    if (!isLeader()) {
 	        if (logger.isDebugEnabled()) {
-	            logger.debug(this.currentServer().getUuid() + ": It's not the Leader, skip");
+	            logger.debug("{}: It's not the Leader, skip", this.currentServer().getUuid());
 	        }
 	        return;
 	    }
-        cleanExpiredServer(getTask().getJudgeDeadInterval());
         clearTaskItemsHeldByInvalidServer();
         assignTaskItem(getTask().getMaxTaskItemsOfOneThreadGroup());
 	}	
@@ -396,8 +396,8 @@ public class ScheduleManagerStatic extends AbstractScheduleManager {
 		//获取最新的版本号
         this.lastFetchVersion = this.storage.getAllServerReload(this.currentServer().getTaskName(),
                 this.currentServer().getOwnSign());
-        logger.debug(" this.currentServer().getTaskType()=" + this.currentServer().getRunningEntry() + ",  need reload="
-                + isNeedReloadTaskItem);
+        logger.debug("this.currentServer().getTaskType()={},  need reload={}", this.currentServer().getRunningEntry(),
+                isNeedReloadTaskItem);
 		try{
 			// Release task items if any
 		    releaseTaskItemsIfNeeded();

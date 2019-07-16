@@ -140,32 +140,32 @@ public class TaskController {
             String taskItems,
             boolean isCreate) throws Exception {
         MsgBean msgBean = new MsgBean();
-        Task taskType = new Task();
-        taskType.setName(taskName);
-        taskType.setDealBeanName(dealBean);
-        taskType.setHeartBeatRate((long) (heartBeatRate * 1000));
-        taskType.setJudgeDeadInterval((long) (judgeDeadInterval * 1000));
-        taskType.setThreadNumber(threadNumber);
-        taskType.setFetchDataNumber(fetchNumber);
-        taskType.setExecuteNumber(executeNumber);
-        taskType.setSleepTimeNoData((int) (sleepTimeNoData * 1000));
-        taskType.setSleepTimeInterval((int) (sleepTimeInterval * 1000));
-        taskType.setProcessorType(processType);
+        Task task = new Task();
+        task.setName(taskName);
+        task.setDealBeanName(dealBean);
+        task.setHeartBeatRate((long) (heartBeatRate * 1000));
+        task.setJudgeDeadInterval((long) (judgeDeadInterval * 1000));
+        task.setThreadNumber(threadNumber);
+        task.setFetchDataNumber(fetchNumber);
+        task.setExecuteNumber(executeNumber);
+        task.setSleepTimeNoData((int) (sleepTimeNoData * 1000));
+        task.setSleepTimeInterval((int) (sleepTimeInterval * 1000));
+        task.setProcessorType(processType);
         //taskType.setExpireOwnSignInterval(request.getParameter("expireOwnSignInterval")==null?0: Integer.parseInt(request.getParameter("threadNumber")));
-        taskType.setPermitRunStartTime(permitRunStartTime);
-        taskType.setPermitRunEndTime(permitRunEndTime);
-        taskType.setMaxTaskItemsOfOneThreadGroup(maxTaskItemsOfOneThreadGroup);        
-        taskType.setTaskParameter(taskParameter);
+        task.setPermitRunStartTime(permitRunStartTime);
+        task.setPermitRunEndTime(permitRunEndTime);
+        task.setMaxTaskItemsOfOneThreadGroup(maxTaskItemsOfOneThreadGroup);        
+        task.setTaskParameter(taskParameter);
         
         String itemDefines = taskItems;
         itemDefines = itemDefines.replace("\r", "");
         itemDefines = itemDefines.replace("\n", "");          
-        taskType.setTaskItems(JoinerSplitters.getSplitter(",").splitToList(itemDefines).toArray(new String[0]));
+        task.setTaskItems(JoinerSplitters.getSplitter(",").splitToList(itemDefines).toArray(new String[0]));
         IStorage storage = ConsoleManager.getStorage();
         if (isCreate) {
-            storage.createTask(taskType);
+            storage.createTask(task);
         } else {
-            storage.updateTask(taskType);
+            storage.updateTask(task);
         }
         return msgBean.returnMsg();
     }

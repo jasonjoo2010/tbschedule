@@ -6,18 +6,33 @@ import com.yoloho.schedule.ScheduleManagerFactory;
 import com.yoloho.schedule.types.InitialResult;
 import com.yoloho.schedule.types.ScheduleConfig;
 import com.yoloho.schedule.types.ScheduleServer;
-import com.yoloho.schedule.types.TaskItemRuntime;
 import com.yoloho.schedule.types.Strategy;
 import com.yoloho.schedule.types.StrategyRuntime;
 import com.yoloho.schedule.types.Task;
+import com.yoloho.schedule.types.TaskItemRuntime;
 
 /**
  * @author jason
  *
  */
 public interface IStorage {
+    interface OnConnected {
+        void connected(IStorage storage);
+    }
     
+    /**
+     * The storage server side time, in millisecond timestamp
+     * 
+     * @return
+     */
     long getGlobalTime();
+    
+    /**
+     * Storage name(Distinguish to other implementations)
+     * 
+     * @return
+     */
+    String getName();
     
     /**
      * Test the storage
@@ -26,7 +41,7 @@ public interface IStorage {
      */
     boolean test();
 
-    boolean init(ScheduleConfig config);
+    boolean init(ScheduleConfig config, OnConnected onConnected);
 
     void shutdown();
 
@@ -256,5 +271,31 @@ public interface IStorage {
     void setFactoryAllowExecute(String factoryUUID, boolean allow) throws Exception;
 
     List<String> getFactoryNames() throws Exception;
+
+    /**
+     * Generate factory id according the logical unique string
+     * <p>
+     * Generally a sequence number will be appended used to be sorted<br>
+     * eg. str -> str000001
+     * 
+     * @param uniqueId
+     * @return
+     * @throws Exception 
+     */
+    String generateFactoryUUID(String uniqueId) throws Exception;
+
+    /**
+     * Generate server id according the logical unique string
+     * <p>
+     * Generally a sequence number will be appended used to be sorted(Elect the leader)<br>
+     * eg. str -> str000001
+     * 
+     * @param taskName
+     * @param ownSign
+     * @param uniqueId
+     * @return
+     * @throws Exception
+     */
+    String generateServerUUID(String taskName, String ownSign, String uniqueId) throws Exception;
 
 }

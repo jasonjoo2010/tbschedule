@@ -11,7 +11,7 @@ import com.yoloho.schedule.util.ScheduleUtil;
 
 class PauseOrResumeScheduleTask extends java.util.TimerTask {
 	private static transient Logger log = LoggerFactory
-			.getLogger(HeartBeatTimerTask.class);
+			.getLogger(PauseOrResumeScheduleTask.class.getSimpleName());
     public static int TYPE_PAUSE = 1;
     public static int TYPE_RESUME = 2;
     AbstractScheduleManager manager;

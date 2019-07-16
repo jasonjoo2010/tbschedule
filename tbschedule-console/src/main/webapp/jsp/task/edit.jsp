@@ -10,7 +10,7 @@
 <tr>
 	<td>Task Name:</td>
     <td>
-        <input type="text" id="taskName" name="taskName"<c:if test="${!isCreate }"> style="background-color: #ddd" readonly="readonly"</c:if> value="${task.baseTaskType}" width="30">
+        <input type="text" id="taskName" name="taskName"<c:if test="${!isCreate }"> style="background-color: #ddd" readonly="readonly"</c:if> value="${task.name}" width="30">
     </td>
 	<td>SpringBean Name:</td>
     <td><input type="text" id="dealBean" name="dealBean" value="${task.dealBeanName}" width="30"></td>

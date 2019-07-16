@@ -40,4 +40,11 @@ public @interface EnableSchedule {
      */
     String username();
     String password();
+    
+    /**
+     * Storage backend, eg. zookeeper/redis/jdbc
+     * 
+     * @return
+     */
+    String storage() default "";
 }

@@ -53,7 +53,7 @@
 </table>
 <br/>
 <c:if test="${isManager }">
-<a target="strategyDetail" href="edit?taskType=-1" style="color:#0000CD">New Strategy...</a>
+<a target="strategyDetail" href="edit?strategyName=-1" style="color:#0000CD">New Strategy...</a>
 </c:if>
 Runtime Information：
 <iframe id="showStrategyDetail" name="strategyDetail" height="80%" width="100%"></iframe>

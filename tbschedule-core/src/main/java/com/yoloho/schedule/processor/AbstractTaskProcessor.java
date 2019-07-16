@@ -36,6 +36,7 @@ public abstract class AbstractTaskProcessor<T> implements ITaskProcessor, Runnab
         this.manager = manager;
         this.task = manager.getTask();
         this.taskDealBean = taskDealBean;
+        this.statisticsInfo = statisticsInfo;
         if (this.taskDealBean instanceof IScheduleTaskDealSingle<?>) {
             if (this.task.getExecuteNumber() > 1) {
                 this.task.setExecuteNumber(1);
@@ -53,7 +54,7 @@ public abstract class AbstractTaskProcessor<T> implements ITaskProcessor, Runnab
             createThread(i);
         }
     }
-
+    
     private void createThread(int index) {
         Thread thread = new Thread(this);
         threadList.add(thread);

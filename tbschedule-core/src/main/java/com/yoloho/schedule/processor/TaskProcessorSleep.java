@@ -31,6 +31,7 @@ import com.yoloho.schedule.util.ThreadGroupLock;
 public class TaskProcessorSleep<T> extends AbstractTaskProcessor<T> {
 	private static transient Logger logger = LoggerFactory.getLogger(TaskProcessorSleep.class);
 	private final ThreadGroupLock threadGroupLock = new ThreadGroupLock();
+	private boolean processorReady = false;
 	/**
 	 * 任务管理器
 	 */
@@ -47,10 +48,16 @@ public class TaskProcessorSleep<T> extends AbstractTaskProcessor<T> {
 			IScheduleTaskDeal<T> aTaskDealBean,	StatisticsInfo aStatisticsInfo) throws Exception {
 	    super(aManager, aTaskDealBean, aStatisticsInfo);
 		this.scheduleManager = aManager;
+		this.processorReady = true;
 	}
 	
+	@Override
     public void run() {
         try {
+            // Make threads held by group wait for all initializing works done
+            while (!processorReady) {
+                sleep(100);
+            }
             while (true) {
                 this.threadGroupLock.addThread();
                 Object executeTask;

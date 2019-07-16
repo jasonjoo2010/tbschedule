@@ -5,33 +5,42 @@
 <jsp:include page="../header.jsp"/>
 <c:if test="${errorMessage != null }">
 <div style="border: 1px solid red; width: 500px;">
-当前连接状态消息：${errorMessage }
+Error Message: ${errorMessage }
 </div>
 </c:if>
-<h1>基础信息配置</h1>
+<h1>Storage Configuration</h1>
 <form id="configForm" method="get" name="configForm" action="save">
 <table class="noborder">
 <tr>
-	<td>Zookeeper地址:</td>
+    <td>Type:</td>
+    <td>
+        <select name="storage">
+            <option<c:if test="${storage == 'zookeeper'}"> selected</c:if>>zookeeper</option>
+            <option<c:if test="${storage == 'redis'}"> selected</c:if>>redis(todo)</option>
+            <option<c:if test="${storage == 'jdbc'}"> selected</c:if>>jdbc(todo)</option>
+        </select>
+    </td>
+    <td></td>
+</tr>
+<tr>
+	<td>Address:</td>
 	<td><input type="text" name="address"  value="${address }" style="width:300"></td>
-	<td>格式: IP地址：端口</td>
+	<td>eg. ip:port</td>
 </tr>
 <tr>
 	<td>rootPath：</td>
 	<td><input type="text" name="rootPath" value="${rootPath }" style="width:300"></td>
-	<td>例如：/taobao-pamirs-schedule/huijin,，可以是一级目录，也可以是多级目录，注意不同调度域间不能有父子关系<br/>
-	    通过切换此属性来实现多个调度域的管理
-	</td>
+	<td>eg. /taobao-pamirs-schedule/huijin, can be taken as namespace</td>
 </tr>
 <tr>
 	<td>Username：</td>
 	<td><input type="text" name="userName" value="${userName }" style="width:300"></td>
-	<td></td>
+	<td>Depend on storage type</td>
 </tr>
 <tr>
 	<td>Password：</td>
 	<td><input type="text" name="password" value="${password }" style="width:300"	></td>
-	<td></td>
+	<td>Depend on storage type</td>
 </tr>
 </table>
 <br/>

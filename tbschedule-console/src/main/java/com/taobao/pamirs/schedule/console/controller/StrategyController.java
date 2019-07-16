@@ -146,7 +146,13 @@ public class StrategyController {
             String ips
             ) throws Exception {
         MsgBean msgBean = new MsgBean();
+        IStorage storage = ConsoleManager.getStorage();
+        Strategy oldStrategy = storage.getStrategy(strategyName);
         Strategy strategy = new Strategy();
+        if (oldStrategy != null) {
+            // Preserve the sts(running/paused)
+            strategy.setSts(oldStrategy.getSts());
+        }
         strategy.setName(strategyName);
         strategy.setKind(StrategyKind.valueOf(kind));
         strategy.setTaskName(taskName);
@@ -158,7 +164,6 @@ public class StrategyController {
         } else {
             strategy.setIPList(JoinerSplitters.getSplitter(",").splitToList(ips).toArray(new String[] {}));
         }
-        IStorage storage = ConsoleManager.getStorage();
         if (isCreate) {
             storage.createStrategy(strategy);
         } else {

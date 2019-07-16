@@ -14,6 +14,7 @@ public class ScheduleConfig {
     private String rootPath;
     private String username;
     private String password;
+    private String storage;
     private Map<String, String> extra;
     
     public ScheduleConfig() {
@@ -47,6 +48,14 @@ public class ScheduleConfig {
 
     public void setRootPath(String rootPath) {
         this.rootPath = rootPath;
+    }
+    
+    public void setStorage(String storage) {
+        this.storage = storage;
+    }
+    
+    public String getStorage() {
+        return storage;
     }
 
     public String getUsername() {

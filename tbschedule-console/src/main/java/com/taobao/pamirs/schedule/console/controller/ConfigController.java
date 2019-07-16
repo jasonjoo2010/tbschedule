@@ -45,6 +45,7 @@ public class ConfigController {
             mav.addObject("rootPath", config.getRootPath());
             mav.addObject("userName", config.getUsername());
             mav.addObject("password", config.getPassword());
+            mav.addObject("storage", config.getStorage());
         } catch (IOException e) {
             logger.warn("Loading configuration failed", e);
         }
@@ -54,14 +55,14 @@ public class ConfigController {
     @RequestMapping("/save")
     @ResponseBody
     public Map<String, Object> save(
+            String storage,
             String address, 
-            int timeout, 
             String rootPath, 
             String userName,
             String password) {
-        Preconditions.checkArgument(timeout >= 5000, "Session timeout should be less than 5000 ms");
         MsgBean msgBean = new MsgBean();
         ScheduleConfig config = new ScheduleConfig();
+        config.setStorage(storage);
         config.setAddress(address);
         config.setRootPath(rootPath);
         config.setUsername(userName);

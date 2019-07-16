@@ -49,7 +49,7 @@ public class ConsoleManager {
             p.load(reader);
             reader.close();
             scheduleManagerFactory.init(p);
-            log.info("加载Schedule配置文件：" + configFile);
+            log.info("Load configuration: {}", configFile);
             return true;
         }
         // fail back to resource file
@@ -59,7 +59,7 @@ public class ConsoleManager {
             p.load(configStream);
             configStream.close();
             scheduleManagerFactory.init(p);
-            log.info("加载Schedule配置文件：" + defaultConfigFile);
+            log.info("Load configuration: {}", defaultConfigFile);
             return true;
         }
         return false;

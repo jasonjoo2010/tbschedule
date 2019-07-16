@@ -20,7 +20,7 @@
     <c:forEach items="${infoList }" var="info" varStatus="s">
     <tr style="background-color:#F3F5F8;color:#013299;">
         <td style="font-size:14px; font-weight:bold">
-            Strategy: ${info.taskType } -- ${info.ownSign }
+            Strategy: ${info.taskName } -- ${info.ownSign }
         </td>
     </tr>
     <tr>
@@ -42,10 +42,10 @@
                    <th>Detail</th>
                    <th>Machine</th>
                </tr>
-               <c:forEach items="${strategyMap[info.taskType] }" var="g" varStatus="gs">
+               <c:forEach items="${strategyMap[info.taskName] }" var="g" varStatus="gs">
         	   <tr class="
-                    <c:if test="${g.centerServerTime.time - g.heartBeatTime.time > taskMap[info.baseTaskType].judgeDeadInterval}"> invalid</c:if>
-                    <c:if test="${g.nextRunStart.time <= now && (g.lastFetchDataTime == null || g.centerServerTime.time - g.lastFetchDataTime.time > taskMap[info.baseTaskType].heartBeatRate * 20)}"> problem</c:if>
+                    <c:if test="${g.centerServerTime.time - g.heartBeatTime.time > taskMap[info.taskName].judgeDeadInterval}"> invalid</c:if>
+                    <c:if test="${g.nextRunStart.time <= now && (g.lastFetchDataTime == null || g.centerServerTime.time - g.lastFetchDataTime.time > taskMap[info.taskName].heartBeatRate * 20)}"> problem</c:if>
                     ">
             	   <td>${gs.index + 1 }</td>
             	   <td nowrap>${g.uuid}</td>
@@ -80,7 +80,7 @@
                    <th>Parameter</th>
                    <th>Desc</th>
                </tr>
-               <c:forEach items="${itemMap[info.taskType] }" var="ti" varStatus="is">
+               <c:forEach items="${itemMap[info.runningEntry] }" var="ti" varStatus="is">
         	   <tr>
         	       <td>${ti.taskItem }</td>
             	   <td>${ti.currentScheduleServer == null ? "--" : ti.currentScheduleServer}</td>	   

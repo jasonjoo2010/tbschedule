@@ -9,10 +9,12 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.ServiceLoader;
 import java.util.Timer;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
@@ -40,35 +42,29 @@ public class ScheduleManagerFactory implements ApplicationContextAware {
 	protected static transient Logger logger = LoggerFactory.getLogger(ScheduleManagerFactory.class);
 	
     private ScheduleConfig config;
-	
-	protected IStorage storage;
+	private IStorage storage;
 
 	/**
 	 * Whether should really do schedule or just as an operator (console client)
 	 */
 	private boolean enableSchedule = true;
+	private boolean initializing = false;
 	private int timerInterval = 2000;
-	/**
-	 * ManagerFactoryTimerTask上次执行的时间戳。<br/>
-	 * zk环境不稳定，可能导致所有task自循环丢失，调度停止。<br/>
-	 * 外层应用，通过jmx暴露心跳时间，监控这个tbschedule最重要的大循环。<br/>
-	 */
-	public volatile long timerTaskHeartBeatTS = System.currentTimeMillis();
-	
-    private Map<String, List<IStrategyTask>> managerMap = new ConcurrentHashMap<String, List<IStrategyTask>>();
-	
-	private ApplicationContext			applicationcontext;	
-	private String uuid;
-	private String ip;
-	private String hostName;
+    private volatile long lastCheck = System.currentTimeMillis();
 
-	private Timer timer;
-	private ManagerFactoryTimerTask timerTask;
-	protected Lock  lock = new ReentrantLock();
-    
-	volatile String  errorMessage = "No config Zookeeper connect infomation";
-	private InitialThread initialThread;
-	
+    private Map<String, List<IStrategyTask>> managerMap = new ConcurrentHashMap<>();
+
+    private ApplicationContext applicationcontext;
+    private String uuid;
+    private String ip;
+    private String hostName;
+
+    private Timer timer;
+    private FactoryChecker timerTask;
+    private Lock innerLock = new ReentrantLock();
+
+    private volatile String errorMessage = "Empty address in config";
+
     public ScheduleManagerFactory() {
         this.ip = ScheduleUtil.getLocalIP();
         this.hostName = ScheduleUtil.getLocalHostName();
@@ -76,6 +72,27 @@ public class ScheduleManagerFactory implements ApplicationContextAware {
     
     public String getErrorMessage() {
         return errorMessage;
+    }
+    
+    protected void lock() {
+        this.innerLock.lock();
+    }
+    
+    protected void unlock() {
+        this.innerLock.unlock();
+    }
+    
+    protected void setLastCheck(long lastCheck) {
+        this.lastCheck = lastCheck;
+    }
+    
+    /**
+     * Last triggered time of Checker
+     * 
+     * @return
+     */
+    public long getLastCheck() {
+        return lastCheck;
     }
     
     /**
@@ -97,10 +114,7 @@ public class ScheduleManagerFactory implements ApplicationContextAware {
     }
 
     public void init() throws Exception {
-        if (this.initialThread != null) {
-            this.initialThread.stopThread();
-        }
-        this.lock.lock();
+        lock();
         try {
             if (this.storage != null) {
                 this.storage.shutdown();
@@ -112,27 +126,51 @@ public class ScheduleManagerFactory implements ApplicationContextAware {
                 Preconditions.checkNotNull(loader, "Fail to fetch providers of IStorage");
                 Iterator<IStorage> it = loader.iterator();
                 Preconditions.checkArgument(it.hasNext(), "Fail to fetch providers of IStorage");
-                this.storage = it.next();
-                this.storage.init(getConfig());
+                while (it.hasNext()) {
+                    IStorage item = it.next();
+                    if (StringUtils.isEmpty(config.getStorage())
+                            || StringUtils.equalsIgnoreCase(config.getStorage(), item.getName())) {
+                        this.storage = item;
+                        break;
+                    }
+                }
+                Preconditions.checkNotNull(this.storage,
+                        "Cound not found the storage specified: " + config.getStorage());
+                this.storage.init(getConfig(), new IStorage.OnConnected() {
+                    
+                    @Override
+                    public void connected(IStorage storage) {
+                        initialData();
+                    }
+                });
             }
             
             this.errorMessage = "Initializing ......";
-            initialThread = new InitialThread(this);
-            initialThread.setName("TBScheduleManagerFactory-initialThread");
-            initialThread.start();
         } finally {
-            this.lock.unlock();
+            unlock();
         }
     }
 	
+	/**
+	 * reinit only for console
+	 * 
+	 * @param config
+	 * @throws Exception
+	 */
 	public void reInit(ScheduleConfig config) throws Exception{
         if (isEnableSchedule() || this.timer != null || this.managerMap.size() > 0) {
-            throw new Exception("Can not reinit due to running jobs");
+            throw new Exception("Can not reinit scheduling factory, maybe you should stop it and recreate it");
         }
         setConfig(config);
         init();
 	}
 	
+    /**
+     * @param p
+     * @throws Exception
+     * @deprecated in favor of
+     * {@link #init(ScheduleConfig)}
+     */
     public void init(Properties p) throws Exception {
         setConfig(new ScheduleConfig(p));
         init();
@@ -144,21 +182,55 @@ public class ScheduleManagerFactory implements ApplicationContextAware {
     }
     
     /**
-     * 在Zk状态正常后回调数据初始化
+     * Do initializing work when storage get ready
      * @throws Exception
      */
-    public void initialData() throws Exception {
-        if (isEnableSchedule()) {
-            // 注册调度管理器
+    protected void initialData() {
+        if (!isEnableSchedule() || initializing) {
+            this.errorMessage = null;
+            return;
+        }
+        boolean needRestart = false;
+        lock();
+        this.initializing = true;
+        try {
+            // generate uuid if needed
+            if (StringUtils.isEmpty(getUuid())) {
+                String uniqueId = getIp() + "$" + getHostName() + "$"
+                        + UUID.randomUUID().toString().replace("-", "").toUpperCase() + "$";
+                setUuid(storage.generateFactoryUUID(uniqueId));
+            }
+            Preconditions.checkArgument(StringUtils.isNotEmpty(getUuid()));
+            // Register node to storage
             this.storage.registerFactory(this);
             if (timer == null) {
                 timer = new Timer("TBScheduleManagerFactory-Timer");
             }
             if (timerTask == null) {
-                timerTask = new ManagerFactoryTimerTask(this);
+                timerTask = new FactoryChecker(this);
                 timer.schedule(timerTask, 2000, this.timerInterval);
             }
+            this.errorMessage = null;
+            logger.info("Scheduling initialized");
+        } catch (Exception e) {
+            // error occurred, restart
+            needRestart = true;
+        } finally {
+            unlock();
         }
+        while (needRestart && isEnableSchedule()) {
+            try {
+                restart();
+                needRestart = false;
+            } catch (Exception e) {
+                logger.warn("Try to restart failed", e);
+                try {
+                    Thread.sleep(1000);
+                } catch (Exception e1) {
+                }
+            }
+        }
+        this.initializing = false;
     }
 
     /**
@@ -186,13 +258,13 @@ public class ScheduleManagerFactory implements ApplicationContextAware {
                 result.initialTaskParameter(strategy.getName(), strategy.getTaskParameter());
             }
         } catch (Exception e) {
-            logger.error("strategy 获取对应的java or bean 出错,schedule并没有加载该任务,请确认" + strategy.getName(), e);
+            logger.error("Create task error. Please make sure the name is correct: ", strategy.getName(), e);
         }
         return result;
     }
 
-    public void refresh() throws Exception {
-        this.lock.lock();
+    protected void refresh() throws Exception {
+        lock();
         try {
             // 判断状态是否终止
             boolean isException = false;
@@ -205,41 +277,56 @@ public class ScheduleManagerFactory implements ApplicationContextAware {
             }
             if (isException == true) {
                 try {
-                    stopServer(null); // 停止所有的调度任务
+                    stopServer(null); // Stop all servers in factory
                     this.storage.unregisterFactory(getUuid());
                 } finally {
-                    reRegisterManagerFactory();
+                    reRegisterFactory();
                 }
             } else if (allowRun == false) {
-                stopServer(null); // 停止所有的调度任务
+                stopServer(null); // Stop all servers in factory
                 this.storage.unregisterFactory(getUuid());
             } else {
-                reRegisterManagerFactory();
+                reRegisterFactory();
             }
         } finally {
-            this.lock.unlock();
+            unlock();
         }
     }
 
-    public void reRegisterManagerFactory() throws Exception {
-        // 重新分配调度器
+    private void reRegisterFactory() throws Exception {
+        // generate uuid
+        if (StringUtils.isEmpty(getUuid())) {
+            String uniqueId = getIp() + "$" + getHostName() + "$"
+                    + UUID.randomUUID().toString().replace("-", "").toUpperCase() + "$";
+            setUuid(storage.generateFactoryUUID(uniqueId));
+        }
+        Preconditions.checkArgument(StringUtils.isNotEmpty(getUuid()));
         List<String> stopList = this.storage.registerFactory(this);
         for (String strategyName : stopList) {
-            this.stopServer(strategyName);
+            // Stop the server which will not be needed any more
+            stopServer(strategyName);
         }
-        this.assignScheduleServer();
-        this.reRunScheduleServer();
+        // update the distribution table if needed
+        assignScheduleServer();
+        // make the new distribution table take effect
+        adjustServerCount();
     }
     
     public IStorage getStorage() {
         return storage;
     }
     
-    private List<StrategyRuntime> getStrategyRunntimeByUUID(String factoryUUID) throws Exception {
+    /**
+     * Get strategy list held by this factory
+     * 
+     * @return
+     * @throws Exception
+     */
+    private List<StrategyRuntime> getStrategyListInCurrentFactory() throws Exception {
         List<StrategyRuntime> result = new ArrayList<>();
         List<String> strategyNames = this.storage.getStrategyNames();
         for (String strategyName : strategyNames) {
-            StrategyRuntime runtime = this.storage.getStrategyRuntime(strategyName, factoryUUID);
+            StrategyRuntime runtime = this.storage.getStrategyRuntime(strategyName, getUuid());
             if (runtime != null) {
                 result.add(runtime);
             }
@@ -251,10 +338,11 @@ public class ScheduleManagerFactory implements ApplicationContextAware {
 	 * 根据策略重新分配调度任务的机器
 	 * @throws Exception
 	 */
-    public void assignScheduleServer() throws Exception {
-        for (StrategyRuntime run : getStrategyRunntimeByUUID(getUuid())) {
+    private void assignScheduleServer() throws Exception {
+        for (StrategyRuntime run : getStrategyListInCurrentFactory()) {
             List<StrategyRuntime> factoryList = this.storage.getStrategyRuntimes(run.getStrategyName());
             if (factoryList.size() == 0 || this.isLeader(this.uuid, factoryList) == false) {
+                // This node is not a leader in the factory group
                 continue;
             }
             Strategy scheduleStrategy = this.storage.getStrategy(run.getStrategyName());
@@ -277,21 +365,14 @@ public class ScheduleManagerFactory implements ApplicationContextAware {
                     oldNums.add(factory.getRequestNum());
                 }
                 Collections.sort(oldNums, Collections.reverseOrder());
-                boolean needReschedule = false;
+                boolean tableChanged = false;
                 for (int i = 0; i < nums.length; i++) {
                     if (nums[i] != oldNums.get(i)) {
-                        needReschedule = true;
+                        tableChanged = true;
                         break;
                     }
                 }
-                /*System.out.println("need: " + needReschedule);
-                System.out.println("old: " + oldNums.toString());
-                System.out.print("new:");
-                for (int i : nums) {
-                    System.out.print(" " + i);
-                }
-                System.out.println();*/
-                if (!needReschedule) {
+                if (!tableChanged) {
                     continue;
                 }
                 Collections.shuffle(factoryList);
@@ -343,31 +424,44 @@ public class ScheduleManagerFactory implements ApplicationContextAware {
 		}
 	}	
 	
-	public void reRunScheduleServer() throws Exception{
-		for (StrategyRuntime run : getStrategyRunntimeByUUID(getUuid())) {
-			List<IStrategyTask> list = this.managerMap.get(run.getStrategyName());
-			if(list == null){
-				list = new ArrayList<IStrategyTask>();
-				this.managerMap.put(run.getStrategyName(),list);
-			}
-			while(list.size() > run.getRequestNum() && list.size() >0){
-				IStrategyTask task  =  list.remove(list.size() - 1);
-					try {
-						task.stop(run.getStrategyName());
-					} catch (Throwable e) {
-						logger.error("注销任务错误：strategyName=" + run.getStrategyName(), e);
-					}
-				}
-		   //不足，增加调度器
-		   Strategy strategy = this.storage.getStrategy(run.getStrategyName());
-		   while(list.size() < run.getRequestNum()){
-			   IStrategyTask result = this.createStrategyTask(strategy);
-			   if(null==result){
-				   logger.error("strategy 对应的配置有问题。strategy name="+strategy.getName());
-			   }
-			   list.add(result);
-		    }
-		}
+	/**
+	 * Adjust the servers' count of strategy managed by this factory(Node)
+	 * 
+	 * @throws Exception
+	 */
+	private void adjustServerCount() throws Exception{
+        for (StrategyRuntime run : getStrategyListInCurrentFactory()) {
+            List<IStrategyTask> list = this.managerMap.get(run.getStrategyName());
+            if (list == null) {
+                list = new ArrayList<IStrategyTask>();
+                this.managerMap.put(run.getStrategyName(), list);
+            }
+            int reduced = 0;
+            int increased = 0;
+            // Over the limit
+            while (list.size() > run.getRequestNum() && list.size() > 0) {
+                IStrategyTask task = list.remove(list.size() - 1);
+                try {
+                    task.stop(run.getStrategyName());
+                    reduced ++;
+                } catch (Throwable e) {
+                    logger.error("Stop server failed: strategyName={}", run.getStrategyName(), e);
+                }
+            }
+            // Not enough
+            Strategy strategy = this.storage.getStrategy(run.getStrategyName());
+            while (list.size() < run.getRequestNum()) {
+                IStrategyTask result = this.createStrategyTask(strategy);
+                if (null == result) {
+                    logger.error("Create strategy failed, strategy name={}", strategy.getName());
+                }
+                increased ++;
+                list.add(result);
+            }
+            if (reduced + increased > 0) {
+                logger.info("Adjust server for {}, increase={}, decrese={}", run.getStrategyName(), increased, reduced);
+            }
+        }
 	}
 	
 	/**
@@ -384,11 +478,12 @@ public class ScheduleManagerFactory implements ApplicationContextAware {
                     try {
                         task.stop(strategyName);
                     } catch (Throwable e) {
-                        logger.error("注销任务错误：strategyName=" + strategyName, e);
+                        logger.error("Fail to stop strategy, name={}", strategyName, e);
                     }
                 }
                 this.managerMap.remove(name);
             }
+            logger.info("Stop all strategies");
         } else {
             List<IStrategyTask> list = this.managerMap.get(strategyName);
             if (list != null) {
@@ -396,10 +491,11 @@ public class ScheduleManagerFactory implements ApplicationContextAware {
                     try {
                         task.stop(strategyName);
                     } catch (Throwable e) {
-                        logger.error("注销任务错误：strategyName=" + strategyName, e);
+                        logger.error("Fail to stop strategy, name={}", strategyName, e);
                     }
                 }
                 this.managerMap.remove(strategyName);
+                logger.info("Stop strategy [{}]", strategyName);
             }
 		}
 	}
@@ -407,11 +503,14 @@ public class ScheduleManagerFactory implements ApplicationContextAware {
 	 * 停止所有调度资源(shut down)
 	 */
     public void stopAll() throws Exception {
+        lock();
         try {
-            lock.lock();
             setEnableSchedule(false);
-            if (this.initialThread != null) {
-                this.initialThread.stopThread();
+            // wait restarting to be done
+            int maxWait = 10000;
+            while (this.initializing && maxWait > 0) {
+                Thread.sleep(100);
+                maxWait -= 100;
             }
             if (this.timer != null) {
                 if (this.timerTask != null) {
@@ -435,14 +534,15 @@ public class ScheduleManagerFactory implements ApplicationContextAware {
         } catch (Throwable e) {
             logger.error("stopAll 停止服务失败：" + e.getMessage(), e);
         } finally {
-            lock.unlock();
+            unlock();
         }
     }
 	/**
-	 * 重启所有的服务
+	 * Restart the world
+	 * 
 	 * @throws Exception
 	 */
-	public void reStart() throws Exception {
+	protected void restart() throws Exception {
 		try {
 			if (this.timer != null) {
 				if(this.timerTask != null){
@@ -455,7 +555,7 @@ public class ScheduleManagerFactory implements ApplicationContextAware {
 			this.uuid = null;
 			this.init();
 		} catch (Throwable e) {
-			logger.error("重启服务失败：" + e.getMessage(), e);
+			logger.error("Restart scheduler failed.", e);
 		}
     }
 	public String[] getScheduleTaskDealList() {
@@ -537,99 +637,4 @@ public class ScheduleManagerFactory implements ApplicationContextAware {
         return config;
     }
     
-}
-
-class ManagerFactoryTimerTask extends java.util.TimerTask {
-    private static transient Logger log = LoggerFactory.getLogger(ManagerFactoryTimerTask.class);
-    ScheduleManagerFactory factory;
-    int count = 0;
-
-    public ManagerFactoryTimerTask(ScheduleManagerFactory aFactory) {
-        this.factory = aFactory;
-    }
-
-    public void run() {
-        try {
-            Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
-            if (this.factory.storage.test() == false) {
-                if (count > 5) {
-                    log.error("Storage status failed for several times, try to restart......");
-                    this.factory.reStart();
-                } else {
-                    count ++;
-                }
-            } else {
-                // reset the timer once successfully
-                // refresh and refresh to make sure everything up to date
-                count = 0;
-                this.factory.refresh();
-            }
-        } catch (Throwable ex) {
-            log.error(ex.getMessage(), ex);
-        } finally {
-            factory.timerTaskHeartBeatTS = System.currentTimeMillis();
-        }
-    }
-}
-
-class InitialThread extends Thread {
-    private static transient Logger log = LoggerFactory.getLogger(InitialThread.class);
-    ScheduleManagerFactory factory;
-    boolean isStop = false;
-
-    public InitialThread(ScheduleManagerFactory aFactory) {
-        this.factory = aFactory;
-    }
-
-    public void stopThread() {
-        this.isStop = true;
-    }
-
-    @Override
-    public void run() {
-        boolean needRestart = false;
-        factory.lock.lock();
-        try {
-            int count = 0;
-            final int interval = 20;
-            while (factory.storage.test() == false) {
-                count ++;
-                if (count % 50 == 0) {
-                    factory.errorMessage = "Storage still initializing ...... spendTime: " + (count * interval) + "ms";
-                    log.error(factory.errorMessage);
-                }
-                Thread.sleep(interval);
-                if (this.isStop == true) {
-                    return;
-                }
-            }
-            if (this.isStop == true) {
-                return;
-            }
-            factory.initialData();
-        } catch (Throwable e) {
-            log.error(e.getMessage(), e);
-            /**
-             * 这里一般意味着initialData()出错
-             * check成功但初始化失败，说明连接又出问题了，这里继续重试重启状态
-             */
-            needRestart = true;
-        } finally {
-            factory.lock.unlock();
-        }
-        while (needRestart) {
-            log.error("Initializing failed and preparing to restart.....");
-            try {
-                factory.reStart();
-                needRestart = false;
-            } catch (Exception e) {
-                log.error(e.getMessage(), e);
-                try {
-                    sleep(20);
-                } catch (InterruptedException e1) {
-                }
-            }
-        }
-    }
-
 }

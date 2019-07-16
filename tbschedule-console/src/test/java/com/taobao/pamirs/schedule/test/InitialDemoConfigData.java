@@ -26,17 +26,17 @@ public class InitialDemoConfigData extends AbstractTest {
 
 	@Test
 	public void initialConfigData() throws Exception {
-		String baseTaskTypeName = "DemoTask";
+		String taskName = "DemoTask";
 		scheduleManagerFactory.stopServer(null);
 		Thread.sleep(1000);
 		try {
-			this.scheduleManagerFactory.getStorage().removeTask(baseTaskTypeName);
+			this.scheduleManagerFactory.getStorage().removeTask(taskName);
 		} catch (Exception e) {
 
 		}
 		// 创建任务调度DemoTask的基本信息
 		Task task = new Task();
-		task.setName(baseTaskTypeName);
+		task.setName(taskName);
 		task.setDealBeanName("demoTaskBean");
 		task.setHeartBeatRate(2000);
 		task.setJudgeDeadInterval(10000);
@@ -49,8 +49,8 @@ public class InitialDemoConfigData extends AbstractTest {
 		log.info("创建调度任务成功:" + task.toString());
 
 		// 创建任务DemoTask的调度策略
-		String taskName = baseTaskTypeName + "$TEST";
-		String strategyName = baseTaskTypeName + "-Strategy";
+		String bindTaskName = taskName + "$TEST";
+		String strategyName = taskName + "-Strategy";
 		try {
 			this.scheduleManagerFactory.getStorage().removeStrategy(strategyName);
 		} catch (Exception e) {
@@ -59,7 +59,7 @@ public class InitialDemoConfigData extends AbstractTest {
 		Strategy strategy = new Strategy();
 		strategy.setName(strategyName);
 		strategy.setKind(StrategyKind.Schedule);
-		strategy.setTaskName(taskName);
+		strategy.setTaskName(bindTaskName);
 		strategy.setTaskParameter("中国");
 		
 		strategy.setNumOfSingleServer(1);

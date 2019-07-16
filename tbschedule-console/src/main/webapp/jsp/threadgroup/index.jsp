@@ -46,11 +46,11 @@
    </tr>
    <c:forEach items="${groups }" var="g" varStatus="s">
    <tr class="dataRow 
-        <c:if test="${g.centerServerTime.time - g.heartBeatTime.time > taskMap[g.baseTaskType].judgeDeadInterval}"> invalid</c:if>
-        <c:if test="${g.nextRunStart.time <= now && (g.lastFetchDataTime == null || g.centerServerTime.time - g.lastFetchDataTime.time > taskMap[g.baseTaskType].heartBeatRate * 20)}"> problem</c:if>
+        <c:if test="${g.centerServerTime.time - g.heartBeatTime.time > taskMap[g.taskName].judgeDeadInterval}"> invalid</c:if>
+        <c:if test="${g.nextRunStart.time <= now && (g.lastFetchDataTime == null || g.centerServerTime.time - g.lastFetchDataTime.time > taskMap[g.taskName].heartBeatRate * 20)}"> problem</c:if>
         ">
 	   <td>${s.index + 1 }</td>
-	   <td>${g.baseTaskType }</td>
+	   <td>${g.taskName }</td>
 	   <td>${g.ownSign }</td>
 	   <td nowrap>${g.ip }</td>
 	   <td nowrap>${g.hostName }</td>

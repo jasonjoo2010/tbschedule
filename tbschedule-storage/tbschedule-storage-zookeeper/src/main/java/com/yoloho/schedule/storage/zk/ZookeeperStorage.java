@@ -14,6 +14,8 @@ import org.apache.curator.RetryPolicy;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.framework.api.ACLProvider;
+import org.apache.curator.framework.state.ConnectionState;
+import org.apache.curator.framework.state.ConnectionStateListener;
 import org.apache.curator.retry.RetryForever;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.ZooDefs;
@@ -35,11 +37,11 @@ import com.yoloho.schedule.storage.zk.util.PathUtil;
 import com.yoloho.schedule.types.InitialResult;
 import com.yoloho.schedule.types.ScheduleConfig;
 import com.yoloho.schedule.types.ScheduleServer;
-import com.yoloho.schedule.types.TaskItemRuntime;
 import com.yoloho.schedule.types.Strategy;
 import com.yoloho.schedule.types.StrategyRuntime;
 import com.yoloho.schedule.types.Task;
 import com.yoloho.schedule.types.TaskItem;
+import com.yoloho.schedule.types.TaskItemRuntime;
 import com.yoloho.schedule.types.TaskItemRuntime.TaskItemSts;
 import com.yoloho.schedule.util.DataVersion;
 import com.yoloho.schedule.util.ScheduleUtil;
@@ -48,6 +50,11 @@ public class ZookeeperStorage implements IStorage {
     private static final Logger logger = LoggerFactory.getLogger(ZookeeperStorage.class.getSimpleName());
     private CuratorFramework client = null;
     private long timeDelta = 0;
+    
+    @Override
+    public String getName() {
+        return "zookeeper";
+    }
     
     private void checkParent() throws Exception {
         CuratorFramework clientWithoutNamespace = client.usingNamespace(null);
@@ -93,7 +100,10 @@ public class ZookeeperStorage implements IStorage {
     private void createIfNotExist(String path) throws Exception {
         if (client.checkExists().forPath(path) == null) {
             // create root
-            client.create().withMode(CreateMode.PERSISTENT).forPath(path);
+            client.create()
+                .creatingParentsIfNeeded()
+                .withMode(CreateMode.PERSISTENT)
+                .forPath(path);
         }
     }
     
@@ -108,7 +118,8 @@ public class ZookeeperStorage implements IStorage {
     private boolean createNode(String path, String value) throws Exception {
         if (client.checkExists().forPath(path) == null) {
             // create root
-            client.create().creatingParentsIfNeeded()
+            client.create()
+                .creatingParentsIfNeeded()
                 .withMode(CreateMode.PERSISTENT)
                 .forPath(path, value.getBytes());
             return true;
@@ -126,6 +137,9 @@ public class ZookeeperStorage implements IStorage {
      * @throws Exception
      */
     private boolean replaceNode(String path, String value) throws Exception {
+        if (value == null) {
+            value = "";
+        }
         if (client.checkExists().forPath(path) != null) {
             // create root
             return client.setData().forPath(path, value.getBytes()) != null;
@@ -211,7 +225,7 @@ public class ZookeeperStorage implements IStorage {
     }
     
     @Override
-    public boolean init(ScheduleConfig config) {
+    public boolean init(final ScheduleConfig config, final OnConnected onConnected) {
         synchronized (this) {
             if (client != null) {
                 client.close();
@@ -249,6 +263,32 @@ public class ZookeeperStorage implements IStorage {
                     .connectionTimeoutMs(10000)
                     .canBeReadOnly(false)
                     .build();
+            final ZookeeperStorage instance = this;
+            client.getConnectionStateListenable().addListener(new ConnectionStateListener() {
+                
+                @Override
+                public void stateChanged(CuratorFramework client, ConnectionState newState) {
+                    switch (newState) {
+                        case CONNECTED:
+                        case RECONNECTED:
+                            logger.info("Connection connected: {}", config.getAddress());
+                            onConnected.connected(instance);
+                            break;
+                            
+                        case LOST:
+                            logger.warn("Connection lost: {}", config.getAddress());
+                            break;
+                            
+                        case SUSPENDED:
+                            logger.warn("Connection suspended: {}", config.getAddress());
+                            break;
+
+                        default:
+                            logger.warn("Unhandled connection state received: {}", newState);
+                            break;
+                    }
+                }
+            });
             client.start();
             try {
                 client.blockUntilConnected(10, TimeUnit.SECONDS);
@@ -557,29 +597,16 @@ public class ZookeeperStorage implements IStorage {
     
     @Override
     public void registerServer(ScheduleServer server) throws Exception {
+        Preconditions.checkArgument(StringUtils.isNotEmpty(server.getUuid()));
         String taskName = server.getTaskName();
         String ownSign = server.getOwnSign();
-        if (StringUtils.isNotEmpty(server.getUuid())) {
-            String path = PathUtil.serverPath(taskName, ownSign, server.getUuid());
-            if (exist(path)) {
-                throw new Exception(server.getUuid() + " 被重复注册");
-            }
+        String path = PathUtil.serverPath(taskName, ownSign, server.getUuid());
+        if (exist(path)) {
+            throw new Exception(server.getUuid() + " duplicated");
         }
-        String realPath = null;
-        createIfNotExist(PathUtil.serverBasePath(taskName, ownSign));
-        if (StringUtils.isEmpty(server.getUuid())) {
-            // 此处必须增加UUID作为唯一性保障
-            String baseUUID = server.getRunningEntry() + "$" + server.getIp() + "$"
-                    + (UUID.randomUUID().toString().replaceAll("-", "").toUpperCase()) + "$";
-            String zkServerPath = PathUtil.serverPath(taskName, ownSign, baseUUID);
-            realPath = client.create().withMode(CreateMode.PERSISTENT_SEQUENTIAL).forPath(zkServerPath);
-            server.setUuid(realPath.substring(realPath.lastIndexOf("/") + 1));
-        }
-
         Timestamp heartBeatTime = new Timestamp(getGlobalTime());
         server.setHeartBeatTime(heartBeatTime);
-        
-        client.setData().forPath(realPath, JSON.toJSONString(server).getBytes());
+        createNode(path, JSON.toJSONString(server));
     }
     
     @Override
@@ -721,21 +748,33 @@ public class ZookeeperStorage implements IStorage {
     }
     
     @Override
+    public String generateServerUUID(String taskName, String ownSign, String uniqueId) throws Exception {
+        String path = PathUtil.serverPath(taskName, ownSign, uniqueId);
+        String newPath = client.create()
+                .creatingParentsIfNeeded()
+                .withMode(CreateMode.EPHEMERAL_SEQUENTIAL)
+                .forPath(path);
+        client.delete().forPath(newPath);
+        return newPath.substring(newPath.lastIndexOf('/') + 1);
+    }
+    
+    @Override
+    public String generateFactoryUUID(String uniqueId) throws Exception {
+        String path = PathUtil.factoryPath(uniqueId);
+        String newPath = client.create()
+                .creatingParentsIfNeeded()
+                .withMode(CreateMode.EPHEMERAL_SEQUENTIAL)
+                .forPath(path);
+        client.delete().forPath(newPath);
+        return newPath.substring(newPath.lastIndexOf('/') + 1);
+    }
+    
+    @Override
     public List<String> registerFactory(ScheduleManagerFactory factory) throws Exception {
         // register to factory list
-        if (StringUtils.isEmpty(factory.getUuid())) {
-            // generate uuid first
-            String uuid = factory.getIp() + "$" + factory.getHostName() + "$"
-                    + UUID.randomUUID().toString().replace("-", "").toUpperCase() + "$";
-            String path = PathUtil.factoryPath(uuid);
-            String newPath = client.create().withMode(CreateMode.EPHEMERAL_SEQUENTIAL).forPath(path);
-            uuid = newPath.substring(newPath.lastIndexOf('/') + 1);
-            factory.setUuid(uuid);
-        } else {
-            String path = PathUtil.factoryPath(factory.getUuid());
-            if (!exist(path)) {
-                client.create().withMode(CreateMode.EPHEMERAL).forPath(path);
-            }
+        String path = PathUtil.factoryPath(factory.getUuid());
+        if (!exist(path)) {
+            client.create().withMode(CreateMode.EPHEMERAL).forPath(path);
         }
         // register to strategy
         List<String> unregistered = new ArrayList<>();
@@ -743,16 +782,20 @@ public class ZookeeperStorage implements IStorage {
         for (String strategyName : names) {
             Strategy strategy = getStrategy(strategyName);
             boolean isFind = false;
-            // 暂停或者不在IP范围
             String zkPath = PathUtil.factoryForStrategyPath(strategyName, factory.getUuid());
             if (Strategy.STS_PAUSE.equalsIgnoreCase(strategy.getSts()) == false
                     && strategy.getIPList() != null) {
                 for (String ip : strategy.getIPList()) {
                     if (ip.equals("127.0.0.1") || ip.equalsIgnoreCase("localhost") || ip.equals(factory.getIp())
                             || ip.equalsIgnoreCase(factory.getHostName())) {
-                        // 添加可管理TaskType
+                        // Can be scheduled in this factory
                         if (!exist(zkPath)) {
-                            client.create().withMode(CreateMode.EPHEMERAL).forPath(zkPath);
+                            StrategyRuntime runtime = new StrategyRuntime();
+                            runtime.setStrategyName(strategyName);
+                            runtime.setUuid(factory.getUuid());
+                            runtime.setRequestNum(0);
+                            runtime.setMessage("");
+                            client.create().withMode(CreateMode.EPHEMERAL).forPath(zkPath, JSON.toJSONString(runtime).getBytes());
                         }
                         isFind = true;
                         break;

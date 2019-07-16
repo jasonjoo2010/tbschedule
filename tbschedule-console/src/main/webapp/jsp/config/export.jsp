@@ -17,7 +17,7 @@ function viewConfig() {
 	        var html = '';
 	        if (data.taskList) {
 	            for (var i = 0; i < data.taskList.length; i ++) {
-	                html += 'Task: ' + data.taskList[i].baseTaskType;
+	                html += 'Task: ' + data.taskList[i].name;
 	                html += JSON.stringify(data.taskList[i]);
 	            }
 	        }
@@ -25,7 +25,7 @@ function viewConfig() {
 	        html = '';
 	        if (data.strategyList) {
 	            for (var i = 0; i < data.strategyList.length; i ++) {
-	                html += 'Strategy: ' + data.strategyList[i].strategyName;
+	                html += 'Strategy: ' + data.strategyList[i].name;
 	                html += JSON.stringify(data.strategyList[i]);
 	            }
 	        }

@@ -11,6 +11,8 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.yoloho.schedule.interfaces.IStorage;
+import com.yoloho.schedule.interfaces.IStorage.OnConnected;
 import com.yoloho.schedule.types.ScheduleConfig;
 import com.yoloho.schedule.types.Task;
 import com.yoloho.schedule.util.ScheduleUtil;
@@ -26,7 +28,12 @@ public class ZookeeperStorageTest {
         config.setRootPath("/test/schedule/demo");
         config.setUsername("test");
         config.setPassword("123123");
-        storage.init(config);
+        storage.init(config, new OnConnected() {
+            
+            @Override
+            public void connected(IStorage storage) {
+            }
+        });
     }
     
     @After

@@ -13,13 +13,13 @@
 <table>
 <tr>
 	<td>Strategy Name:</td>
-	<td><input type="text" id="strategyName" name="strategyName"<c:if test="${!isCreate }"> style="background-color: blue" readonly="readonly"</c:if> value="${strategy.strategyName}" width="30"></td>
+	<td><input type="text" id="strategyName" name="strategyName"<c:if test="${!isCreate }"> style="background-color: blue" readonly="readonly"</c:if> value="${strategy.name}" width="30"></td>
 	<td>Required, a-zA-Z0-9</td>
 </tr>
 <tr>
 	<td>Type:</td>
 	<td><input type="text" id="kind" name="kind" value="${strategy.kind}" width="30"></td>
-	<td>Should be one of Schedule, Java or Bean (Case sensitive)</td>
+	<td>Should be one of <b>Schedule</b>, <b>Java</b> or <b>Bean</b> (Case sensitive)</td>
 </tr>
 <tr>
 	<td>Task Name:</td>

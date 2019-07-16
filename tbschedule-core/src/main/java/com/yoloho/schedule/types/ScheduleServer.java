@@ -2,11 +2,8 @@ package com.yoloho.schedule.types;
 
 import java.sql.Timestamp;
 import java.util.Date;
-import java.util.UUID;
 
 import org.apache.commons.lang3.time.FastDateFormat;
-
-import com.yoloho.schedule.util.ScheduleUtil;
 
 /**
  * 调度服务器信息定义
@@ -15,7 +12,6 @@ import com.yoloho.schedule.util.ScheduleUtil;
  */
 public class ScheduleServer {
 	private String uuid;
-	private long id;
 	private String taskName;
 	private String ownSign;
 	private String runningEntry;
@@ -69,26 +65,6 @@ public class ScheduleServer {
 	public ScheduleServer() {
 
 	}
-
-    public static ScheduleServer createScheduleServer(long now, String taskName, String ownSign, int threadNum)
-            throws Exception {
-        ScheduleServer result = new ScheduleServer();
-        result.taskName = taskName;
-        result.ownSign = ownSign;
-        result.runningEntry = ScheduleUtil.runningEntryFromTaskName(taskName, ownSign);
-        result.ip = ScheduleUtil.getLocalIP();
-        result.hostName = ScheduleUtil.getLocalHostName();
-        result.registerTime = new Timestamp(now);
-        result.threadNum = threadNum;
-        result.heartBeatTime = null;
-        result.dealInfoDesc = "调度初始化";
-        result.version = 0;
-        result.uuid = result.ip + "$" + (UUID.randomUUID().toString().replaceAll("-", "").toUpperCase());
-        FastDateFormat DATA_FORMAT_yyyyMMdd = FastDateFormat.getInstance("yyMMdd");
-        String s = DATA_FORMAT_yyyyMMdd.format(now);
-        result.id = Long.parseLong(s) * 100000000 + Math.abs(result.uuid.hashCode() % 100000000);
-        return result;
-    }
 
 	public String getUuid() {
 		return uuid;
@@ -234,10 +210,6 @@ public class ScheduleServer {
 
 	public void setTaskName(String taskName) {
 		this.taskName = taskName;
-	}
-
-	public long getId() {
-		return id;
 	}
 
 	public void setManagerFactoryUUID(String managerFactoryUUID) {
