@@ -179,8 +179,8 @@ public abstract class AbstractScheduleManager implements IStrategyTask {
         this.currentServer.setManagerFactoryUUID(this.factory.getUuid());
         this.storage.registerServer(this.currentServer);
         this.heartBeatTimer = new Timer(
-                this.currentServer.getRunningEntry() + "-" + this.currentSerialNumber + "-HeartBeat");
-        this.heartBeatTimer.schedule(new HeartBeatTimerTask(this), new java.util.Date(System.currentTimeMillis() + 500),
+                this.currentServer.getRunningEntry() + "-" + this.currentSerialNumber + "-heartbeat");
+        this.heartBeatTimer.schedule(new HeartBeatTimerTask(this), new java.util.Date(System.currentTimeMillis() + 300),
                 this.task.getHeartBeatRate());
         initial();
 	}  

@@ -5,11 +5,11 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.curator.RetryPolicy;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
@@ -42,7 +42,6 @@ import com.yoloho.schedule.types.StrategyRuntime;
 import com.yoloho.schedule.types.Task;
 import com.yoloho.schedule.types.TaskItem;
 import com.yoloho.schedule.types.TaskItemRuntime;
-import com.yoloho.schedule.types.TaskItemRuntime.TaskItemSts;
 import com.yoloho.schedule.util.DataVersion;
 import com.yoloho.schedule.util.ScheduleUtil;
 
@@ -199,9 +198,34 @@ public class ZookeeperStorage implements IStorage {
     }
     
     @Override
-    public String dump() {
-        // XXX
-        return null;
+    public String dump() throws Exception {
+        StringBuilder builder = new StringBuilder();
+        List<Pair<String, String>> pathList = new ArrayList<>(1);
+        byte[] data = client.getData().forPath("/");
+        pathList.add(Pair.of("/", data == null ? "" : new String(data)));
+        int cur = 0;
+        while (cur < pathList.size()) {
+            String basePath = pathList.get(cur).getLeft();
+            List<String> list = client.getChildren().forPath(basePath);
+            if (!basePath.endsWith("/")) {
+                basePath += "/";
+            }
+            for (String child : list) {
+                String p = basePath + child;
+                data = client.getData().forPath(p);
+                pathList.add(cur + 1, Pair.of(p, data == null ? "" : new String(data)));
+            }
+            cur ++;
+        }
+        for (Pair<String, String> pair : pathList) {
+            if (builder.length() > 0) {
+                builder.append("\n");
+            }
+            builder.append(pair.getLeft())
+                .append(": ")
+                .append(pair.getRight());
+        }
+        return builder.toString();
     }
     
     /**
@@ -449,9 +473,7 @@ public class ZookeeperStorage implements IStorage {
                 createIfNotExist(itemPath);
                 createIfNotExist(itemPath + "/cur_server");
                 createIfNotExist(itemPath + "/req_server");
-                replaceNode(itemPath + "/sts", TaskItemRuntime.TaskItemSts.ACTIVTE.toString());
                 replaceNode(itemPath + "/parameter", define.getParameter());
-                replaceNode(itemPath + "/deal_desc", "");
             }
             setInitialRunningInfoSuccess(taskName, ownSign, uuid);
         }
@@ -489,11 +511,8 @@ public class ZookeeperStorage implements IStorage {
             item.setOwnSign(ownSign);
             item.setCurrentScheduleServer(getNode(taskItemPath + "/cur_server"));
             item.setRequestScheduleServer(getNode(taskItemPath + "/req_server"));
-            item.setSts(TaskItemSts.valueOf(getNode(taskItemPath + "/sts")));
             item.setDealParameter(getNode(taskItemPath + "/parameter"));
-            item.setDealDesc(getNode(taskItemPath + "/deal_desc"));
             item.setTaskItem(name);
-            // version seems unused
             result.add(item);
         }
         return result;
@@ -700,7 +719,7 @@ public class ZookeeperStorage implements IStorage {
     }
     
     @Override
-    public void unregisterFactory(String factoryUUID) throws Exception {
+    public void clearStrategiesOfFactory(String factoryUUID) throws Exception {
         List<String> strategyNames = getStrategyNames();
         for (String strategyName : strategyNames) {
             String path = PathUtil.factoryForStrategyPath(strategyName, factoryUUID);

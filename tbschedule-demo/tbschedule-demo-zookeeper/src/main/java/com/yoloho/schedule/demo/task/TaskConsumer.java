@@ -8,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.util.comparator.Comparators;
 
 import com.yoloho.schedule.interfaces.IScheduleTaskDealSingle;
 import com.yoloho.schedule.types.TaskItem;
@@ -37,7 +38,7 @@ public class TaskConsumer implements IScheduleTaskDealSingle<String> {
 
     @Override
     public Comparator<String> getComparator() {
-        return null;
+        return Comparators.comparable();
     }
 
     @Override

@@ -53,6 +53,8 @@ class TaskProcessorNotSleep<T> extends AbstractTaskProcessor<T> {
 	private List<T> maybeRepeatTaskList = new CopyOnWriteArrayList<T>();
 
 	private Lock repeatableLock = new ReentrantLock();
+
+    private boolean processorReady = false;
 	
 	/**
 	 * 创建一个调度处理器
@@ -65,6 +67,7 @@ class TaskProcessorNotSleep<T> extends AbstractTaskProcessor<T> {
 			IScheduleTaskDeal<T> dealBean,StatisticsInfo statisticsInfo) throws Exception {
 	    super(manager, dealBean, statisticsInfo);
 		this.taskComparator = new TaskComparator<T>(dealBean.getComparator());
+		this.processorReady = true;
 	}
 
     private boolean isDealing(T aTask) {
@@ -163,6 +166,10 @@ class TaskProcessorNotSleep<T> extends AbstractTaskProcessor<T> {
 	
     public void run() {
         Object executeTask = null;
+        // Make threads held by group wait for all initializing works done
+        while (!processorReady) {
+            sleep(100);
+        }
         while (true) {
             try {
                 if (isStopSchedule()) {

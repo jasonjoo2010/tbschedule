@@ -23,7 +23,9 @@ $(function() {
         },
         success: function(data) {
             if (data.errno == 0) {
-    	        alert("Config updated");
+    	        alert("Config updated, " 
+    	                + data.taskSuccessCount + "/" + data.taskCount + " tasks, " 
+    	                + data.strategySuccessCount + "/" + data.strategyCount + " strategies.");
     	    } else {
     	        $("h3").html(data.errdesc);
     	    }

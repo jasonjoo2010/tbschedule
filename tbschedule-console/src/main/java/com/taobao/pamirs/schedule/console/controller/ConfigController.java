@@ -20,7 +20,6 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
 
 import com.alibaba.fastjson.JSON;
-import com.google.common.base.Preconditions;
 import com.google.common.io.CharStreams;
 import com.taobao.pamirs.schedule.console.ConsoleManager;
 import com.yoloho.enhanced.common.support.MsgBean;
@@ -221,12 +220,12 @@ public class ConfigController {
                         if (storage.getStrategy(strategy.getName()) != null) {
                             // update
                             if (force) {
-                                storage.createStrategy(strategy);
+                                storage.updateStrategy(strategy);
                                 strategySuccess ++;
                             }
                         } else {
                             // new
-                            storage.updateStrategy(strategy);
+                            storage.createStrategy(strategy);
                             strategySuccess ++;
                         }
                     } catch (Exception e) {

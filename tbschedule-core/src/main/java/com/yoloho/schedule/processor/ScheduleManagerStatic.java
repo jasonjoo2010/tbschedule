@@ -55,33 +55,32 @@ public class ScheduleManagerStatic extends AbstractScheduleManager {
                     logger.info("Fetching task items for {}", currentServer().getUuid());
                     while (isRuntimeInfoInitial == false) {
                         if (isStopSchedule == true) {
-                            logger.debug("外部命令终止调度,退出调度队列获取：" + currentServer().getUuid());
+                            logger.debug("Stop scheduling due to stop flag: {}", currentServer().getUuid());
                             return;
                         }
-                        // log.error("isRuntimeInfoInitial = " +
-                        // isRuntimeInfoInitial);
+                        //logger.info("isRuntimeInfoInitial={}", isRuntimeInfoInitial);
                         try {
                             initialRunningInfo();
                             isRuntimeInfoInitial = storage.isInitialRunningInfoSuccess(
                                     currentServer().getTaskName(), currentServer().getOwnSign());
                         } catch (Throwable e) {
-                            // 忽略初始化的异常
+                            // ignore exceptions and retry
                             logger.error(e.getMessage(), e);
                         }
                         if (isRuntimeInfoInitial == false) {
-                            Thread.currentThread().sleep(1000);
+                            sleep(1000);
                         }
                     }
                     int count = 0;
                     lastReloadTaskItemListTime = storage.getGlobalTime();
                     while (getCurrentScheduleTaskItemListNow().size() <= 0) {
                         if (isStopSchedule == true) {
-                            logger.debug("外部命令终止调度,退出调度队列获取：" + currentServer().getUuid());
+                            logger.debug("Stop scheduling due to stop flag: {}", currentServer().getUuid());
                             return;
                         }
+                        //logger.info("Try to fetch any task item: {}", count) ;
                         Thread.currentThread().sleep(1000);
                         count = count + 1;
-                        // log.error("尝试获取调度队列，第" + count + "次 ") ;
                     }
                     String tmpStr = "TaskItemDefine:";
                     for (int i = 0; i < currentTaskItemList.size(); i++) {
@@ -103,28 +102,35 @@ public class ScheduleManagerStatic extends AbstractScheduleManager {
                     if (str.length() > 300) {
                         str = str.substring(0, 300);
                     }
-                    startErrorInfo = "启动处理异常：" + str;
+                    startErrorInfo = "StartProcess error with " + str;
                 }
             }
         }.start();
     }
 	
 	/**
-	 * 定时向数据配置中心更新当前服务器的心跳信息。
-	 * 如果发现本次更新的时间如果已经超过了，服务器死亡的心跳周期，则不能在向服务器更新信息。
-	 * 而应该当作新的服务器，进行重新注册。
+	 * Send heartbeat to center (storage)
+	 * <p>
+	 * If expired for this server it cannot do the heartbeat, instead,
+	 * it should reregister as <b>a new server</b>
+	 * 
 	 * @throws Exception 
 	 */
 	@Override
     public void refreshScheduleServerInfo() throws Exception {
         try {
             rewriteScheduleInfo();
-            // 如果任务信息没有初始化成功，不做任务相关的处理
-            if (this.isRuntimeInfoInitial == false) {
-                return;
+            // if uninitialized wait 2 seconds most
+            int timeout = 2000;
+            while (this.isRuntimeInfoInitial == false) {
+                Thread.sleep(100);
+                timeout -= 100;
+                if (timeout <= 0) {
+                    return;
+                }
             }
 
-            // 重新分配任务
+            // try to reassign
             assignScheduleTask();
 
             // 判断是否需要重新加载任务队列，避免任务处理进程不必要的检查和等待
@@ -380,7 +386,7 @@ public class ScheduleManagerStatic extends AbstractScheduleManager {
 	
 	//由于上面在数据执行时有使用到synchronized ，但是心跳线程并没有对应加锁。
 	//所以在此方法上加一下synchronized。20151015
-	protected synchronized List<TaskItem> getCurrentScheduleTaskItemListNow() throws Exception {
+	private synchronized List<TaskItem> getCurrentScheduleTaskItemListNow() throws Exception {
 		//如果已经稳定了，理论上不需要加载去扫描所有的叶子结点
 		//20151019 by kongxuan.zlj
         try {

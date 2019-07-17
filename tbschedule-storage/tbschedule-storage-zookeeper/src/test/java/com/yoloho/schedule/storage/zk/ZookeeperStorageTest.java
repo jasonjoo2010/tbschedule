@@ -76,6 +76,8 @@ public class ZookeeperStorageTest {
         assertTrue(entryList.contains(taskName));
         assertTrue(entryList.contains(ScheduleUtil.runningEntryFromTaskName(taskName, "test")));
         
+        assertTrue(this.storage.dump().length() > 10);
+        
         task = this.storage.getTask(taskName);
         assertNotNull(task);
         assertEquals("task1", task.getName());

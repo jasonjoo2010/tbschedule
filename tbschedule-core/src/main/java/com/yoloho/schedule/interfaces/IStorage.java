@@ -190,8 +190,9 @@ public interface IStorage {
      * Different from {@link #export()}, it dump all the structure including runtime data and can be non-structural
      * 
      * @return
+     * @throws Exception 
      */
-    String dump();
+    String dump() throws Exception;
 
     void createStrategy(Strategy strategy) throws Exception;
 
@@ -211,18 +212,17 @@ public interface IStorage {
     List<String> getStrategyNames() throws Exception;
 
     /**
-     * Unregister a factory
+     * Clear all strategies of a factory
      * 
      * @param factoryUUID
      * @throws Exception
      */
-    void unregisterFactory(String factoryUUID) throws Exception;
+    void clearStrategiesOfFactory(String factoryUUID) throws Exception;
 
     /**
      * Register a factory
      * 
      * @param factory
-     * @return strategyName collection that need to be unregisterd
      * @throws Exception
      */
     List<String> registerFactory(ScheduleManagerFactory factory) throws Exception;

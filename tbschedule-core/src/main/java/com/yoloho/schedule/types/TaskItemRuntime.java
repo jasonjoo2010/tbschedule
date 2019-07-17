@@ -9,10 +9,6 @@ import com.yoloho.schedule.util.ScheduleUtil;
  *
  */
 public class TaskItemRuntime {
-    public enum TaskItemSts {
-        ACTIVTE, FINISH, HALT
-    }
-
     /**
      * 处理任务类型
      */
@@ -21,19 +17,9 @@ public class TaskItemRuntime {
     private String ownSign;
 
     /**
-     * 完成状态
-     */
-    private TaskItemSts sts = TaskItemSts.ACTIVTE;
-
-    /**
      * 任务处理需要的参数
      */
     private String dealParameter = "";
-
-    /**
-     * 任务处理情况,用于任务处理器会写一些信息
-     */
-    private String dealDesc = "";
 
     public String getTaskName() {
         return taskName;
@@ -101,22 +87,6 @@ public class TaskItemRuntime {
                 .append(":REQ_SERVER=").append(this.requestScheduleServer)
                 .append(":DEAL_PARAMETER=").append(this.dealParameter)
                 .toString();
-    }
-
-    public void setDealDesc(String dealDesc) {
-        this.dealDesc = dealDesc;
-    }
-
-    public String getDealDesc() {
-        return dealDesc;
-    }
-
-    public void setSts(TaskItemSts sts) {
-        this.sts = sts;
-    }
-
-    public TaskItemSts getSts() {
-        return sts;
     }
 
     public void setDealParameter(String dealParameter) {

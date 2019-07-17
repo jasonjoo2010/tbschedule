@@ -278,13 +278,13 @@ public class ScheduleManagerFactory implements ApplicationContextAware {
             if (isException == true) {
                 try {
                     stopServer(null); // Stop all servers in factory
-                    this.storage.unregisterFactory(getUuid());
+                    this.storage.clearStrategiesOfFactory(getUuid());
                 } finally {
                     reRegisterFactory();
                 }
             } else if (allowRun == false) {
                 stopServer(null); // Stop all servers in factory
-                this.storage.unregisterFactory(getUuid());
+                this.storage.clearStrategiesOfFactory(getUuid());
             } else {
                 reRegisterFactory();
             }
@@ -483,7 +483,9 @@ public class ScheduleManagerFactory implements ApplicationContextAware {
                 }
                 this.managerMap.remove(name);
             }
-            logger.info("Stop all strategies");
+            if (nameList.length > 0) {
+                logger.info("Stop all strategies");
+            }
         } else {
             List<IStrategyTask> list = this.managerMap.get(strategyName);
             if (list != null) {
