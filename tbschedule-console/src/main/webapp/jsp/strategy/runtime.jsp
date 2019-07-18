@@ -8,16 +8,14 @@
      	<th>NO</th>
      	<th>Type</th>
      	<th>Machine</th>
-    	<th>Num of TG</th>
-    	<th>Message</th>
+    	<th>ThreadGroup Count</th>
      </tr>
      <c:forEach items="${runtimeList }" var="r" varStatus="status">
      <tr >
      	<td>${status.index + 1 }</td>
      	<td>${r.strategyName }</td>
-     	<td align="center">${r.uuid }</td>
+     	<td align="center">${r.factoryUuid }</td>
      	<td align="center">${r.requestNum }</td>
-     	<td align="center" style="" ><p style="color:red">${r.message }</p></td>     	
      </tr>
      </c:forEach>
 </table>

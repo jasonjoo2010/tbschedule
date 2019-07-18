@@ -1,6 +1,9 @@
 package com.yoloho.schedule.interfaces;
 
+import java.util.Comparator;
 import java.util.List;
+
+import org.apache.commons.lang3.StringUtils;
 
 import com.yoloho.schedule.ScheduleManagerFactory;
 import com.yoloho.schedule.types.InitialResult;
@@ -12,20 +15,69 @@ import com.yoloho.schedule.types.Task;
 import com.yoloho.schedule.types.TaskItemRuntime;
 
 /**
+ * Storage interface
+ * 
  * @author jason
  *
  */
 public interface IStorage {
+    //////////////////////////////////////////////////////////////////////////////////////////////
+    // Comparators
+    /**
+     * Comparator for factory's name
+     */
+    public static final Comparator<String> COMPARATOR_UUID = new Comparator<String>() {
+        public int compare(String u1, String u2) {
+            return u1.substring(u1.lastIndexOf("$") + 1).compareTo(
+                    u2.substring(u2.lastIndexOf("$") + 1));
+        }
+    };
+    public static final Comparator<TaskItemRuntime> COMPARATOR_TASK_ITEM_RUNTIME = new Comparator<TaskItemRuntime>() {
+        public int compare(TaskItemRuntime u1, TaskItemRuntime u2) {
+            if (StringUtils.isNumeric(u1.getTaskItem()) && StringUtils.isNumeric(u2.getTaskItem())) {
+                int iU1 = Integer.parseInt(u1.getTaskItem());
+                int iU2 = Integer.parseInt(u2.getTaskItem());
+                if (iU1 == iU2) {
+                    return 0;
+                } else if (iU1 > iU2) {
+                    return 1;
+                } else {
+                    return -1;
+                }
+            } else {
+                return u1.getTaskItem().compareTo(u2.getTaskItem());
+            }
+        }
+    };
+    
+    /**
+     * Invoked when storage becomes avaliable, whether initial or reconnect
+     *
+     */
     interface OnConnected {
         void connected(IStorage storage);
     }
     
+    //////////////////////////////////////////////////////////////////////////////////////////////
+    // Storage Related
     /**
-     * The storage server side time, in millisecond timestamp
+     * The storage server side time, in millisecond timestamp.
+     * <p>
+     * This will help all the nodes use the same time avoiding the difference of local system's
+     * <p>
+     * NOTE: It should be efficient to call frequently and concurrently.
      * 
      * @return
      */
     long getGlobalTime();
+    
+    /**
+     * Fetch a increasing, never duplicated, global (in distribution environment) sequence number
+     * 
+     * @return
+     * @throws Exception When failed
+     */
+    long getSequenceNumber() throws Exception;
     
     /**
      * Storage name(Distinguish to other implementations)
@@ -41,150 +93,20 @@ public interface IStorage {
      */
     boolean test();
 
+    /**
+     * Initialize the storage, maybe it can be called multiple times to reconfigure it
+     * 
+     * @param config
+     * @param onConnected
+     * @return
+     */
     boolean init(ScheduleConfig config, OnConnected onConnected);
 
+    /**
+     * Shutdown the storage
+     */
     void shutdown();
-
-    void createTask(Task task) throws Exception;
-
-    void updateTask(Task task) throws Exception;
     
-    boolean removeTask(String taskName) throws Exception;
-    
-    /**
-     * Clean all running entry data for task specified
-     * 
-     * @param taskName
-     * @throws Exception
-     */
-    void cleanTaskRunningInfo(String taskName) throws Exception;
-    
-    /**
-     * Clean specified running entry of task
-     * 
-     * @param taskName
-     * @param ownSign
-     * @throws Exception
-     */
-    void cleanTaskRunningInfo(String taskName, String ownSign) throws Exception;
-    
-    /**
-     * @param taskName
-     * @param runningEntry Include ownSign in it, taskName -> runningEntry
-     */
-    void initTaskRunningInfo(String taskName, String ownSign);
-
-    Task getTask(String taskName) throws Exception;
-
-    void initTaskItemsRunningInfo(String taskName, String ownSign, String uuid) throws Exception;
-
-    /**
-     * Get running entry list for task (sorted)
-     * 
-     * @param taskName
-     * @return
-     * @throws Exception
-     */
-    List<String> getRunningEntryList(String taskName) throws Exception;
-
-    /**
-     * Get all task name list (sorted)
-     * 
-     * @return
-     * @throws Exception
-     */
-    List<String> getTaskNames() throws Exception;
-
-    List<TaskItemRuntime> getRunningTaskItems(String taskName, String ownSign) throws Exception;
-
-    void updateTaskItemRequestServer(String taskName, String ownSign, String taskItem, String server) throws Exception;
-
-    void updateTaskItemCurrentServer(String taskName, String ownSign, String taskItem, String server) throws Exception;
-
-    void setInitialRunningInfoSuccess(String taskName, String ownSign, String uuid) throws Exception;
-    
-    InitialResult getInitialRunningInfoResult(String taskName, String ownSign) throws Exception;
-
-    boolean isInitialRunningInfoSuccess(String taskName, String ownSign) throws Exception;
-
-    /**
-     * Get server's uuid list (sorted)
-     * 
-     * @param taskName
-     * @param ownSign
-     * @return
-     * @throws Exception
-     */
-    List<String> getServerUuidList(String taskName, String ownSign) throws Exception;
-    
-    /**
-     * Get server's list (Must be valid or alive)
-     * 
-     * @param taskName
-     * @param ownSign
-     * @return
-     * @throws Exception
-     */
-    List<ScheduleServer> getServerList(String taskName, String ownSign) throws Exception;
-
-    /**
-     * Unregister the server
-     * 
-     * @param taskName
-     * @param ownSign
-     * @param uuid
-     * @throws Exception
-     */
-    void unregisterServer(String taskName, String ownSign, String uuid) throws Exception;
-
-    /**
-     * Register a server to storage
-     * 
-     * @param server
-     * @throws Exception
-     */
-    void registerServer(ScheduleServer server) throws Exception;
-
-    /**
-     * Do a heartbeat, heartbeatTime and version will be updated if successful
-     * 
-     * @param server
-     * @return
-     * @throws Exception
-     */
-    boolean heartbeatServer(ScheduleServer server) throws Exception;
-
-    /**
-     * Get the current reload sign to decide whether should reload
-     * 
-     * @param taskName
-     * @param ownSign
-     * @return
-     * @throws Exception
-     */
-    long getAllServerReload(String taskName, String ownSign) throws Exception;
-    
-    /**
-     * Set the reload sign
-     * 
-     * @param taskName
-     * @param ownSign
-     * @throws Exception
-     */
-    void requestAllServerReload(String taskName, String ownSign) throws Exception;
-
-    /**
-     * Move request server to current.
-     * Called by previous server.
-     * 
-     * @param taskName
-     * @param ownSign
-     * @param uuid
-     * @return
-     * @throws Exception
-     */
-    int releaseTaskItemByServer(String taskName, String ownSign, String uuid) throws Exception;
-
     /**
      * Dump the inner data as string.
      * Different from {@link #export()}, it dump all the structure including runtime data and can be non-structural
@@ -193,71 +115,114 @@ public interface IStorage {
      * @throws Exception 
      */
     String dump() throws Exception;
+    
+    //////////////////////////////////////////////////////////////////////////////////////////////
+    // Task Related
+    /**
+     * Create task
+     * 
+     * @param task
+     * @throws Exception When failed
+     */
+    void createTask(Task task) throws Exception;
 
-    void createStrategy(Strategy strategy) throws Exception;
-
-    void updateStrategy(Strategy strategy) throws Exception;
-
-    Strategy getStrategy(String strategyName) throws Exception;
+    /**
+     * Update task
+     * 
+     * @param task
+     * @throws Exception When failed
+     */
+    void updateTask(Task task) throws Exception;
     
     /**
-     * Remove a strategy which is stopped
+     * Remove task
+     * 
+     * @param taskName
+     * @return
+     * @throws Exception When failed
+     */
+    boolean removeTask(String taskName) throws Exception;
+    
+    /**
+     * Fetch a task's info by name
+     * 
+     * @param taskName
+     * @return
+     * @throws Exception When failed
+     */
+    Task getTask(String taskName) throws Exception;
+    
+    /**
+     * Get all task name list (sorted)
+     * 
+     * @return
+     * @throws Exception When failed
+     */
+    List<String> getTaskNames() throws Exception;
+    
+    //////////////////////////////////////////////////////////////////////////////////////////////
+    // Strategy related
+    /**
+     * Create strategy
+     * 
+     * @param strategy
+     * @throws Exception When failed
+     */
+    void createStrategy(Strategy strategy) throws Exception;
+
+    /**
+     * Update strategy
+     * 
+     * @param strategy
+     * @throws Exception When failed
+     */
+    void updateStrategy(Strategy strategy) throws Exception;
+
+    /**
+     * Remove a strategy which is halted
      * 
      * @param strategyName
      * @return false for not existed strategy
-     * @throws Exception
+     * @throws Exception When failed
      */
     boolean removeStrategy(String strategyName) throws Exception;
-
-    List<String> getStrategyNames() throws Exception;
-
+    
     /**
-     * Clear all strategies of a factory
+     * Fetch a strategy by name
      * 
-     * @param factoryUUID
-     * @throws Exception
+     * @param strategyName
+     * @return
+     * @throws Exception When failed
      */
-    void clearStrategiesOfFactory(String factoryUUID) throws Exception;
+    Strategy getStrategy(String strategyName) throws Exception;
 
     /**
-     * Register a factory
+     * Fetch all strategies' name list(Sorted)
+     * 
+     * @return
+     * @throws Exception When failed
+     */
+    List<String> getStrategyNames() throws Exception;
+    
+    //////////////////////////////////////////////////////////////////////////////////////////////
+    // Factory (Machine/Node) Related
+    /**
+     * Register a factory (uuid must be set)
      * 
      * @param factory
+     * @return The strategy name list which should not be scheduled on it
+     *         anymore. They should be stopped (if running) and clear.
      * @throws Exception
+     *             When failed
      */
     List<String> registerFactory(ScheduleManagerFactory factory) throws Exception;
-
+    
     /**
-     * @param strategyName
-     * @param factoryUUID
-     * @return
-     * @throws Exception 
-     */
-    StrategyRuntime getStrategyRuntime(String strategyName, String factoryUUID) throws Exception;
-
-    /**
-     * Get runtime list of specified strategy
-     * 
-     * @param strategyName
-     * @return
-     * @throws Exception
-     */
-    List<StrategyRuntime> getStrategyRuntimes(String strategyName) throws Exception;
-
-    /**
-     * Update runtime information for a factory and strategy pair
-     * 
-     * @param runtime
-     * @throws Exception
-     */
-    void updateStrategyRuntime(StrategyRuntime runtime) throws Exception;
-
-    /**
-     * Whether the factory allows to run.
+     * Whether the factory is allowed to run.
      * 
      * @param factoryUUID
      * @return
-     * @throws Exception
+     * @throws Exception When failed
      */
     boolean isFactoryAllowExecute(String factoryUUID) throws Exception;
 
@@ -266,36 +231,225 @@ public interface IStorage {
      * 
      * @param factoryUUID
      * @param allow
-     * @throws Exception
+     * @throws Exception When failed
      */
     void setFactoryAllowExecute(String factoryUUID, boolean allow) throws Exception;
-
-    List<String> getFactoryNames() throws Exception;
-
+    
     /**
-     * Generate factory id according the logical unique string
-     * <p>
-     * Generally a sequence number will be appended used to be sorted<br>
-     * eg. str -> str000001
+     * Fetch the runtime information of the strategy in the factory
      * 
-     * @param uniqueId
-     * @return
-     * @throws Exception 
+     * @param strategyName
+     * @param factoryUUID
+     * @return null for no runtime information
+     * @throws Exception When failed
      */
-    String generateFactoryUUID(String uniqueId) throws Exception;
+    StrategyRuntime getStrategyRuntime(String strategyName, String factoryUUID) throws Exception;
 
     /**
-     * Generate server id according the logical unique string
-     * <p>
-     * Generally a sequence number will be appended used to be sorted(Elect the leader)<br>
-     * eg. str -> str000001
+     * Fetch all factories' uuid list (Sorted)
+     * 
+     * @return
+     * @throws Exception When failed
+     */
+    List<String> getFactoryUuidList() throws Exception;
+    
+    /**
+     * Clear all strategies' information registered in the factory specified.
+     * 
+     * @param factoryUUID
+     * @throws Exception When failed
+     */
+    void clearStrategiesOfFactory(String factoryUUID) throws Exception;
+    
+    /**
+     * Get running information of factories for specified strategy
+     * 
+     * @param strategyName
+     * @return An empty list when no runtime, <b>never null</b>
+     * @throws Exception When failed
+     */
+    List<StrategyRuntime> getRuntimesOfStrategy(String strategyName) throws Exception;
+
+    /**
+     * Update runtime information of factory for strategy
+     * 
+     * @param runtime
+     * @throws Exception When failed
+     */
+    void updateRuntimeOfStrategy(StrategyRuntime runtime) throws Exception;
+
+    //////////////////////////////////////////////////////////////////////////////////////////////
+    // Schedule Server (Thread Group for Schedule Type Task) Related
+    /**
+     * Register a server to storage.<br>
+     * Schedule server is a three-tuple object: ((task, ownsign), uuid).<br>
+     * 
+     * @param server
+     *            The server to be registered.
+     * @throws Exception When failed.
+     */
+    void createServer(ScheduleServer server) throws Exception;
+    
+    /**
+     * Update a server to storage.
+     * 
+     * @param server
+     *            The server to be registered.
+     * @return true for success
+     * @throws Exception When failed.
+     */
+    boolean updateServer(ScheduleServer server) throws Exception;
+    
+    /**
+     * Unregister the server
      * 
      * @param taskName
      * @param ownSign
-     * @param uniqueId
+     * @param uuid Server's uuid
+     * @throws Exception When failed.
+     */
+    void removeServer(String taskName, String ownSign, String serverUuid) throws Exception;
+    
+    /**
+     * Get server's uuid list (sorted)
+     * 
+     * @param taskName
+     * @param ownSign
+     * @return
+     * @throws Exception When failed.
+     */
+    List<String> getServerUuidList(String taskName, String ownSign) throws Exception;
+    
+    /**
+     * Get server
+     * 
+     * @param taskName
+     * @param ownSign
+     * @return
+     * @throws Exception When failed.
+     */
+    ScheduleServer getServer(String taskName, String ownSign, String serverUuid) throws Exception;
+
+    /**
+     * Get the current scheduling iteration version for specified running entry.<br>
+     * It can be used to decide whether should reload the configuration.
+     * 
+     * @param taskName
+     * @param ownSign
+     * @return Scheduling version
+     * @throws Exception When failed
+     */
+    long getServerSchedulingVersion(String taskName, String ownSign) throws Exception;
+    
+    /**
+     * Increase the version to make leader reload configuration up-to-date.
+     * 
+     * @param taskName
+     * @param ownSign
+     * @throws Exception
+     */
+    void increaseServerSchedulingVersion(String taskName, String ownSign) throws Exception;
+    
+    //////////////////////////////////////////////////////////////////////////////////
+    // Running Entry Related
+    /**
+     * Empty the running entry structure
+     * 
+     * @param taskName
+     * @param ownSign
+     * @throws Exception
+     */
+    void emptyRunningEntry(String taskName, String ownSign) throws Exception;
+
+    /**
+     * Initial the running entry substructure
+     * 
+     * @param taskName
+     * @param ownSign
+     * @throws Exception
+     */
+    void initTaskItems(String taskName, String ownSign) throws Exception;
+    
+    /**
+     * Set the standby server for the task item of running entry
+     * 
+     * @param taskName
+     * @param ownSign
+     * @param taskItem
+     * @param server
+     * @throws Exception
+     */
+    void updateTaskItemRequestServer(String taskName, String ownSign, String taskItem, String server) throws Exception;
+
+    /**
+     * Set the active server for the task item of running entry
+     * 
+     * @param taskName
+     * @param ownSign
+     * @param taskItem
+     * @param server
+     * @throws Exception
+     */
+    void updateTaskItemCurrentServer(String taskName, String ownSign, String taskItem, String server) throws Exception;
+    
+    /**
+     * Get task items of running entry (sorted)
+     * 
+     * @param taskName
+     * @param ownSign
      * @return
      * @throws Exception
      */
-    String generateServerUUID(String taskName, String ownSign, String uniqueId) throws Exception;
+    List<TaskItemRuntime> getTaskItems(String taskName, String ownSign) throws Exception;
+    
+    /**
+     * Remove specified running entry and all runtime informations related
+     * 
+     * @param taskName
+     * @param ownSign
+     * @throws Exception
+     */
+    void removeRunningEntry(String taskName, String ownSign) throws Exception;
+    
+    /**
+     * Get running entry list for task (sorted)
+     * 
+     * @param taskName
+     * @return
+     * @throws Exception
+     */
+    List<String> getRunningEntryList(String taskName) throws Exception;
+    
+    /**
+     * Flag a successful initializing for specific running entry
+     * 
+     * @param taskName
+     * @param ownSign
+     * @param initializerUuid The server who does initializing works
+     * @throws Exception When failed unexpectly
+     */
+    void updateTaskItemsInitialResult(String taskName, String ownSign, String initializerUuid) throws Exception;
+    
+    /**
+     * Get the initializing result of running entry
+     * 
+     * @param taskName
+     * @param ownSign
+     * @return
+     * @throws Exception
+     */
+    InitialResult getInitialRunningInfoResult(String taskName, String ownSign) throws Exception;
+    
+    /**
+     * Do releasing works if possible. (Check if there is a server request execusion)<br>
+     * Called by current owner.
+     * 
+     * @param taskName
+     * @param ownSign
+     * @param ownerUuid
+     * @return How many task items released.
+     * @throws Exception
+     */
+    int releaseTaskItemByOwner(String taskName, String ownSign, String ownerUuid) throws Exception;
 
 }

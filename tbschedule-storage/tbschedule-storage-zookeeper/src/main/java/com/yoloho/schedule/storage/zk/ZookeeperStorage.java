@@ -19,6 +19,7 @@ import org.apache.curator.framework.state.ConnectionStateListener;
 import org.apache.curator.retry.RetryForever;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.ZooDefs;
+import org.apache.zookeeper.KeeperException.NoNodeException;
 import org.apache.zookeeper.ZooDefs.Ids;
 import org.apache.zookeeper.data.ACL;
 import org.apache.zookeeper.data.Id;
@@ -43,7 +44,6 @@ import com.yoloho.schedule.types.Task;
 import com.yoloho.schedule.types.TaskItem;
 import com.yoloho.schedule.types.TaskItemRuntime;
 import com.yoloho.schedule.util.DataVersion;
-import com.yoloho.schedule.util.ScheduleUtil;
 
 public class ZookeeperStorage implements IStorage {
     private static final Logger logger = LoggerFactory.getLogger(ZookeeperStorage.class.getSimpleName());
@@ -53,6 +53,16 @@ public class ZookeeperStorage implements IStorage {
     @Override
     public String getName() {
         return "zookeeper";
+    }
+    
+    @Override
+    public long getSequenceNumber() throws Exception {
+        String path = "/generateSequence$";
+        String newPath = client.create()
+                .withMode(CreateMode.EPHEMERAL_SEQUENTIAL)
+                .forPath(path);
+        client.delete().forPath(newPath);
+        return NumberUtils.toLong(newPath.substring(newPath.lastIndexOf('$') + 1));
     }
     
     private void checkParent() throws Exception {
@@ -197,26 +207,50 @@ public class ZookeeperStorage implements IStorage {
         return false;
     }
     
+    /**
+     * The algorithm:
+     * <pre>
+     * /root -> /root   -> /root     -> /root     (sort) /root
+     *          /root/a    /root/a      /root/a          /root/a
+     *          /root/b    /root/b      /root/b          /root/a/c
+     *                     /root/a/c    /root/a/c        /root/a/d
+     *                     /root/a/d    /root/a/d        /root/b
+     *                                  /root/b/e        /root/b/e
+     */
     @Override
     public String dump() throws Exception {
-        StringBuilder builder = new StringBuilder();
         List<Pair<String, String>> pathList = new ArrayList<>(1);
         byte[] data = client.getData().forPath("/");
         pathList.add(Pair.of("/", data == null ? "" : new String(data)));
         int cur = 0;
+        // rolling get & list & append to tail
         while (cur < pathList.size()) {
-            String basePath = pathList.get(cur).getLeft();
-            List<String> list = client.getChildren().forPath(basePath);
-            if (!basePath.endsWith("/")) {
-                basePath += "/";
-            }
-            for (String child : list) {
-                String p = basePath + child;
-                data = client.getData().forPath(p);
-                pathList.add(cur + 1, Pair.of(p, data == null ? "" : new String(data)));
+            try {
+                String basePath = pathList.get(cur).getLeft();
+                List<String> list = client.getChildren().forPath(basePath);
+                if (!basePath.endsWith("/")) {
+                    basePath += "/";
+                }
+                for (String child : list) {
+                    try {
+                        String p = basePath + child;
+                        data = client.getData().forPath(p);
+                        pathList.add(Pair.of(p, data == null ? "" : new String(data)));
+                    } catch (NoNodeException e) {
+                        // ignore
+                        continue;
+                    }
+                }
+            } catch (NoNodeException e) {
+                // ignore
+                continue;
             }
             cur ++;
         }
+        // sort
+        Collections.sort(pathList);
+        // join into a string
+        StringBuilder builder = new StringBuilder();
         for (Pair<String, String> pair : pathList) {
             if (builder.length() > 0) {
                 builder.append("\n");
@@ -368,16 +402,7 @@ public class ZookeeperStorage implements IStorage {
     }
     
     @Override
-    public void cleanTaskRunningInfo(String taskName) throws Exception {
-        List<String> list = getRunningEntryList(taskName);
-        for (String runningEntry : list) {
-            String ownSign = ScheduleUtil.ownsignFromRunningEntry(runningEntry);
-            cleanTaskRunningInfo(taskName, ownSign);
-        }
-    }
-    
-    @Override
-    public void cleanTaskRunningInfo(String taskName, String ownSign) throws Exception {
+    public void removeRunningEntry(String taskName, String ownSign) throws Exception {
         client.delete().deletingChildrenIfNeeded().forPath(PathUtil.runningEntryPath(taskName, ownSign));
     }
     
@@ -410,28 +435,13 @@ public class ZookeeperStorage implements IStorage {
     }
     
     @Override
-    public void initTaskRunningInfo(String taskName, String ownSign) {
+    public void emptyRunningEntry(String taskName, String ownSign) throws Exception {
         String path = PathUtil.runningEntryPath(taskName, ownSign);
         String taskItemPath = PathUtil.taskItemBasePath(taskName, ownSign);
-        try {
-            if (exist(taskItemPath)) {
-                client.delete().deletingChildrenIfNeeded().forPath(taskItemPath);
-            }
-            createIfNotExist(path);
-        } catch (Exception e) {
+        if (exist(taskItemPath)) {
+            client.delete().deletingChildrenIfNeeded().forPath(taskItemPath);
         }
-    }
-    
-    @Override
-    public boolean isInitialRunningInfoSuccess(String taskName, String ownSign) throws Exception {
-        List<ScheduleServer> serverList = getServerList(taskName, ownSign);
-        List<String> uuidList = new ArrayList<>(serverList.size());
-        for (ScheduleServer server : serverList) {
-            uuidList.add(server.getUuid());
-        }
-        String leader = ScheduleUtil.getLeader(uuidList);
-        InitialResult result = getInitialRunningInfoResult(taskName, ownSign);
-        return result != null && StringUtils.equals(result.getUuid(), leader);
+        createIfNotExist(path);
     }
     
     @Override
@@ -449,7 +459,8 @@ public class ZookeeperStorage implements IStorage {
     }
     
     @Override
-    public void setInitialRunningInfoSuccess(String taskName, String ownSign, String uuid) throws Exception {
+    public void updateTaskItemsInitialResult(String taskName, String ownSign, 
+            String initializerUuid) throws Exception {
         String taskItemPath = PathUtil.taskItemBasePath(taskName, ownSign);
         InitialResult result = getInitialRunningInfoResult(taskName, ownSign);
         if (result == null) {
@@ -457,12 +468,12 @@ public class ZookeeperStorage implements IStorage {
         }
         result.setVersion(result.getVersion() + 1);
         result.setUpdateTime(getGlobalTime());
-        result.setUuid(uuid);
+        result.setUuid(initializerUuid);
         replaceNode(taskItemPath, JSON.toJSONString(result));
     }
     
     @Override
-    public void initTaskItemsRunningInfo(String taskName, String ownSign, String uuid) throws Exception {
+    public void initTaskItems(String taskName, String ownSign) throws Exception {
         Task task = getTask(taskName);
         if (task != null) {
             // init task items
@@ -475,7 +486,6 @@ public class ZookeeperStorage implements IStorage {
                 createIfNotExist(itemPath + "/req_server");
                 replaceNode(itemPath + "/parameter", define.getParameter());
             }
-            setInitialRunningInfoSuccess(taskName, ownSign, uuid);
         }
     }
     
@@ -494,7 +504,7 @@ public class ZookeeperStorage implements IStorage {
     }
     
     @Override
-    public List<TaskItemRuntime> getRunningTaskItems(String taskName, String ownSign) throws Exception {
+    public List<TaskItemRuntime> getTaskItems(String taskName, String ownSign) throws Exception {
         String path = PathUtil.taskItemBasePath(taskName, ownSign);
         if (!exist(path)) {
             return Collections.emptyList();
@@ -515,16 +525,19 @@ public class ZookeeperStorage implements IStorage {
             item.setTaskItem(name);
             result.add(item);
         }
+        if (!result.isEmpty()) {
+            Collections.sort(result, COMPARATOR_TASK_ITEM_RUNTIME);
+        }
         return result;
     }
     
     @Override
-    public int releaseTaskItemByServer(String taskName, String ownSign, String uuid) throws Exception {
-        List<TaskItemRuntime> items = getRunningTaskItems(taskName, ownSign);
+    public int releaseTaskItemByOwner(String taskName, String ownSign, String ownerUuid) throws Exception {
+        List<TaskItemRuntime> items = getTaskItems(taskName, ownSign);
         int released = 0;
         for (TaskItemRuntime item : items) {
             if (StringUtils.isNotEmpty(item.getCurrentScheduleServer()) && StringUtils.isNotEmpty(item.getRequestScheduleServer())) {
-                if (StringUtils.equals(item.getCurrentScheduleServer(), uuid)) {
+                if (StringUtils.equals(item.getCurrentScheduleServer(), ownerUuid)) {
                     String path = PathUtil.taskItemPath(taskName, ownSign, item.getTaskItem());
                     client.setData().forPath(path + "/req_server", "".getBytes());
                     client.setData().forPath(path + "/cur_server", item.getRequestScheduleServer().getBytes());
@@ -557,7 +570,7 @@ public class ZookeeperStorage implements IStorage {
     }
     
     @Override
-    public long getAllServerReload(String taskName, String ownSign) throws Exception {
+    public long getServerSchedulingVersion(String taskName, String ownSign) throws Exception {
         String path = PathUtil.serverBasePath(taskName, ownSign);
         byte[] data = client.getData().forPath(path);
         if (data == null) {
@@ -567,55 +580,48 @@ public class ZookeeperStorage implements IStorage {
     }
     
     @Override
-    public void requestAllServerReload(String taskName, String ownSign) throws Exception {
+    public void increaseServerSchedulingVersion(String taskName, String ownSign) throws Exception {
         String path = PathUtil.serverBasePath(taskName, ownSign);
-        long version = getAllServerReload(taskName, ownSign);
+        long version = getServerSchedulingVersion(taskName, ownSign);
         client.setData().forPath(path, String.valueOf(version + 1).getBytes());
     }
     
     @Override
     public List<String> getServerUuidList(String taskName, String ownSign) throws Exception {
-        List<ScheduleServer> serverList = getServerList(taskName, ownSign);
-        List<String> uuidList = new ArrayList<>(serverList.size());
-        for (ScheduleServer server : serverList) {
-            uuidList.add(server.getUuid());
+        String path = PathUtil.serverBasePath(taskName, ownSign);
+        if (!exist(path)) {
+            return Collections.emptyList();
         }
-        return uuidList;
+        List<String> list = client.getChildren().forPath(path);
+        if (list == null || list.isEmpty()) {
+            return Collections.emptyList();
+        }
+        Collections.sort(list, COMPARATOR_UUID);
+        return list;
     }
     
     @Override
-    public void unregisterServer(String taskName, String ownSign, String uuid) throws Exception {
-        String path = PathUtil.serverPath(taskName, ownSign, uuid);
+    public void removeServer(String taskName, String ownSign, String serverUuid) throws Exception {
+        String path = PathUtil.serverPath(taskName, ownSign, serverUuid);
         if (exist(path)) {
             client.delete().forPath(path);
         }
     }
     
     @Override
-    public boolean heartbeatServer(ScheduleServer server) throws Exception {
+    public boolean updateServer(ScheduleServer server) throws Exception {
         String taskName = server.getTaskName();
         String ownSign = server.getOwnSign();
         String path = PathUtil.serverPath(taskName, ownSign, server.getUuid());
         if (!exist(path)) {
             return false;
         }
-        Timestamp oldHeartBeat = server.getHeartBeatTime();
-        Timestamp heartBeatTime = new Timestamp(getGlobalTime());
-        server.setHeartBeatTime(heartBeatTime);
-        server.setVersion(server.getVersion() + 1);
-        try {
-            client.setData().forPath(path, JSON.toJSONString(server).getBytes());
-            return true;
-        } catch (Exception e) {
-            logger.warn("Sending heartbeat failed", e);
-            server.setHeartBeatTime(oldHeartBeat);
-            server.setVersion(server.getVersion() - 1);
-            return false;
-        }
+        client.setData().forPath(path, JSON.toJSONString(server).getBytes());
+        return true;
     }
     
     @Override
-    public void registerServer(ScheduleServer server) throws Exception {
+    public void createServer(ScheduleServer server) throws Exception {
         Preconditions.checkArgument(StringUtils.isNotEmpty(server.getUuid()));
         String taskName = server.getTaskName();
         String ownSign = server.getOwnSign();
@@ -629,34 +635,20 @@ public class ZookeeperStorage implements IStorage {
     }
     
     @Override
-    public List<ScheduleServer> getServerList(String taskName, String ownSign) throws Exception {
-        String path = PathUtil.serverBasePath(taskName, ownSign);
-        List<ScheduleServer> result = new ArrayList<>();
+    public ScheduleServer getServer(String taskName, String ownSign, String serverUuid) throws Exception {
+        String path = PathUtil.serverPath(taskName, ownSign, serverUuid);
         if (!exist(path)) {
-            return result;
+            return null;
         }
-        List<String> list = client.getChildren().forPath(path);
-        if (list == null || list.isEmpty()) {
-            return result;
+        String json = new String(client.getData().forPath(path));
+        if (StringUtils.isEmpty(json))
+            return null;
+        try {
+            return JSON.parseObject(json, ScheduleServer.class);
+        } catch (Exception e) {
+            logger.warn("Get server info error", e);
         }
-        Collections.sort(list, new Comparator<String>() {
-            public int compare(String u1, String u2) {
-                return u1.substring(u1.lastIndexOf("$") + 1).compareTo(u2.substring(u2.lastIndexOf("$") + 1));
-            }
-        });
-        for (String name : list) {
-            try {
-                String json = new String(client.getData().forPath(PathUtil.serverPath(taskName, ownSign, name)));
-                if (StringUtils.isEmpty(json))
-                    continue;
-                ScheduleServer server = JSON.parseObject(json, ScheduleServer.class);
-                server.setCenterServerTime(new Timestamp(getGlobalTime()));
-                result.add(server);
-            } catch (Exception e) {
-                logger.warn("Get server info error", e);
-            }
-        }
-        return result;
+        return null;
     }
     
     @Override
@@ -748,7 +740,7 @@ public class ZookeeperStorage implements IStorage {
     }
     
     @Override
-    public List<String> getFactoryNames() throws Exception {
+    public List<String> getFactoryUuidList() throws Exception {
         String path = PathUtil.factoryBasePath();
         if (!exist(path)) {
             return Collections.emptyList();
@@ -757,35 +749,8 @@ public class ZookeeperStorage implements IStorage {
         if (list == null || list.isEmpty()) {
             return Collections.emptyList();
         }
-        Collections.sort(list, new Comparator<String>(){
-            public int compare(String u1, String u2) {
-                return u1.substring(u1.lastIndexOf("$") + 1).compareTo(
-                        u2.substring(u2.lastIndexOf("$") + 1));
-            }
-        });
+        Collections.sort(list, COMPARATOR_UUID);
         return list;
-    }
-    
-    @Override
-    public String generateServerUUID(String taskName, String ownSign, String uniqueId) throws Exception {
-        String path = PathUtil.serverPath(taskName, ownSign, uniqueId);
-        String newPath = client.create()
-                .creatingParentsIfNeeded()
-                .withMode(CreateMode.EPHEMERAL_SEQUENTIAL)
-                .forPath(path);
-        client.delete().forPath(newPath);
-        return newPath.substring(newPath.lastIndexOf('/') + 1);
-    }
-    
-    @Override
-    public String generateFactoryUUID(String uniqueId) throws Exception {
-        String path = PathUtil.factoryPath(uniqueId);
-        String newPath = client.create()
-                .creatingParentsIfNeeded()
-                .withMode(CreateMode.EPHEMERAL_SEQUENTIAL)
-                .forPath(path);
-        client.delete().forPath(newPath);
-        return newPath.substring(newPath.lastIndexOf('/') + 1);
     }
     
     @Override
@@ -811,9 +776,8 @@ public class ZookeeperStorage implements IStorage {
                         if (!exist(zkPath)) {
                             StrategyRuntime runtime = new StrategyRuntime();
                             runtime.setStrategyName(strategyName);
-                            runtime.setUuid(factory.getUuid());
+                            runtime.setFactoryUuid(factory.getUuid());
                             runtime.setRequestNum(0);
-                            runtime.setMessage("");
                             client.create().withMode(CreateMode.EPHEMERAL).forPath(zkPath, JSON.toJSONString(runtime).getBytes());
                         }
                         isFind = true;
@@ -832,7 +796,7 @@ public class ZookeeperStorage implements IStorage {
     }
     
     @Override
-    public List<StrategyRuntime> getStrategyRuntimes(String strategyName) throws Exception {
+    public List<StrategyRuntime> getRuntimesOfStrategy(String strategyName) throws Exception {
         String path = PathUtil.strategyPath(strategyName);
         List<String> list = client.getChildren().forPath(path);
         if (list == null || list.isEmpty()) {
@@ -866,7 +830,7 @@ public class ZookeeperStorage implements IStorage {
         }
         try {
             StrategyRuntime runtime = JSON.parseObject(json, StrategyRuntime.class);
-            Preconditions.checkArgument(StringUtils.isNotEmpty(runtime.getUuid()), "Factory UUID of runtime is empty");
+            Preconditions.checkArgument(StringUtils.isNotEmpty(runtime.getFactoryUuid()), "Factory UUID of runtime is empty");
             Preconditions.checkArgument(StringUtils.isNotEmpty(runtime.getStrategyName()), "Strategy name of runtime is empty");
             return runtime;
         } catch (Exception e) {
@@ -875,10 +839,10 @@ public class ZookeeperStorage implements IStorage {
     }
     
     @Override
-    public void updateStrategyRuntime(StrategyRuntime runtime) throws Exception {
-        Preconditions.checkArgument(StringUtils.isNotEmpty(runtime.getUuid()), "Factory UUID of runtime is empty");
+    public void updateRuntimeOfStrategy(StrategyRuntime runtime) throws Exception {
+        Preconditions.checkArgument(StringUtils.isNotEmpty(runtime.getFactoryUuid()), "Factory UUID of runtime is empty");
         Preconditions.checkArgument(StringUtils.isNotEmpty(runtime.getStrategyName()), "Strategy name of runtime is empty");
-        String path = PathUtil.factoryForStrategyPath(runtime.getStrategyName(), runtime.getUuid());
+        String path = PathUtil.factoryForStrategyPath(runtime.getStrategyName(), runtime.getFactoryUuid());
         replaceNode(path, JSON.toJSONString(runtime));
     }
 }

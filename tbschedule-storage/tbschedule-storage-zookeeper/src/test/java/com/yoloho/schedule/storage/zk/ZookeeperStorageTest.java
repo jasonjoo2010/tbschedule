@@ -42,6 +42,13 @@ public class ZookeeperStorageTest {
     }
     
     @Test
+    public void sequence() throws Exception {
+        long s0 = this.storage.getSequenceNumber();
+        long s1 = this.storage.getSequenceNumber();
+        assertTrue(s0 < s1);
+    }
+    
+    @Test
     public void task() throws Exception {
         String taskName = "task1";
         
@@ -68,8 +75,8 @@ public class ZookeeperStorageTest {
         this.storage.updateTask(task);
         
         // running entry
-        this.storage.initTaskRunningInfo(taskName, null);
-        this.storage.initTaskRunningInfo(taskName, "test");
+        this.storage.emptyRunningEntry(taskName, null);
+        this.storage.emptyRunningEntry(taskName, "test");
         List<String> entryList = this.storage.getRunningEntryList(taskName);
         assertNotNull(entryList);
         assertEquals(2, entryList.size());

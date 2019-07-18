@@ -6,7 +6,7 @@ BIN_DIR=`pwd`
 cd ..
 DEPLOY_DIR=`pwd`
 CONF_DIR=$DEPLOY_DIR/conf
-MAIN_CLASS=com.taobao.pamirs.schedule.console.Launcher
+MAIN_CLASS=com.yoloho.schedule.console.Launcher
 MEM_MAX=128m
 MEM_MN=64m
 SERVER_PORT=8080

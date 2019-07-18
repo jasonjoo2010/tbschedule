@@ -1,8 +1,6 @@
 package com.yoloho.schedule.processor;
 
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
@@ -12,6 +10,7 @@ import org.slf4j.LoggerFactory;
 import com.yoloho.schedule.ScheduleManagerFactory;
 import com.yoloho.schedule.interfaces.IStorage;
 import com.yoloho.schedule.types.TaskItemRuntime;
+import com.yoloho.schedule.types.InitialResult;
 import com.yoloho.schedule.types.ScheduleServer;
 import com.yoloho.schedule.types.TaskItem;
 import com.yoloho.schedule.util.ScheduleUtil;
@@ -30,26 +29,36 @@ public class ScheduleManagerStatic extends AbstractScheduleManager {
      */
     private long lastReloadTaskItemListTime = 0;
     private final Object NeedReloadTaskItemLock = new Object();
+    private boolean isRuntimeInfoInitial = false;
 
     public ScheduleManagerStatic(ScheduleManagerFactory factory, String taskName, String ownSign,
             IStorage storage) throws Exception {
         super(factory, taskName, ownSign, storage);
     }
 
-    public void initialRunningInfo() throws Exception {
+    private void initialRunningInfo() throws Exception {
+        // Any node can do cleaning work
         cleanExpiredServer(getTask().getJudgeDeadInterval());
         if (isLeader()) {
-            // 是第一次启动，先清所有的垃圾数据
-            this.storage.initTaskRunningInfo(this.currentServer().getTaskName(),
+            // Only leader can initialize things
+            this.storage.emptyRunningEntry(this.currentServer().getTaskName(),
                     this.currentServer().getOwnSign());
-            this.storage.initTaskItemsRunningInfo(this.currentServer().getTaskName(),
+            this.storage.initTaskItems(this.currentServer().getTaskName(),
+                    this.currentServer().getOwnSign());
+            this.storage.updateTaskItemsInitialResult(this.currentServer().getTaskName(),
                     this.currentServer().getOwnSign(), this.currentServer().getUuid());
         }
+    }
+    
+    private boolean isInitialRunningInfoSuccess(String taskName, String ownSign) throws Exception {
+        List<String> serverUuidList = this.storage.getServerUuidList(taskName, ownSign);
+        String leader = ScheduleUtil.getLeader(serverUuidList);
+        InitialResult result = this.storage.getInitialRunningInfoResult(taskName, ownSign);
+        return result != null && StringUtils.equals(result.getUuid(), leader);
     }
 
     public void initial() throws Exception {
         new Thread(this.currentServer().getRunningEntry() + "-" + this.currentSerialNumber + "-StartProcess") {
-            @SuppressWarnings("static-access")
             public void run() {
                 try {
                     logger.info("Fetching task items for {}", currentServer().getUuid());
@@ -61,7 +70,7 @@ public class ScheduleManagerStatic extends AbstractScheduleManager {
                         //logger.info("isRuntimeInfoInitial={}", isRuntimeInfoInitial);
                         try {
                             initialRunningInfo();
-                            isRuntimeInfoInitial = storage.isInitialRunningInfoSuccess(
+                            isRuntimeInfoInitial = isInitialRunningInfoSuccess(
                                     currentServer().getTaskName(), currentServer().getOwnSign());
                         } catch (Throwable e) {
                             // ignore exceptions and retry
@@ -79,7 +88,7 @@ public class ScheduleManagerStatic extends AbstractScheduleManager {
                             return;
                         }
                         //logger.info("Try to fetch any task item: {}", count) ;
-                        Thread.currentThread().sleep(1000);
+                        Thread.sleep(1000);
                         count = count + 1;
                     }
                     String tmpStr = "TaskItemDefine:";
@@ -92,7 +101,7 @@ public class ScheduleManagerStatic extends AbstractScheduleManager {
                     logger.info("Got task item(s), begin to schedule {} of {}", tmpStr, currentServer().getUuid());
 
                     // 任务总量
-                    taskItemCount = storage.getRunningTaskItems(currentServer().getTaskName(),
+                    taskItemCount = storage.getTaskItems(currentServer().getTaskName(),
                             currentServer().getOwnSign()).size();
                     // 只有在已经获取到任务处理队列后才开始启动任务处理器
                     computerStart();
@@ -165,7 +174,7 @@ public class ScheduleManagerStatic extends AbstractScheduleManager {
 	 * @throws Exception
 	 */
 	private boolean isNeedReLoadTaskItemList() throws Exception{
-        return this.lastFetchVersion < this.storage.getAllServerReload(this.currentServer().getTaskName(),
+        return this.lastFetchVersion < this.storage.getServerSchedulingVersion(this.currentServer().getTaskName(),
                 this.currentServer().getOwnSign());
 	}
 	
@@ -177,12 +186,17 @@ public class ScheduleManagerStatic extends AbstractScheduleManager {
      * @return
      * @throws Exception
      */
-    private boolean isExistZombieServ(String runningEntry, List<ScheduleServer> serverList) throws Exception {
+    private boolean isExistZombieServ(String taskName, String ownSign, List<String> uuidList) throws Exception {
         boolean exist = false;
-        for (ScheduleServer server : serverList) {
+        for (String uuid : uuidList) {
+            ScheduleServer server = this.storage.getServer(taskName, ownSign, uuid);
+            if (server == null) {
+                continue;
+            }
             if (this.storage.getGlobalTime()
                     - server.getHeartBeatTime().getTime() > getTask().getHeartBeatRate() * 40) {
-                logger.error("Detect zombie server! server={}, type={}", server.getUuid(), runningEntry);
+                logger.error("Detect zombie server! server={}, task={}, ownsign={}", 
+                        server.getUuid(), taskName, ownSign);
                 exist = true;
             }
         }
@@ -200,7 +214,7 @@ public class ScheduleManagerStatic extends AbstractScheduleManager {
     private int clearTaskItemsHeldByInvalidServer() throws Exception {
         List<String> uuidList = this.storage.getServerUuidList(this.currentServer().getTaskName(),
                 this.currentServer().getOwnSign());
-        List<TaskItemRuntime> taskItemList = this.storage.getRunningTaskItems(currentServer().getTaskName(),
+        List<TaskItemRuntime> taskItemList = this.storage.getTaskItems(currentServer().getTaskName(),
                 currentServer().getOwnSign());
         int result = 0;
         for (TaskItemRuntime item : taskItemList) {
@@ -229,7 +243,7 @@ public class ScheduleManagerStatic extends AbstractScheduleManager {
         String currentUuid = currentServer().getUuid();
         //设置初始化成功标准，避免在leader转换的时候，新增的线程组初始化失败
         // flag success first
-        this.storage.setInitialRunningInfoSuccess(taskName, ownSign, currentUuid);
+        this.storage.updateTaskItemsInitialResult(taskName, ownSign, currentUuid);
         if (logger.isDebugEnabled()) {
             logger.debug("{}: Begin to distribute task", currentUuid);
         }
@@ -237,25 +251,7 @@ public class ScheduleManagerStatic extends AbstractScheduleManager {
             // 在服务器动态调整的时候，可能出现服务器列表为空的清空
             return;
         }
-        List<TaskItemRuntime> taskItemList = this.storage.getRunningTaskItems(taskName, ownSign);
-        // 20150323 有些任务分片，业务方其实是用数字的字符串排序的。优先以数字进行排序，否则以字符串排序
-        Collections.sort(taskItemList, new Comparator<TaskItemRuntime>() {
-            public int compare(TaskItemRuntime u1, TaskItemRuntime u2) {
-                if (StringUtils.isNumeric(u1.getTaskItem()) && StringUtils.isNumeric(u2.getTaskItem())) {
-                    int iU1 = Integer.parseInt(u1.getTaskItem());
-                    int iU2 = Integer.parseInt(u2.getTaskItem());
-                    if (iU1 == iU2) {
-                        return 0;
-                    } else if (iU1 > iU2) {
-                        return 1;
-                    } else {
-                        return -1;
-                    }
-                } else {
-                    return u1.getTaskItem().compareTo(u2.getTaskItem());
-                }
-            }
-        });
+        List<TaskItemRuntime> taskItemList = this.storage.getTaskItems(taskName, ownSign);
         int unModifyCount = 0;
         int[] taskNums = ScheduleUtil.generateSequence(serverList.size(), taskItemList.size(), maxNumOfOneServer);
         int point = 0;
@@ -285,14 +281,7 @@ public class ScheduleManagerStatic extends AbstractScheduleManager {
 
         if (unModifyCount < taskItemList.size()) { // reload configuration
             logger.info("Request all nodes to reload configuration on {}${}, currentUuid {}", taskName, ownSign, currentUuid);
-            this.storage.requestAllServerReload(taskName, ownSign);
-        }
-        if (logger.isDebugEnabled()) {
-            StringBuffer buffer = new StringBuffer();
-            for (TaskItemRuntime taskItem : this.storage.getRunningTaskItems(taskName, ownSign)) {
-                buffer.append("\n").append(taskItem.toString());
-            }
-            logger.debug(buffer.toString());
+            this.storage.increaseServerSchedulingVersion(taskName, ownSign);
         }
     }
     
@@ -308,7 +297,7 @@ public class ScheduleManagerStatic extends AbstractScheduleManager {
 	 * 5、根系任务队列的分配信息
 	 * @throws Exception 
 	 */
-	public void assignScheduleTask() throws Exception {
+	private void assignScheduleTask() throws Exception {
 	    cleanExpiredServer(getTask().getJudgeDeadInterval());
 	    if (!isLeader()) {
 	        if (logger.isDebugEnabled()) {
@@ -360,7 +349,7 @@ public class ScheduleManagerStatic extends AbstractScheduleManager {
 	 * @throws Exception
 	 */
 	private List<TaskItem> getTaskItemsShouldScheduled() throws Exception {
-        List<TaskItemRuntime> taskItems = this.storage.getRunningTaskItems(currentServer().getTaskName(),
+        List<TaskItemRuntime> taskItems = this.storage.getTaskItems(currentServer().getTaskName(),
                 currentServer().getOwnSign());
         List<TaskItem> result = new ArrayList<TaskItem>();
         for (TaskItemRuntime item : taskItems) {
@@ -376,10 +365,10 @@ public class ScheduleManagerStatic extends AbstractScheduleManager {
 	 * @throws Exception
 	 */
 	private void releaseTaskItemsIfNeeded() throws Exception {
-        int released = this.storage.releaseTaskItemByServer(currentServer().getTaskName(),
+        int released = this.storage.releaseTaskItemByOwner(currentServer().getTaskName(),
                 currentServer().getOwnSign(), currentServer().getUuid());
         if (released > 0) { // Request to reload
-            this.storage.requestAllServerReload(currentServer().getTaskName(),
+            this.storage.increaseServerSchedulingVersion(currentServer().getTaskName(),
                     currentServer().getOwnSign());
         }
     }
@@ -390,17 +379,17 @@ public class ScheduleManagerStatic extends AbstractScheduleManager {
 		//如果已经稳定了，理论上不需要加载去扫描所有的叶子结点
 		//20151019 by kongxuan.zlj
         try {
-            List<ScheduleServer> serverList = this.storage.getServerList(this.currentServer().getTaskName(),
+            List<String> uuidList = this.storage.getServerUuidList(this.currentServer().getTaskName(),
                     this.currentServer().getOwnSign());
             // server下面的机器节点的运行时环境是否在刷新，如果
-            isExistZombieServ(this.currentServer().getRunningEntry(), serverList);
+            isExistZombieServ(this.currentServer().getTaskName(),
+                    this.currentServer().getOwnSign(), uuidList);
         } catch (Exception e) {
             logger.error("zombie serverList exists", e);
         }
-//		
 		
 		//获取最新的版本号
-        this.lastFetchVersion = this.storage.getAllServerReload(this.currentServer().getTaskName(),
+        this.lastFetchVersion = this.storage.getServerSchedulingVersion(this.currentServer().getTaskName(),
                 this.currentServer().getOwnSign());
         logger.debug("this.currentServer().getTaskType()={},  need reload={}", this.currentServer().getRunningEntry(),
                 isNeedReloadTaskItem);
@@ -452,12 +441,16 @@ public class ScheduleManagerStatic extends AbstractScheduleManager {
 	private int cleanExpiredServer(long expirationInMillis) throws Exception {
 	    String taskName = currentServer().getTaskName();
 	    String ownSign = currentServer().getOwnSign();
-        List<ScheduleServer> list = this.storage.getServerList(taskName, ownSign);
+        List<String> list = this.storage.getServerUuidList(taskName, ownSign);
         long now = this.storage.getGlobalTime();
         int clean_cnt = 0;
-        for (ScheduleServer server : list) {
+        for (String uuid : list) {
+            ScheduleServer server = this.storage.getServer(taskName, ownSign, uuid);
+            if (server == null) {
+                continue;
+            }
             if (now - server.getHeartBeatTime().getTime() > expirationInMillis) {
-                this.storage.unregisterServer(taskName, ownSign, server.getUuid());
+                this.storage.removeServer(taskName, ownSign, server.getUuid());
                 clean_cnt ++;
             }
         }

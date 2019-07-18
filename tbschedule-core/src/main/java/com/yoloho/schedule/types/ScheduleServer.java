@@ -49,11 +49,6 @@ public class ScheduleServer {
 
 	private String nextRunStartTime;
 	private String nextRunEndTime;
-	
-	/**
-	 * 配置中心的当前时间
-	 */
-	private Timestamp centerServerTime;
 
 	/**
 	 * 数据版本号
@@ -147,15 +142,6 @@ public class ScheduleServer {
 
 	public void setHostName(String hostName) {
 		this.hostName = hostName;
-	}
-
-
-	public Timestamp getCenterServerTime() {
-		return centerServerTime;
-	}
-
-	public void setCenterServerTime(Timestamp centerServerTime) {
-		this.centerServerTime = centerServerTime;
 	}
 
 	public String getNextRunStartTime() {

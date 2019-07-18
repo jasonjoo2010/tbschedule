@@ -18,7 +18,7 @@ public class ScheduleManagerDynamic extends AbstractScheduleManager {
     public void initial() throws Exception {
         if (isLeader()) {
             // 是第一次启动，检查对应的数据
-            this.storage.initTaskRunningInfo(this.currentServer().getTaskName(),
+            this.storage.emptyRunningEntry(this.currentServer().getTaskName(),
                     this.currentServer().getOwnSign());
         }
         computerStart();
@@ -26,11 +26,6 @@ public class ScheduleManagerDynamic extends AbstractScheduleManager {
 
     @Override
     public void refreshScheduleServerInfo() throws Exception {
-        throw new Exception("没有实现");
-    }
-
-    @Override
-    public void assignScheduleTask() throws Exception {
         throw new Exception("没有实现");
     }
 

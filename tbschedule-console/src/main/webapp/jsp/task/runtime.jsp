@@ -44,14 +44,14 @@
                </tr>
                <c:forEach items="${strategyMap[info.taskName] }" var="g" varStatus="gs">
         	   <tr class="
-                    <c:if test="${g.centerServerTime.time - g.heartBeatTime.time > taskMap[info.taskName].judgeDeadInterval}"> invalid</c:if>
-                    <c:if test="${g.nextRunStart.time <= now && (g.lastFetchDataTime == null || g.centerServerTime.time - g.lastFetchDataTime.time > taskMap[info.taskName].heartBeatRate * 20)}"> problem</c:if>
+                    <c:if test="${globalTime - g.heartBeatTime.time > taskMap[info.taskName].judgeDeadInterval}"> invalid</c:if>
+                    <c:if test="${g.nextRunStart.time <= now && (g.lastFetchDataTime == null || globalTime - g.lastFetchDataTime.time > taskMap[info.taskName].heartBeatRate * 20)}"> problem</c:if>
                     ">
             	   <td>${gs.index + 1 }</td>
             	   <td nowrap>${g.uuid}</td>
             	   <td>${g.ownSign }</td>	  
             	   <td nowrap>${g.ip }</td>	  
-            	   <td nowrap>${g.hostName }</td>	
+            	   <td nowrap>${g.hostName }</td>
             	   <td>${g.threadNum }</td>	
             	   <td nowrap>${g.registerTime }</td>	
             	   <td nowrap>${g.heartBeatTime }</td>	
@@ -76,18 +76,14 @@
                    <th>Task Item</th>
                    <th>Current ThreadGroup</th>
                    <th>Request ThreadGroup</th>
-                   <th>Status</th>
                    <th>Parameter</th>
-                   <th>Desc</th>
                </tr>
                <c:forEach items="${itemMap[info.runningEntry] }" var="ti" varStatus="is">
         	   <tr>
         	       <td>${ti.taskItem }</td>
             	   <td>${ti.currentScheduleServer == null ? "--" : ti.currentScheduleServer}</td>	   
             	   <td>${ti.requestScheduleServer == null ? "--" : ti.requestScheduleServer}</td>	   
-            	   <td>${ti.sts }</td>
             	   <td>${ti.dealParameter}</td>
-            	   <td>${ti.dealDesc}</td>
         	   </tr>
                </c:forEach>
            </table> 

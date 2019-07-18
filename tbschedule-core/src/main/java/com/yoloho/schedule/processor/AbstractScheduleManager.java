@@ -85,14 +85,14 @@ public abstract class AbstractScheduleManager implements IStrategyTask {
     protected boolean isStopSchedule = false;
     protected Lock registerLock = new ReentrantLock();
     
-    /**
-     * 运行期信息是否初始化成功
-     */
-    protected boolean isRuntimeInfoInitial = false;
-    
     protected IStorage storage;
     
     ScheduleManagerFactory factory;
+    
+    protected abstract void initial() throws Exception;
+    protected abstract void refreshScheduleServerInfo() throws Exception;
+    protected abstract List<TaskItem> getCurrentScheduleTaskItemList();
+    protected abstract int getTaskItemCount();
     
     /**
      * Whether current server is the leader or not
@@ -112,23 +112,23 @@ public abstract class AbstractScheduleManager implements IStrategyTask {
      * @param expireDays 过期时间，以天为单位
      * @throws Exception
      */
-    private void clearExpireTaskTypeRunningInfo(String taskName, double expireDays)
+    private void clearExpireRunningEntryRuntime(String taskName, double expireDays)
             throws Exception {
         List<String> list = this.storage.getRunningEntryList(taskName);
         long diff = (long) (expireDays * 24 * 3600 * 1000);
         long now = this.storage.getGlobalTime();
         for (String runningEntryName : list) {
             String ownSign = ScheduleUtil.ownsignFromRunningEntry(runningEntryName);
-            List<ScheduleServer> serverList = this.storage.getServerList(taskName, ownSign);
+            List<String> serverUuidList = this.storage.getServerUuidList(taskName, ownSign);
             InitialResult result = this.storage.getInitialRunningInfoResult(taskName, ownSign);
-            if (!serverList.isEmpty()) {
+            if (!serverUuidList.isEmpty()) {
                 continue;
             }
             if (result != null && now - result.getUpdateTime() < diff) {
                 continue;
             }
             // expired
-            this.storage.cleanTaskRunningInfo(taskName, ownSign);
+            this.storage.removeRunningEntry(taskName, ownSign);
         }
     }
     
@@ -144,9 +144,11 @@ public abstract class AbstractScheduleManager implements IStrategyTask {
         result.setThreadNum(threadNum);
         result.setDealInfoDesc("INIT");
         result.setVersion(0);
-        String uniqueId = result.getRunningEntry() + "$" + result.getIp() + "$"
-                + (UUID.randomUUID().toString().replaceAll("-", "").toUpperCase()) + "$";
-        result.setUuid(storage.generateServerUUID(taskName, ownSign, uniqueId));
+        result.setUuid(String.format("%s$%s$%s$%010d", 
+                result.getRunningEntry(),
+                result.getIp(),
+                UUID.randomUUID().toString().replaceAll("-", "").toUpperCase(),
+                this.storage.getSequenceNumber()));
         return result;
     }
 
@@ -158,7 +160,7 @@ public abstract class AbstractScheduleManager implements IStrategyTask {
         this.task = this.storage.getTask(taskName);
         logger.info("create TBScheduleManager for task: {}({})", taskName, ownSign);
 		//清除已经过期1天的TASK,OWN_SIGN的组合。超过一天没有活动server的视为过期
-        clearExpireTaskTypeRunningInfo(taskName, this.task.getExpireOwnSignInterval());
+        clearExpireRunningEntryRuntime(taskName, this.task.getExpireOwnSignInterval());
 
         Object dealBean = factory.getBean(this.task.getDealBeanName());
         if (dealBean == null) {
@@ -177,23 +179,13 @@ public abstract class AbstractScheduleManager implements IStrategyTask {
         this.currentServer = createServer(getGlobalTime(), taskName, ownSign, this.task.getThreadNumber());
         Preconditions.checkArgument(StringUtils.isNotEmpty(this.currentServer.getUuid()));
         this.currentServer.setManagerFactoryUUID(this.factory.getUuid());
-        this.storage.registerServer(this.currentServer);
+        this.storage.createServer(this.currentServer);
         this.heartBeatTimer = new Timer(
                 this.currentServer.getRunningEntry() + "-" + this.currentSerialNumber + "-heartbeat");
-        this.heartBeatTimer.schedule(new HeartBeatTimerTask(this), new java.util.Date(System.currentTimeMillis() + 300),
+        this.heartBeatTimer.schedule(new ManagerHeartBeatTask(this), new java.util.Date(System.currentTimeMillis() + 300),
                 this.task.getHeartBeatRate());
         initial();
 	}  
-	/**
-	 * 对象创建时需要做的初始化工作
-	 * 
-	 * @throws Exception
-	 */
-	public abstract void initial() throws Exception;
-	public abstract void refreshScheduleServerInfo() throws Exception;
-	public abstract void assignScheduleTask() throws Exception;
-	public abstract List<TaskItem> getCurrentScheduleTaskItemList();
-	public abstract int getTaskItemCount();
 	
 	@Override
     public void initialTaskParameter(String strategyName, String taskParameter) {
@@ -238,21 +230,35 @@ public abstract class AbstractScheduleManager implements IStrategyTask {
         try {
             if (this.isStopSchedule == true) {
                 if (logger.isDebugEnabled()) {
-                    logger.debug("外部命令终止调度,不在注册调度服务，避免遗留垃圾数据：" + currentServer.getUuid());
+                    logger.debug("Heartbeat will stop due to stop flag is set: {}", currentServer.getUuid());
                 }
                 return;
             }
-            // 先发送心跳信息
+            // heartbeat
             if (startErrorInfo == null) {
-                this.currentServer
-                        .setDealInfoDesc(this.pauseMessage + ":" + this.statisticsInfo.getDealDescription());
+                this.currentServer.setDealInfoDesc(String.format("%s:%s",
+                        this.pauseMessage,
+                        this.statisticsInfo.getDealDescription()
+                        ));
             } else {
                 this.currentServer.setDealInfoDesc(startErrorInfo);
             }
-            if (!this.storage.heartbeatServer(this.currentServer)) {
-                // 更新信息失败，清除内存数据后重新注册
-                this.clearMemoInfo();
-                this.storage.registerServer(this.currentServer);
+            Timestamp newHeartBeat = new Timestamp(getGlobalTime());
+            Timestamp oldHeartBeat = this.currentServer.getHeartBeatTime();
+            long oldVersion = this.currentServer.getVersion();
+            this.currentServer.setHeartBeatTime(newHeartBeat);
+            this.currentServer.setVersion(oldVersion + 1);
+            try {
+                if (!this.storage.updateServer(this.currentServer)) {
+                    // Update failed, maybe not existed
+                    this.clearMemoInfo();
+                    this.storage.createServer(this.currentServer);
+                }
+            } catch (Exception e) {
+                // Ignore the exception
+                logger.warn("Sending heartbeat failed, ignore", e);
+                this.currentServer.setHeartBeatTime(oldHeartBeat);
+                this.currentServer.setVersion(oldVersion);
             }
         } finally {
             registerLock.unlock();
@@ -263,7 +269,7 @@ public abstract class AbstractScheduleManager implements IStrategyTask {
 	 * 开始的时候，计算第一次执行时间
 	 * @throws Exception
 	 */
-    public void computerStart() throws Exception{
+    protected void computerStart() throws Exception{
     	//只有当存在可执行队列后再开始启动队列
         boolean isRunNow = false;
         if (this.task.getPermitRunStartTime() == null) {
@@ -405,7 +411,7 @@ public abstract class AbstractScheduleManager implements IStrategyTask {
             // 取消心跳TIMER
             this.heartBeatTimer.cancel();
             // 从配置中心注销自己
-            this.storage.unregisterServer(this.currentServer.getTaskName(),
+            this.storage.removeServer(this.currentServer.getTaskName(),
                     this.currentServer.getOwnSign(), this.currentServer.getUuid());
         } finally {
             registerLock.unlock();

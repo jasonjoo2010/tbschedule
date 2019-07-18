@@ -28,8 +28,9 @@ class PauseOrResumeScheduleTask extends java.util.TimerTask {
 
     public void run() {
         try {
+            int priority = Thread.currentThread().getPriority();
             Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
-            this.cancel();// 取消调度任务
+            cancel();
             Date current = new Date(System.currentTimeMillis());
             CronExpression cexp = new CronExpression(this.cronTabExpress);
             Date nextTime = cexp.getNextValidTimeAfter(current);
@@ -40,6 +41,8 @@ class PauseOrResumeScheduleTask extends java.util.TimerTask {
                 manager.resume("到达开始时间,resume调度");
                 this.manager.currentServer().setNextRunStartTime(ScheduleUtil.dataToString(nextTime));
             }
+            // reset priority
+            Thread.currentThread().setPriority(priority);
             this.timer.schedule(new PauseOrResumeScheduleTask(this.manager, this.timer, this.type, this.cronTabExpress),
                     nextTime);
         } catch (Throwable ex) {

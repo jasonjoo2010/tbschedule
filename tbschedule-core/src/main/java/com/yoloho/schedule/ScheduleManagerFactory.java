@@ -33,7 +33,7 @@ import com.yoloho.schedule.types.StrategyRuntime;
 import com.yoloho.schedule.util.ScheduleUtil;
 
 /**
- * 调度服务器构造器
+ * The Global Schedule Factory
  * 
  * @author xuannan
  * 
@@ -196,9 +196,7 @@ public class ScheduleManagerFactory implements ApplicationContextAware {
         try {
             // generate uuid if needed
             if (StringUtils.isEmpty(getUuid())) {
-                String uniqueId = getIp() + "$" + getHostName() + "$"
-                        + UUID.randomUUID().toString().replace("-", "").toUpperCase() + "$";
-                setUuid(storage.generateFactoryUUID(uniqueId));
+                setUuid(generateUUID());
             }
             Preconditions.checkArgument(StringUtils.isNotEmpty(getUuid()));
             // Register node to storage
@@ -292,13 +290,28 @@ public class ScheduleManagerFactory implements ApplicationContextAware {
             unlock();
         }
     }
+    
+    /**
+     * Generate factory id according the logical unique string
+     * <p>
+     * Generally a sequence number will be appended used to be sorted<br>
+     * eg. str -> str000001
+     * <p>
+     * Logical unique string is a string identifier that should be unique in logic layer.<br>
+     * Generator (By calling this function) should append it by a sequence number to:<br><br>
+     * 1. Make it unique globally.<br>
+     * 2. Make it sorted meaningfully.<br>
+     */
+    private String generateUUID() throws Exception {
+        return String.format("%s$%s$%s$%010d", getIp(), getHostName(), 
+                UUID.randomUUID().toString().replace("-", "").toUpperCase(),
+                getStorage().getSequenceNumber());
+    }
 
     private void reRegisterFactory() throws Exception {
         // generate uuid
         if (StringUtils.isEmpty(getUuid())) {
-            String uniqueId = getIp() + "$" + getHostName() + "$"
-                    + UUID.randomUUID().toString().replace("-", "").toUpperCase() + "$";
-            setUuid(storage.generateFactoryUUID(uniqueId));
+            setUuid(generateUUID());
         }
         Preconditions.checkArgument(StringUtils.isNotEmpty(getUuid()));
         List<String> stopList = this.storage.registerFactory(this);
@@ -340,7 +353,7 @@ public class ScheduleManagerFactory implements ApplicationContextAware {
 	 */
     private void assignScheduleServer() throws Exception {
         for (StrategyRuntime run : getStrategyListInCurrentFactory()) {
-            List<StrategyRuntime> factoryList = this.storage.getStrategyRuntimes(run.getStrategyName());
+            List<StrategyRuntime> factoryList = this.storage.getRuntimesOfStrategy(run.getStrategyName());
             if (factoryList.size() == 0 || this.isLeader(this.uuid, factoryList) == false) {
                 // This node is not a leader in the factory group
                 continue;
@@ -380,7 +393,7 @@ public class ScheduleManagerFactory implements ApplicationContextAware {
             for (int i = 0; i < factoryList.size(); i++) {
                 StrategyRuntime factory = factoryList.get(i);
                 // Update request num
-                updateStrategyRuntimeRequestNum(run.getStrategyName(), factory.getUuid(), nums[i]);
+                updateStrategyRuntimeRequestNum(run.getStrategyName(), factory.getFactoryUuid(), nums[i]);
             }
 		}
 	}
@@ -401,19 +414,18 @@ public class ScheduleManagerFactory implements ApplicationContextAware {
         } else {
             runtime = new StrategyRuntime();
             runtime.setStrategyName(strategyName);
-            runtime.setUuid(factoryUUID);
+            runtime.setFactoryUuid(factoryUUID);
             runtime.setRequestNum(requestNum);
-            runtime.setMessage("");
         }
-        this.storage.updateStrategyRuntime(runtime);
+        this.storage.updateRuntimeOfStrategy(runtime);
     }
 	
 	public boolean isLeader(String uuid, List<StrategyRuntime> factoryList) {
 		try {
 			long no = Long.parseLong(uuid.substring(uuid.lastIndexOf("$") + 1));
 			for (StrategyRuntime server : factoryList) {
-				if (no > Long.parseLong(server.getUuid().substring(
-						server.getUuid().lastIndexOf("$") + 1))) {
+				if (no > Long.parseLong(server.getFactoryUuid().substring(
+						server.getFactoryUuid().lastIndexOf("$") + 1))) {
 					return false;
 				}
 			}

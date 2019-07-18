@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="GBK"?>
 <!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN//EN" "http://www.springframework.org/dtd/spring-beans.dtd">
 <beans default-autowire="byName">
-	<bean id="demoTaskBean" class="com.taobao.pamirs.schedule.test.DemoTaskBean"/>
-	<bean id="scheduleManagerFactory" class="com.taobao.pamirs.schedule.strategy.TBScheduleManagerFactory"
+	<bean id="demoTaskBean" class="com.yoloho.schedule.test.DemoTaskBean"/>
+	<bean id="scheduleManagerFactory" class="com.yoloho.schedule.strategy.ScheduleManagerFactory"
 		init-method="init">
-		<property name="zkConfig">
+		<property name="configMap">
            <map>
+              <entry key="storage" value="zookeeper" />
               <entry key="address" value="192.168.123.106:2181" />
               <entry key="rootPath" value="/tbschedule/test" />
               <entry key="username" value="ScheduleAdmin" />
