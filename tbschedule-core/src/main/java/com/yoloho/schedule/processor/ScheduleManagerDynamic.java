@@ -18,7 +18,7 @@ public class ScheduleManagerDynamic extends AbstractScheduleManager {
     public void initial() throws Exception {
         if (isLeader()) {
             // 是第一次启动，检查对应的数据
-            this.storage.emptyRunningEntry(this.currentServer().getTaskName(),
+            this.storage.emptyTaskItems(this.currentServer().getTaskName(),
                     this.currentServer().getOwnSign());
         }
         computerStart();

@@ -8,8 +8,8 @@
         <artifactId>tbschedule-storage</artifactId>
         <version>${revision}</version>
     </parent>
-    <artifactId>tbschedule-storage-zookeeper</artifactId>
-    <name>tbschedule-storage-zookeeper</name>
+    <artifactId>tbschedule-storage-memory</artifactId>
+    <name>tbschedule-storage-memory</name>
     <packaging>jar</packaging>
     <dependencies>
         <!-- enhanced related -->
@@ -22,10 +22,11 @@
             <groupId>com.yoloho.schedule</groupId>
             <artifactId>tbschedule-core</artifactId>
         </dependency>
-        <!-- curator -->
+        <!-- class scanner -->
         <dependency>
-            <groupId>org.apache.curator</groupId>
-            <artifactId>curator-framework</artifactId>
+            <groupId>io.github.lukehutch</groupId>
+            <artifactId>fast-classpath-scanner</artifactId>
+            <version>3.1.12</version>
         </dependency>
         <!-- test -->
         <dependency>

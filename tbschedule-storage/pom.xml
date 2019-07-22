@@ -11,6 +11,8 @@
     <artifactId>tbschedule-storage</artifactId>
     <packaging>pom</packaging>
     <modules>
+        <module>tbschedule-storage-memory</module>
+        <module>tbschedule-storage-redis</module>
         <module>tbschedule-storage-zookeeper</module>
     </modules>
 </project>

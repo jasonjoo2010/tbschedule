@@ -113,6 +113,10 @@ And examples please refer the demo modules:
 * tbschedule-demo-jdbc(**Developing**)
 
 ## Dashboard
+### Intro
+Dashboard(Console) is a tool to view/manage task/strategy/factory(machine)/configuration. It can be run on any host or local which can communicate to the storage of your target applications' scheduling. And scheduling doesn't rely on it so you can shut it down when you don't need it anymore.
+
+### Usage
 There is already the assembly package on maven central repository with name of `tbschedule-console-<version>-assembly.tar.gz`.
 
 If you want to package it by your own hands, run `mvn package -DskipTests` on the module directory `tbschedule/tbschedule-console`.

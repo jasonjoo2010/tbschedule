@@ -41,7 +41,7 @@ public class ScheduleManagerStatic extends AbstractScheduleManager {
         cleanExpiredServer(getTask().getJudgeDeadInterval());
         if (isLeader()) {
             // Only leader can initialize things
-            this.storage.emptyRunningEntry(this.currentServer().getTaskName(),
+            this.storage.emptyTaskItems(this.currentServer().getTaskName(),
                     this.currentServer().getOwnSign());
             this.storage.initTaskItems(this.currentServer().getTaskName(),
                     this.currentServer().getOwnSign());

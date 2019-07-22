@@ -359,7 +359,7 @@ public interface IStorage {
      * @param ownSign
      * @throws Exception
      */
-    void emptyRunningEntry(String taskName, String ownSign) throws Exception;
+    void emptyTaskItems(String taskName, String ownSign) throws Exception;
 
     /**
      * Initial the running entry substructure

@@ -284,6 +284,8 @@ public class ZookeeperStorage implements IStorage {
     
     @Override
     public boolean init(final ScheduleConfig config, final OnConnected onConnected) {
+        Preconditions.checkArgument(StringUtils.isNotEmpty(config.getAddress()), "Address should not be empty");
+        Preconditions.checkArgument(StringUtils.isNotEmpty(config.getRootPath()), "rootPath should not be empty");
         synchronized (this) {
             if (client != null) {
                 client.close();
@@ -435,13 +437,12 @@ public class ZookeeperStorage implements IStorage {
     }
     
     @Override
-    public void emptyRunningEntry(String taskName, String ownSign) throws Exception {
-        String path = PathUtil.runningEntryPath(taskName, ownSign);
+    public void emptyTaskItems(String taskName, String ownSign) throws Exception {
         String taskItemPath = PathUtil.taskItemBasePath(taskName, ownSign);
         if (exist(taskItemPath)) {
             client.delete().deletingChildrenIfNeeded().forPath(taskItemPath);
         }
-        createIfNotExist(path);
+        createIfNotExist(taskItemPath);
     }
     
     @Override
@@ -541,6 +542,7 @@ public class ZookeeperStorage implements IStorage {
                     String path = PathUtil.taskItemPath(taskName, ownSign, item.getTaskItem());
                     client.setData().forPath(path + "/req_server", "".getBytes());
                     client.setData().forPath(path + "/cur_server", item.getRequestScheduleServer().getBytes());
+                    released ++;
                 }
             }
         }

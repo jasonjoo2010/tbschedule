@@ -576,6 +576,7 @@ public class ScheduleManagerFactory implements ApplicationContextAware {
 		return applicationcontext.getBeanNamesForType(IScheduleTaskDeal.class);
 	}
     
+	@Override
     public void setApplicationContext(ApplicationContext aApplicationcontext) throws BeansException {
         applicationcontext = aApplicationcontext;
     }

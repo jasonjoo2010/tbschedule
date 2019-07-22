@@ -3,6 +3,7 @@ package com.yoloho.schedule.types;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 
 import com.alibaba.fastjson.annotation.JSONField;
+import com.yoloho.schedule.interfaces.IScheduleTaskDealMulti;
 import com.yoloho.schedule.util.TaskItemUtil;
 
 /**
@@ -15,86 +16,97 @@ import com.yoloho.schedule.util.TaskItemUtil;
  *
  */
 public class Task implements java.io.Serializable {
-	
-	/**
-	 * 
-	 */
 	private static final long serialVersionUID = 1L;
+	public static final String TASKKIND_STATIC = "static";
+    public static final String TASKKIND_DYNAMIC = "dynamic";
+    
 	private String name;
     /**
-     * 向配置中心更新心跳信息的频率
+     * Heartbeat interval in millis
      */
-    private long heartBeatRate = 5*1000;//1分钟
+    private long heartBeatRate = 5 * 1000;
     
     /**
-     * 判断一个服务器死亡的周期。为了安全，至少是心跳周期的两倍以上
+     * Whether a server seems to be a zombie or is dead 
+     * if there was no update after the specific amount of millis.<br>
+     * It should be more than <b>2 times</b> of heartbeat interval.
      */
     private long judgeDeadInterval = 1*60*1000;//2分钟
     
     /**
-     * 当没有数据的时候，休眠的时间
+     * Millis to delay when no tasks selected
      * 
      */
     private int sleepTimeNoData = 500;
     
     /**
-     * 在每次数据处理晚后休眠的时间
+     * Fix interval between selecting
      */
     private int sleepTimeInterval = 0;
     
     /**
-     * 每次获取数据的数量
+     * The "eachFetchDataNum" parameter's value when invoked "select"
      */
     private int fetchDataNumber = 500;
     
     /**
-     * 在批处理的时候，每次处理的数据量
+     * How many jobs when invoking "execute()".<br />
+     * When set to a value bigger than "1" you should make your bean implementing {@link IScheduleTaskDealMulti}
      */
-    private int executeNumber =1;
+    private int executeNumber = 1;
     
+    /**
+     * How many threads executed paralleled.
+     */
     private int threadNumber = 5;
     
     /**
-     * 调度器类型
+     * Processor type: SLEEP/NOTSLEEP.
+     * 
      */
-    private String processorType="SLEEP" ;
+    private String processorType = "SLEEP";
+    
     /**
-     * 允许执行的开始时间
+     * Cron begin.<br>
+     * eg. "0 * * * * ?"<br>
+     * <pre>
+     *   0      *     *    *    *    ?
+     * second minute hour day month week
+     * </pre>
      */
     private String permitRunStartTime;
+    
     /**
-     * 允许执行的开始时间
+     * Cron end.<br>
+     * When end of cron is empty but begin of cron is not,
+     * execution will lasts until no data returned by select().
      */
     private String permitRunEndTime;
     
     /**
-     * 清除过期环境信息的时间间隔,以天为单位
+     * Expiration of runtime information which not updated for X day(s).
      */
     private double expireOwnSignInterval = 1;
     
     /**
-     * 处理任务的BeanName
+     * Bean name binded.
      */
     private String dealBeanName;
+    
     /**
-     * 任务bean的参数，由用户自定义格式的字符串
+     * Parameter
      */
     private String taskParameter;
     
-    //任务类型：静态static,动态dynamic
     private String taskKind = TASKKIND_STATIC;
     
-    public static String TASKKIND_STATIC="static";
-    public static String TASKKIND_DYNAMIC="dynamic";
- 
-    
     /**
-     * 任务项数组
+     * Task items
      */
     private String[] taskItems;
     
     /**
-     * 每个线程组能处理的最大任务项目书目
+     * Max number of task items one server(thread group) can process.
      */
     private int maxTaskItemsOfOneThreadGroup = 0;
     
