@@ -6,19 +6,19 @@ A simple non-centralizing scheduling framework.
 - [Main features](#main-features)
 	- [Multiple Storages Support](#multiple-storages-support)
 		- [Local Memory Scheduling](#local-memory-scheduling)
-	- [XML/Annotation Support](#xml-annotation-support)
-		- [Manually(Programmatically)](#manually-programmatically)
+	- [XML/Annotation Support](#xmlannotation-support)
+		- [Manually(Programmatically)](#manuallyprogrammatically)
 		- [XML](#xml)
-		- [Annotation(SpringBoot)](#annotation-springBoot)
+		- [Annotation(SpringBoot)](#annotationspringBoot)
 	- [dashboard](#dashboard)
 		- [Intro](#intro)
 		- [Run](#run)
 - [Load Balancing](#load-balancing)
 - [Changelog](#changelog)
-	- [4.1.0](#4.1.0)
-	- [4.0.1](#4.0.1)
-	- [4.0.0](#4.0.0)
-	- [3.3.4.0](#3.3.4.0)
+	- [4.1.0](#410)
+	- [4.0.1](#401)
+	- [4.0.0](#400)
+	- [3.3.4.0](#3340)
 
 # Usage
 The necessary dependency:
@@ -45,6 +45,8 @@ If you want use extensions like extension of task:
 <version>4.1.0</version>
 ```
 
+See [tbschedule-demo](tbschedule-demo) for demo.
+
 # Main features
 * Multiple Storages(SPI)
 * Flexible Initializing
@@ -66,8 +68,15 @@ You would have several choises on storage option.
 * jdbc(`enhanced-data` base on `druid`)(**Developing**)
 
 ### Local Memory Scheduling
-It's mainly driven by annotations.
+It's mainly driven by annotations:
 
+Annotation | Function
+--- | ---
+EnableScheduleMemory | Set the scan package
+Strategy | Define a strategy
+Task | Define a task
+
+See [tbschedule-demo-memory](tbschedule-demo/tbschedule-demo-memory) for details.
 
 ## XML/Annotation Support
 ### Manually(Programmatically)
