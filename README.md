@@ -2,6 +2,24 @@ tbschedule
 ===
 A simple non-centralizing scheduling framework.
 
+- [Usage](#usage)
+- [Main features](#main-features)
+	- [Multiple Storages Support](#multiple-storages-support)
+		- [Local Memory Scheduling](#local-memory-scheduling)
+	- [XML/Annotation Support](#xml-annotation-support)
+		- [Manually(Programmatically)](#manually-programmatically)
+		- [XML](#xml)
+		- [Annotation(SpringBoot)](#annotation-springBoot)
+	- [dashboard](#dashboard)
+		- [Intro](#intro)
+		- [Run](#run)
+- [Load Balancing](#load-balancing)
+- [Changelog](#changelog)
+	- [4.1.0](#4.1.0)
+	- [4.0.1](#4.0.1)
+	- [4.0.0](#4.0.0)
+	- [3.3.4.0](#3.3.4.0)
+
 # Usage
 The necessary dependency:
 
@@ -42,10 +60,14 @@ If you want use extensions like extension of task:
 ## Multiple Storages Support
 You would have several choises on storage option.
 
-* memory(For `local` scheduling)(**Developing**)
-* zookeeper(`curator-framework`)
-* redis(`enhanced-cache` based on `jredis`)(**Developing**)
+* **memory**(For `local` scheduling)
+* **zookeeper**(`curator-framework`)
+* **redis**(`enhanced-cache` based on `jredis`)
 * jdbc(`enhanced-data` base on `druid`)(**Developing**)
+
+### Local Memory Scheduling
+It's mainly driven by annotations.
+
 
 ## XML/Annotation Support
 ### Manually(Programmatically)
@@ -116,7 +138,7 @@ And examples please refer the demo modules:
 ### Intro
 Dashboard(Console) is a tool to view/manage task/strategy/factory(machine)/configuration. It can be run on any host or local which can communicate to the storage of your target applications' scheduling. And scheduling doesn't rely on it so you can shut it down when you don't need it anymore.
 
-### Usage
+### Run
 There is already the assembly package on maven central repository with name of `tbschedule-console-<version>-assembly.tar.gz`.
 
 If you want to package it by your own hands, run `mvn package -DskipTests` on the module directory `tbschedule/tbschedule-console`.
