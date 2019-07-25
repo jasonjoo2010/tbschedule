@@ -5,6 +5,7 @@ import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.w3c.dom.Element;
 
+import com.yoloho.schedule.ScheduleManagerFactory;
 import com.yoloho.schedule.config.EnableScheduleConfiguration;
 
 public class ScheduleParser extends AbstractSingleBeanDefinitionParser {
@@ -24,6 +25,7 @@ public class ScheduleParser extends AbstractSingleBeanDefinitionParser {
     @Override
     protected void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
         EnableScheduleConfiguration.injectInitializerBean(parserContext.getRegistry(), 
+                ScheduleManagerFactory.class.getName(),
                 element.getAttribute("address"), 
                 element.getAttribute("root-path"), 
                 element.getAttribute("username"), 

@@ -58,7 +58,7 @@ public class EnableScheduleConfiguration implements DeferredImportSelector {
         config.setPassword(password);
         builder.addPropertyValue("config", config);
         builder.setInitMethodName("init");
-        builder.setDestroyMethodName("stopAll");
+        builder.setDestroyMethodName("shutdown");
         registry.registerBeanDefinition(name, builder.getBeanDefinition());
     }
     

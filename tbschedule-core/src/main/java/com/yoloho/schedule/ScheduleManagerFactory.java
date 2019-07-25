@@ -136,13 +136,18 @@ public class ScheduleManagerFactory implements ApplicationContextAware {
                 }
                 Preconditions.checkNotNull(this.storage,
                         "Cound not found the storage specified: " + config.getStorage());
-                this.storage.init(getConfig(), new IStorage.OnConnected() {
-                    
-                    @Override
-                    public void connected(IStorage storage) {
-                        initialData();
+                // async
+                new Thread("Schedule-Factory-Init") {
+                    public void run() {
+                        storage.init(getConfig(), new IStorage.OnConnected() {
+                            
+                            @Override
+                            public void connected(IStorage storage) {
+                                initialData();
+                            }
+                        });
                     }
-                });
+                }.start();
             }
             
             this.errorMessage = "Initializing ......";
@@ -212,6 +217,7 @@ public class ScheduleManagerFactory implements ApplicationContextAware {
             logger.info("Scheduling initialized");
         } catch (Exception e) {
             // error occurred, restart
+            logger.warn("Exception occurred, try to restart", e);
             needRestart = true;
         } finally {
             unlock();
@@ -513,10 +519,8 @@ public class ScheduleManagerFactory implements ApplicationContextAware {
             }
 		}
 	}
-	/**
-	 * 停止所有调度资源(shut down)
-	 */
-    public void stopAll() throws Exception {
+	
+    public void shutdown() throws Exception {
         lock();
         try {
             setEnableSchedule(false);
@@ -537,6 +541,7 @@ public class ScheduleManagerFactory implements ApplicationContextAware {
             this.stopServer(null);
             if (this.storage != null) {
                 try {
+                    this.storage.unregisterFactory(this);
                     this.storage.shutdown();
                 } catch (Exception e) {
                     logger.error("Shut down storage failed", e);
@@ -544,9 +549,9 @@ public class ScheduleManagerFactory implements ApplicationContextAware {
                 this.storage = null;
             }
             this.uuid = null;
-            logger.info("stopAll 停止服务成功！");
+            logger.info("Shutdown");
         } catch (Throwable e) {
-            logger.error("stopAll 停止服务失败：" + e.getMessage(), e);
+            logger.error("Shutdown failed", e);
         } finally {
             unlock();
         }

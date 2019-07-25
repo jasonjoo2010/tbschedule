@@ -3,7 +3,6 @@ package com.yoloho.schedule.storage.zk;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -18,8 +17,8 @@ import org.apache.curator.framework.state.ConnectionState;
 import org.apache.curator.framework.state.ConnectionStateListener;
 import org.apache.curator.retry.RetryForever;
 import org.apache.zookeeper.CreateMode;
-import org.apache.zookeeper.ZooDefs;
 import org.apache.zookeeper.KeeperException.NoNodeException;
+import org.apache.zookeeper.ZooDefs;
 import org.apache.zookeeper.ZooDefs.Ids;
 import org.apache.zookeeper.data.ACL;
 import org.apache.zookeeper.data.Id;
@@ -45,9 +44,16 @@ import com.yoloho.schedule.types.TaskItem;
 import com.yoloho.schedule.types.TaskItemRuntime;
 import com.yoloho.schedule.util.DataVersion;
 
+/**
+ * Zookeeper backend
+ * 
+ * @author jason
+ *
+ */
 public class ZookeeperStorage implements IStorage {
     private static final Logger logger = LoggerFactory.getLogger(ZookeeperStorage.class.getSimpleName());
     private CuratorFramework client = null;
+    private boolean connected = false;
     private long timeDelta = 0;
     
     @Override
@@ -178,6 +184,14 @@ public class ZookeeperStorage implements IStorage {
     }
     
     private void initial() throws Exception {
+        int waitTime = 10000;
+        while (!connected && waitTime > 0) {
+            Thread.sleep(100);
+            waitTime -= 100;
+        }
+        if (!connected) {
+            throw new RuntimeException("Zookeeper cannot be connected.");
+        }
         createIfNotExist("/");
         checkParent();
         checkVersion();
@@ -332,6 +346,7 @@ public class ZookeeperStorage implements IStorage {
                         case CONNECTED:
                         case RECONNECTED:
                             logger.info("Connection connected: {}", config.getAddress());
+                            connected = true;
                             onConnected.connected(instance);
                             break;
                             
@@ -798,18 +813,18 @@ public class ZookeeperStorage implements IStorage {
     }
     
     @Override
+    public void unregisterFactory(ScheduleManagerFactory factory) throws Exception {
+        // nothing need to be done
+    }
+    
+    @Override
     public List<StrategyRuntime> getRuntimesOfStrategy(String strategyName) throws Exception {
         String path = PathUtil.strategyPath(strategyName);
         List<String> list = client.getChildren().forPath(path);
         if (list == null || list.isEmpty()) {
             return Collections.emptyList();
         }
-        Collections.sort(list, new Comparator<String>() {
-            public int compare(String u1, String u2) {
-                return u1.substring(u1.lastIndexOf("$") + 1)
-                        .compareTo(u2.substring(u2.lastIndexOf("$") + 1));
-            }
-        });
+        Collections.sort(list, COMPARATOR_UUID);
         List<StrategyRuntime> result = new ArrayList<>(list.size());
         for (String factoryUUID : list) {
             StrategyRuntime runtime = getStrategyRuntime(strategyName, factoryUUID);

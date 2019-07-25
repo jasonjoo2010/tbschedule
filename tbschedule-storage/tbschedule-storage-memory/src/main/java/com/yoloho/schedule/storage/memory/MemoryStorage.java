@@ -3,7 +3,6 @@ package com.yoloho.schedule.storage.memory;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -58,12 +57,7 @@ public class MemoryStorage implements IStorage {
     public long getSequenceNumber() throws Exception {
         return squenceCounter.incrementAndGet();
     }
-    
-    /**
-     * Fetch the global time based on zookeeper server
-     * 
-     * @return
-     */
+
     @Override
     public long getGlobalTime() {
         return System.currentTimeMillis();
@@ -539,6 +533,15 @@ public class MemoryStorage implements IStorage {
     }
     
     @Override
+    public void unregisterFactory(ScheduleManagerFactory factory) throws Exception {
+        factoryAllowExecuteMap.remove(factory.getUuid());
+        List<String> names = getStrategyNames();
+        for (String strategyName : names) {
+            strategyRuntimeMap.remove(strategyName + SEPARATOR + factory.getUuid());
+        }
+    }
+    
+    @Override
     public List<StrategyRuntime> getRuntimesOfStrategy(String strategyName) throws Exception {
         List<String> factoryUuidList = new ArrayList<>();
         for (String key : new CopyOnWriteArrayList<>(strategyRuntimeMap.keySet())) {
@@ -547,12 +550,7 @@ public class MemoryStorage implements IStorage {
                 factoryUuidList.add(factoryUuidFromKey(key));
             }
         }
-        Collections.sort(factoryUuidList, new Comparator<String>() {
-            public int compare(String u1, String u2) {
-                return u1.substring(u1.lastIndexOf("$") + 1)
-                        .compareTo(u2.substring(u2.lastIndexOf("$") + 1));
-            }
-        });
+        Collections.sort(factoryUuidList, COMPARATOR_UUID);
         List<StrategyRuntime> result = new ArrayList<>(factoryUuidList.size());
         for (String factoryUUID : factoryUuidList) {
             StrategyRuntime runtime = getStrategyRuntime(strategyName, factoryUUID);

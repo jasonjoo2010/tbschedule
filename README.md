@@ -67,7 +67,7 @@ factory.init();
 And better to shut it down when application is terminating:
 
 ```java
-factory.stopAll();
+factory.shutdown();
 ```
 
 ### XML

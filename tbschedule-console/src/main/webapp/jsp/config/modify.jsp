@@ -15,9 +15,9 @@ Error Message: ${errorMessage }
     <td>Type:</td>
     <td>
         <select name="storage">
-            <option<c:if test="${storage == 'zookeeper'}"> selected</c:if>>zookeeper</option>
-            <option<c:if test="${storage == 'redis'}"> selected</c:if>>redis(todo)</option>
-            <option<c:if test="${storage == 'jdbc'}"> selected</c:if>>jdbc(todo)</option>
+            <option value="zookeeper"<c:if test="${storage == 'zookeeper'}"> selected</c:if>>zookeeper</option>
+            <option value="redis"<c:if test="${storage == 'redis'}"> selected</c:if>>redis</option>
+            <option value="jdbc"<c:if test="${storage == 'jdbc'}"> selected</c:if>>jdbc(todo)</option>
         </select>
     </td>
     <td></td>

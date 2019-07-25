@@ -218,6 +218,14 @@ public interface IStorage {
     List<String> registerFactory(ScheduleManagerFactory factory) throws Exception;
     
     /**
+     * Unregister a factory (When shuting down)
+     * 
+     * @param factory
+     * @throws Exception
+     */
+    void unregisterFactory(ScheduleManagerFactory factory) throws Exception;
+    
+    /**
      * Whether the factory is allowed to run.
      * 
      * @param factoryUUID

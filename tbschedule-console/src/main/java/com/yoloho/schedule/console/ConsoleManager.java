@@ -104,6 +104,7 @@ public class ConsoleManager {
         try {
             FileWriter writer = new FileWriter(configFile);
             Properties result = new Properties();
+            result.setProperty("storage", config.getStorage());
             result.setProperty("address", config.getAddress());
             result.setProperty("rootPath", config.getRootPath());
             result.setProperty("username", config.getUsername());

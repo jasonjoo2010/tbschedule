@@ -98,7 +98,7 @@ public abstract class AbstractRedisQueueTask<T> {
         if (StringUtils.isEmpty(val)) {
             return;
         }
-        getRedisService().inQueue(getRetryQueueName(), val);
+        getRedisService().listPush(getRetryQueueName(), val);
         logger.info("任务数据回重试队列：{}", val);
     }
     
@@ -127,9 +127,9 @@ public abstract class AbstractRedisQueueTask<T> {
         try {
             lock.lock(lockKey, 1, TimeUnit.SECONDS);
             try {
-                List<String> list = getRedisService().outQueueRange(queueName, 0, count);
+                List<String> list = getRedisService().listRange(queueName, 0, count);
                 if (list != null) {
-                    getRedisService().outQueueTrim(queueName, list.size(), -1);
+                    getRedisService().listTrim(queueName, list.size(), -1);
                     result.addAll(list);
                 }
             } finally {

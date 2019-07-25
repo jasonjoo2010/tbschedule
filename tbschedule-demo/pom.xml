@@ -12,6 +12,7 @@
     <packaging>pom</packaging>
     <modules>
         <module>tbschedule-demo-memory</module>
+        <module>tbschedule-demo-redis</module>
         <module>tbschedule-demo-zookeeper</module>
     </modules>
 </project>

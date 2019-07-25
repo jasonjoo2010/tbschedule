@@ -5,12 +5,12 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>com.yoloho.enhanced.parent</groupId>
-        <artifactId>enhanced-parent-springboot-web</artifactId>
+        <artifactId>enhanced-parent-springboot-base</artifactId>
         <version>1.0.0</version>
     </parent>
     <groupId>com.yoloho.schedule</groupId>
-    <artifactId>tbschedule-console</artifactId>
-    <name>tbschedule-console</name>
+    <artifactId>tbschedule-demo-redis</artifactId>
+    <name>tbschedule-demo-redis</name>
     <version>4.1.0</version>
     <packaging>jar</packaging>
     <dependencies>
@@ -18,11 +18,6 @@
         <dependency>
             <groupId>com.yoloho.schedule</groupId>
             <artifactId>tbschedule-core</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.yoloho.schedule</groupId>
-            <artifactId>tbschedule-storage-zookeeper</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>

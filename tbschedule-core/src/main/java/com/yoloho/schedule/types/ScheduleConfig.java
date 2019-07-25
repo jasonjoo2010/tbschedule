@@ -21,6 +21,7 @@ public class ScheduleConfig {
     }
     
     public ScheduleConfig(Map<String, String> map) {
+        setStorage(map.get("storage"));
         setAddress(map.get("address"));
         setRootPath(map.get("rootPath"));
         setUsername(map.get("username"));
@@ -28,6 +29,7 @@ public class ScheduleConfig {
     }
     
     public ScheduleConfig(Properties p) {
+        setStorage(p.getProperty("storage"));
         setAddress(p.getProperty("address"));
         setRootPath(p.getProperty("rootPath"));
         setUsername(p.getProperty("username"));
