@@ -6,7 +6,7 @@
     <parent>
         <groupId>com.yoloho.enhanced.parent</groupId>
         <artifactId>enhanced-parent</artifactId>
-        <version>1.0.0</version>
+        <version>1.0.3</version>
     </parent>
     <groupId>com.yoloho.schedule</groupId>
     <artifactId>tbschedule-parent</artifactId>
