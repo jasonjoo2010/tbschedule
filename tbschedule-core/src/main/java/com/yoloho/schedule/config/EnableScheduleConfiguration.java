@@ -46,20 +46,28 @@ public class EnableScheduleConfiguration implements DeferredImportSelector {
             String rootPath, 
             String username, 
             String password) {
-        BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(ScheduleManagerFactory.class);
-        builder.setLazyInit(false);
         if (StringUtils.isEmpty(name)) {
             name = ScheduleManagerFactory.class.getName();
         }
-        ScheduleConfig config = new ScheduleConfig();
-        config.setAddress(address);
-        config.setRootPath(rootPath);
-        config.setUsername(username);
-        config.setPassword(password);
-        builder.addPropertyValue("config", config);
-        builder.setInitMethodName("init");
-        builder.setDestroyMethodName("shutdown");
-        registry.registerBeanDefinition(name, builder.getBeanDefinition());
+        // config
+        {
+            BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(ScheduleConfig.class);
+            builder.addPropertyValue("address", address);
+            builder.addPropertyValue("rootPath", rootPath);
+            builder.addPropertyValue("username", username);
+            builder.addPropertyValue("password", password);
+            builder.setLazyInit(false);
+            registry.registerBeanDefinition(name + "Config", builder.getBeanDefinition());
+        }
+        // factory
+        {
+            BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(ScheduleManagerFactory.class);
+            builder.setLazyInit(false);
+            builder.addPropertyReference("config", name + "Config");
+            builder.setInitMethodName("init");
+            builder.setDestroyMethodName("shutdown");
+            registry.registerBeanDefinition(name, builder.getBeanDefinition());
+        }
     }
     
     @Override
