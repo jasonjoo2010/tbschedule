@@ -6,12 +6,12 @@
     <parent>
         <groupId>com.yoloho.enhanced.parent</groupId>
         <artifactId>enhanced-parent-springboot-base</artifactId>
-        <version>1.0.0</version>
+        <version>1.0.5</version>
     </parent>
     <groupId>com.yoloho.schedule</groupId>
     <artifactId>tbschedule-demo-redis</artifactId>
     <name>tbschedule-demo-redis</name>
-    <version>4.1.0</version>
+    <version>4.1.1</version>
     <packaging>jar</packaging>
     <dependencies>
         <!-- tbschedule -->
@@ -81,44 +81,10 @@
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-source-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>attach-sources</id>
-                        <goals>
-                            <goal>jar</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-javadoc-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>attach-javadoc</id>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>jar</goal>
-                        </goals>
-                        <configuration>
-                            <additionalparam>-Xdoclint:none</additionalparam>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-gpg-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>sign-artifacts</id>
-                        <phase>verify</phase>
-                        <goals>
-                            <goal>sign</goal>
-                        </goals>
-                    </execution>
-                </executions>
+                <artifactId>maven-deploy-plugin</artifactId>
+                <configuration>
+                    <skip>true</skip>
+                </configuration>
             </plugin>
         </plugins>
     </build>
