@@ -16,7 +16,6 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Preconditions;
 import com.yoloho.schedule.ScheduleManagerFactory;
 import com.yoloho.schedule.interfaces.IScheduleTaskDeal;
-import com.yoloho.schedule.interfaces.IStorage;
 import com.yoloho.schedule.interfaces.IStrategyTask;
 import com.yoloho.schedule.interfaces.ITaskProcessor;
 import com.yoloho.schedule.types.InitialResult;
@@ -85,8 +84,6 @@ public abstract class AbstractScheduleManager implements IStrategyTask {
     protected boolean isStopSchedule = false;
     protected Lock registerLock = new ReentrantLock();
     
-    protected IStorage storage;
-    
     ScheduleManagerFactory factory;
     
     protected abstract void initial() throws Exception;
@@ -103,7 +100,7 @@ public abstract class AbstractScheduleManager implements IStrategyTask {
     protected boolean isLeader() throws Exception {
         return ScheduleUtil.isLeader(
                 currentServer.getUuid(), 
-                storage.getServerUuidList(currentServer.getTaskName(), currentServer.getOwnSign()));
+                factory.getStorage().getServerUuidList(currentServer.getTaskName(), currentServer.getOwnSign()));
     }
     
     /**
@@ -114,13 +111,13 @@ public abstract class AbstractScheduleManager implements IStrategyTask {
      */
     private void clearExpireRunningEntryRuntime(String taskName, double expireDays)
             throws Exception {
-        List<String> list = this.storage.getRunningEntryList(taskName);
+        List<String> list = factory.getStorage().getRunningEntryList(taskName);
         long diff = (long) (expireDays * 24 * 3600 * 1000);
-        long now = this.storage.getGlobalTime();
+        long now = factory.getStorage().getGlobalTime();
         for (String runningEntryName : list) {
             String ownSign = ScheduleUtil.ownsignFromRunningEntry(runningEntryName);
-            List<String> serverUuidList = this.storage.getServerUuidList(taskName, ownSign);
-            InitialResult result = this.storage.getInitialRunningInfoResult(taskName, ownSign);
+            List<String> serverUuidList = factory.getStorage().getServerUuidList(taskName, ownSign);
+            InitialResult result = factory.getStorage().getInitialRunningInfoResult(taskName, ownSign);
             if (!serverUuidList.isEmpty()) {
                 continue;
             }
@@ -128,7 +125,7 @@ public abstract class AbstractScheduleManager implements IStrategyTask {
                 continue;
             }
             // expired
-            this.storage.removeRunningEntry(taskName, ownSign);
+            factory.getStorage().removeRunningEntry(taskName, ownSign);
         }
     }
     
@@ -148,16 +145,15 @@ public abstract class AbstractScheduleManager implements IStrategyTask {
                 result.getRunningEntry(),
                 result.getIp(),
                 UUID.randomUUID().toString().replaceAll("-", "").toUpperCase(),
-                this.storage.getSequenceNumber()));
+                factory.getStorage().getSequenceNumber()));
         return result;
     }
 
-    AbstractScheduleManager(ScheduleManagerFactory factory, String taskName, String ownSign, IStorage storage)
+    AbstractScheduleManager(ScheduleManagerFactory factory, String taskName, String ownSign)
             throws Exception {
         this.factory = factory;
-        this.storage = storage;
         this.currentSerialNumber = serialNumber();
-        this.task = this.storage.getTask(taskName);
+        this.task = factory.getStorage().getTask(taskName);
         logger.info("create TBScheduleManager for task: {}({})", taskName, ownSign);
 		//清除已经过期1天的TASK,OWN_SIGN的组合。超过一天没有活动server的视为过期
         clearExpireRunningEntryRuntime(taskName, this.task.getExpireOwnSignInterval());
@@ -179,7 +175,7 @@ public abstract class AbstractScheduleManager implements IStrategyTask {
         this.currentServer = createServer(getGlobalTime(), taskName, ownSign, this.task.getThreadNumber());
         Preconditions.checkArgument(StringUtils.isNotEmpty(this.currentServer.getUuid()));
         this.currentServer.setManagerFactoryUUID(this.factory.getUuid());
-        this.storage.createServer(this.currentServer);
+        factory.getStorage().createServer(this.currentServer);
         this.heartBeatTimer = new Timer(
                 this.currentServer.getRunningEntry() + "-" + this.currentSerialNumber + "-heartbeat");
         this.heartBeatTimer.schedule(new ManagerHeartBeatTask(this), new java.util.Date(System.currentTimeMillis() + 300),
@@ -199,10 +195,14 @@ public abstract class AbstractScheduleManager implements IStrategyTask {
     protected int getCurrentSerialNumber() {
         return this.currentSerialNumber;
     }
+    
+    public ScheduleManagerFactory getFactory() {
+        return factory;
+    }
 	
 	protected long getGlobalTime() {
 	    try {
-	        return this.storage.getGlobalTime();
+	        return factory.getStorage().getGlobalTime();
 	    } catch (Exception e) {
         }
 	    return System.currentTimeMillis();
@@ -249,10 +249,10 @@ public abstract class AbstractScheduleManager implements IStrategyTask {
             this.currentServer.setHeartBeatTime(newHeartBeat);
             this.currentServer.setVersion(oldVersion + 1);
             try {
-                if (!this.storage.updateServer(this.currentServer)) {
+                if (!factory.getStorage().updateServer(this.currentServer)) {
                     // Update failed, maybe not existed
                     this.clearMemoInfo();
-                    this.storage.createServer(this.currentServer);
+                    factory.getStorage().createServer(this.currentServer);
                 }
             } catch (Exception e) {
                 // Ignore the exception
@@ -411,8 +411,10 @@ public abstract class AbstractScheduleManager implements IStrategyTask {
             // 取消心跳TIMER
             this.heartBeatTimer.cancel();
             // 从配置中心注销自己
-            this.storage.removeServer(this.currentServer.getTaskName(),
+            if (this.factory.getStorage() != null) {
+                this.factory.getStorage().removeServer(this.currentServer.getTaskName(),
                     this.currentServer.getOwnSign(), this.currentServer.getUuid());
+            }
         } finally {
             registerLock.unlock();
         }

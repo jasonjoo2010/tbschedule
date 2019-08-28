@@ -251,7 +251,7 @@ public class ScheduleManagerFactory implements ApplicationContextAware {
                 // schedule a task
                 String taskName = ScheduleUtil.taskNameFromRunningEntry(strategy.getTaskName());
                 String ownSign = ScheduleUtil.ownsignFromRunningEntry(strategy.getTaskName());
-                result = new ScheduleManagerStatic(this, taskName, ownSign, storage);
+                result = new ScheduleManagerStatic(this, taskName, ownSign);
             } else if (StrategyKind.Java == strategy.getKind()) {
                 // new instance
                 result = (IStrategyTask) Class.forName(strategy.getTaskName()).newInstance();
@@ -332,6 +332,9 @@ public class ScheduleManagerFactory implements ApplicationContextAware {
     }
     
     public IStorage getStorage() {
+        if (storage == null) {
+            throw new RuntimeException("TBSchedule task factory has been stopped.");
+        }
         return storage;
     }
     
@@ -540,13 +543,14 @@ public class ScheduleManagerFactory implements ApplicationContextAware {
             }
             this.stopServer(null);
             if (this.storage != null) {
+                IStorage s = this.storage;
+                this.storage = null;
                 try {
-                    this.storage.unregisterFactory(this);
-                    this.storage.shutdown();
+                    s.unregisterFactory(this);
+                    s.shutdown();
                 } catch (Exception e) {
                     logger.error("Shut down storage failed", e);
                 }
-                this.storage = null;
             }
             this.uuid = null;
             logger.info("Shutdown");

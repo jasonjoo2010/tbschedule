@@ -1,5 +1,6 @@
 package com.yoloho.schedule.processor;
 
+import java.lang.reflect.Array;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
@@ -187,7 +188,7 @@ public abstract class AbstractTaskProcessor<T> implements ITaskProcessor, Runnab
 
             T[] result = null;
             if (size > 0) {
-                result = (T[]) new Object[size];
+                result = (T[]) Array.newInstance(this.taskList.get(0).getClass(), size);
                 for (int i = 0; i < size; i++) {
                     result[i] = this.taskList.remove(0); // 按正序处理
                 }

@@ -18,7 +18,9 @@ class ManagerHeartBeatTask extends java.util.TimerTask {
             manager.refreshScheduleServerInfo();
             Thread.currentThread().setPriority(priority);
         } catch (Exception ex) {
-            logger.error(ex.getMessage(), ex);
+            if (manager.getFactory().isEnableSchedule()) {
+                logger.error(ex.getMessage(), ex);
+            }
         }
     }
 }
