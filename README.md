@@ -15,6 +15,7 @@ A simple non-centralizing scheduling framework.
 		- [Run](#run)
 - [Load Balancing](#load-balancing)
 - [Changelog](#changelog)
+	- [4.1.4](#414)
 	- [4.1.3](#413)
 	- [4.1.2](#412)
 	- [4.1.1](#411)
@@ -29,7 +30,7 @@ The necessary dependency:
 ```
 <groupId>com.yoloho.schedule</groupId>
 <artifactId>tbschedule-core</artifactId>
-<version>4.1.3</version>
+<version>4.1.4</version>
 ```
 
 If you use zookeeper as storage:
@@ -37,7 +38,7 @@ If you use zookeeper as storage:
 ```
 <groupId>com.yoloho.schedule</groupId>
 <artifactId>tbschedule-storage-zookeeper</artifactId>
-<version>4.1.3</version>
+<version>4.1.4</version>
 ```
 
 If you want use extensions like extension of task:
@@ -45,7 +46,7 @@ If you want use extensions like extension of task:
 ```
 <groupId>com.yoloho.schedule</groupId>
 <artifactId>tbschedule-extension-task</artifactId>
-<version>4.1.3</version>
+<version>4.1.4</version>
 ```
 
 See [tbschedule-demo](tbschedule-demo) for demo.
@@ -61,6 +62,7 @@ See [tbschedule-demo](tbschedule-demo) for demo.
 * Cron Time on Begin/End Supported
 * Sleep/Not Sleep Models
 * Common Task Implementations
+* Gracefully shutdown
 
 ## Multiple Storages Support
 You would have several choises on storage option.
@@ -174,6 +176,9 @@ SERVER_PORT=8080
 In older original version the worker instances' distribution always includes the leader node. So if you have many jobs or some `single instance` jobs the leader will be the heaviest node. To solve this we introduce `dynamic schedule distribution` algorithm. A shuffling on scheduling servers will be done when rescheduling.
 
 # Changelog
+## 4.1.4
+* Gracefully shutdown support
+
 ## 4.1.3
 * Fix type error when using `IScheduleTaskDealMulti`
 * Fix errors during shutting down
