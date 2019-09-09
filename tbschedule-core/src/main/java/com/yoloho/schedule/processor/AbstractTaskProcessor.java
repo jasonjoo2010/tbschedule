@@ -25,6 +25,7 @@ public abstract class AbstractTaskProcessor<T> implements ITaskProcessor, Runnab
     private AbstractScheduleManager manager;
     private boolean isSleeping = false;
     private boolean isStopSchedule = false;
+    private boolean isStopped = false; // Whether really stopped
     private IScheduleTaskDeal<T> taskDealBean;
     private boolean isMulti = false;
     private Task task;
@@ -65,16 +66,21 @@ public abstract class AbstractTaskProcessor<T> implements ITaskProcessor, Runnab
         thread.start();
     }
     
-    protected void releaseCurrentThread() {
+    /**
+     * @return true when unregistered
+     */
+    protected boolean releaseCurrentThread() {
         synchronized (this.threadList) {
             this.threadList.remove(Thread.currentThread());
             if (this.threadList.size() == 0) {
                 try {
                     this.manager.unregisterScheduleServer();
+                    return true;
                 } catch (Exception e) {
                     logger.error("Unregister server faield", e);
                 }
             }
+            return false;
         }
     }
     
@@ -116,10 +122,23 @@ public abstract class AbstractTaskProcessor<T> implements ITaskProcessor, Runnab
         this.isStopSchedule = true;
         // 清除所有未处理任务,但已经进入处理队列的，需要处理完毕
         this.taskList.clear();
+        int maxWait = 3000;
+        while (maxWait > 0 && isStopped == false) {
+            Thread.sleep(100);
+            maxWait -= 100;
+        }
+        logger.info("Stop schedule {}", getTask().getName());
     }
 
     protected boolean isStopSchedule() {
         return isStopSchedule;
+    }
+    
+    /**
+     * Whether really stopped
+     */
+    protected void setStopped() {
+        isStopped = true;
     }
 
     @Override

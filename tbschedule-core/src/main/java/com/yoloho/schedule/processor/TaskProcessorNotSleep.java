@@ -173,7 +173,9 @@ class TaskProcessorNotSleep<T> extends AbstractTaskProcessor<T> {
         while (true) {
             try {
                 if (isStopSchedule()) {
-                    releaseCurrentThread();
+                    if (releaseCurrentThread()) {
+                        setStopped();
+                    }
                     return;
                 }
                 

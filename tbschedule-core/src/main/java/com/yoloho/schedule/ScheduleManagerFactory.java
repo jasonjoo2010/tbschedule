@@ -49,7 +49,7 @@ public class ScheduleManagerFactory implements ApplicationContextAware {
 	 */
 	private boolean enableSchedule = true;
 	private boolean initializing = false;
-	private int timerInterval = 2000;
+	private int factoryHeartBeatInterval = 2000;
     private volatile long lastCheck = System.currentTimeMillis();
 
     private Map<String, List<IStrategyTask>> managerMap = new ConcurrentHashMap<>();
@@ -59,8 +59,8 @@ public class ScheduleManagerFactory implements ApplicationContextAware {
     private String ip;
     private String hostName;
 
-    private Timer timer;
-    private FactoryChecker timerTask;
+    private Timer factoryCheckerTimer;
+    private FactoryChecker factoryChecker;
     private Lock innerLock = new ReentrantLock();
 
     private volatile String errorMessage = "Empty address in config";
@@ -163,7 +163,7 @@ public class ScheduleManagerFactory implements ApplicationContextAware {
 	 * @throws Exception
 	 */
 	public void reInit(ScheduleConfig config) throws Exception{
-        if (isEnableSchedule() || this.timer != null || this.managerMap.size() > 0) {
+        if (isEnableSchedule() || this.factoryCheckerTimer != null || this.managerMap.size() > 0) {
             throw new Exception("Can not reinit scheduling factory, maybe you should stop it and recreate it");
         }
         setConfig(config);
@@ -206,12 +206,12 @@ public class ScheduleManagerFactory implements ApplicationContextAware {
             Preconditions.checkArgument(StringUtils.isNotEmpty(getUuid()));
             // Register node to storage
             this.storage.registerFactory(this);
-            if (timer == null) {
-                timer = new Timer("TBScheduleManagerFactory-Timer");
+            if (factoryCheckerTimer == null) {
+                factoryCheckerTimer = new Timer("TBScheduleManagerFactory-HeartBeat");
             }
-            if (timerTask == null) {
-                timerTask = new FactoryChecker(this);
-                timer.schedule(timerTask, 2000, this.timerInterval);
+            if (factoryChecker == null) {
+                factoryChecker = new FactoryChecker(this);
+                factoryCheckerTimer.schedule(factoryChecker, 2000, this.factoryHeartBeatInterval);
             }
             this.errorMessage = null;
             logger.info("Scheduling initialized");
@@ -269,6 +269,9 @@ public class ScheduleManagerFactory implements ApplicationContextAware {
 
     protected void refresh() throws Exception {
         lock();
+        if (!isEnableSchedule()) {
+            return;
+        }
         try {
             // 判断状态是否终止
             boolean isException = false;
@@ -481,6 +484,8 @@ public class ScheduleManagerFactory implements ApplicationContextAware {
             }
             if (reduced + increased > 0) {
                 logger.info("Adjust server for {}, increase={}, decrese={}", run.getStrategyName(), increased, reduced);
+                run.setCurrentNum(list.size());
+                getStorage().updateRuntimeOfStrategy(run);
             }
         }
 	}
@@ -533,19 +538,21 @@ public class ScheduleManagerFactory implements ApplicationContextAware {
                 Thread.sleep(100);
                 maxWait -= 100;
             }
-            if (this.timer != null) {
-                if (this.timerTask != null) {
-                    this.timerTask.cancel();
-                    this.timerTask = null;
+            if (this.factoryCheckerTimer != null) {
+                if (this.factoryChecker != null) {
+                    this.factoryChecker.cancel();
+                    this.factoryChecker = null;
                 }
-                this.timer.cancel();
-                this.timer = null;
+                this.factoryCheckerTimer.cancel();
+                this.factoryCheckerTimer = null;
             }
             this.stopServer(null);
             if (this.storage != null) {
+                logger.info("Prepare to shut down storage");
                 IStorage s = this.storage;
                 this.storage = null;
                 try {
+                    s.clearStrategiesOfFactory(getUuid());
                     s.unregisterFactory(this);
                     s.shutdown();
                 } catch (Exception e) {
@@ -567,12 +574,12 @@ public class ScheduleManagerFactory implements ApplicationContextAware {
 	 */
 	protected void restart() throws Exception {
 		try {
-			if (this.timer != null) {
-				if(this.timerTask != null){
-					this.timerTask.cancel();
-					this.timerTask = null;
+			if (this.factoryCheckerTimer != null) {
+				if(this.factoryChecker != null){
+					this.factoryChecker.cancel();
+					this.factoryChecker = null;
 				}
-				this.timer.purge();
+				this.factoryCheckerTimer.purge();
 			}
 			this.stopServer(null);
 			this.uuid = null;
@@ -611,7 +618,7 @@ public class ScheduleManagerFactory implements ApplicationContextAware {
     }
 
     public void setTimerInterval(int timerInterval) {
-        this.timerInterval = timerInterval;
+        this.factoryHeartBeatInterval = timerInterval;
     }
 
     /**

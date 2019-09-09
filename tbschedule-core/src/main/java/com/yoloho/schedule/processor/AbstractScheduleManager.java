@@ -404,14 +404,18 @@ public abstract class AbstractScheduleManager implements IStrategyTask {
                 // 是暂停调度，不注销Manager自己
                 return;
             }
-            if (logger.isDebugEnabled()) {
-                logger.debug("注销服务器 ：" + this.currentServer.getUuid());
-            }
+            logger.info("Unregister server：{}", this.currentServer.getUuid());
             this.isStopSchedule = true;
             // 取消心跳TIMER
             this.heartBeatTimer.cancel();
             // 从配置中心注销自己
             if (this.factory.getStorage() != null) {
+                List<TaskItem> list = getCurrentScheduleTaskItemList();
+                for (TaskItem taskItem : list) {
+                    this.factory.getStorage().updateTaskItemCurrentServer(
+                            currentServer().getTaskName(), currentServer().getOwnSign(), 
+                            taskItem.getTaskItemId(), "");
+                }
                 this.factory.getStorage().removeServer(this.currentServer.getTaskName(),
                     this.currentServer.getOwnSign(), this.currentServer.getUuid());
             }

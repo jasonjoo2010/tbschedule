@@ -65,7 +65,9 @@ public class TaskProcessorSleep<T> extends AbstractTaskProcessor<T> {
                     if (isStopSchedule()) {
                         this.threadGroupLock.releaseThread();
                         this.threadGroupLock.signalGroup();// 通知所有的休眠线程
-                        releaseCurrentThread();
+                        if (releaseCurrentThread()) {
+                            setStopped();
+                        }
                         return;
                     }
 

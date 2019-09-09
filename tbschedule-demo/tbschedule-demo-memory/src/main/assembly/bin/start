@@ -8,7 +8,7 @@ BIN_DIR=`pwd`
 cd ..
 DEPLOY_DIR=`pwd`
 CONF_DIR=$DEPLOY_DIR/conf
-MAIN_CLASS=com.yoloho.schedule.demo.Lancher
+MAIN_CLASS=com.yoloho.schedule.demo.Launcher
 MEM_MAX=128m
 MEM_MN=64m
 
