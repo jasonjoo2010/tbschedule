@@ -127,7 +127,7 @@ public class ScheduleUtil {
         int[] taskNums = new int[nodeCount];
         int numOfSingle = jobCount / nodeCount;
         int otherNum = jobCount % nodeCount;
-        if (nodeCapacity > 0 && numOfSingle >= nodeCapacity) {
+        if (nodeCapacity > 0 && numOfSingle > nodeCapacity) {
             logger.error("Generation exceeds limit, please check alived nodes, current nodes {}", nodeCount);
             numOfSingle = nodeCapacity;
             otherNum = 0;
