@@ -1,6 +1,7 @@
 package com.yoloho.schedule.processor;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
@@ -259,6 +260,10 @@ public class ScheduleManagerStatic extends AbstractScheduleManager {
         int point = 0;
         int count = 0;
         String NO_SERVER_DEAL = "NO SERVER";
+        int taskNumsTotal = 0;
+        for (int i = 0; i < taskNums.length; i++) {
+            taskNumsTotal += taskNums[i];
+        }
         for (int i = 0; i < taskItemList.size(); i++) {
             TaskItemRuntime item = taskItemList.get(i);
             if (point < serverList.size() && i >= count + taskNums[point]) {
@@ -269,9 +274,16 @@ public class ScheduleManagerStatic extends AbstractScheduleManager {
             if (point < serverList.size()) {
                 serverName = serverList.get(point);
             }
-            if (StringUtils.isEmpty(item.getCurrentScheduleServer()) || StringUtils.equals(item.getCurrentScheduleServer(), NO_SERVER_DEAL)) {
-                factory.getStorage().updateTaskItemCurrentServer(taskName, ownSign, item.getTaskItem(), serverName);
-                factory.getStorage().updateTaskItemRequestServer(taskName, ownSign, item.getTaskItem(), "");
+            if (StringUtils.isEmpty(item.getCurrentScheduleServer()) 
+                || StringUtils.equals(item.getCurrentScheduleServer(), NO_SERVER_DEAL)) {
+                // no current server and target server not equal to "NO SERVER"
+                if (StringUtils.equals(NO_SERVER_DEAL, serverName)) {
+                    // Do nothing
+                    unModifyCount ++;
+                } else {
+                    factory.getStorage().updateTaskItemCurrentServer(taskName, ownSign, item.getTaskItem(), serverName);
+                    factory.getStorage().updateTaskItemRequestServer(taskName, ownSign, item.getTaskItem(), "");
+                }
             } else if (StringUtils.equals(item.getCurrentScheduleServer(), serverName) 
                     && StringUtils.isEmpty(item.getRequestScheduleServer())) {
                 // Do nothing
