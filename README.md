@@ -15,6 +15,7 @@ A simple non-centralizing scheduling framework.
 		- [Run](#run)
 - [Load Balancing](#load-balancing)
 - [Changelog](#changelog)
+	- [4.1.6](#416)
 	- [4.1.5](#415)
 	- [4.1.4](#414)
 	- [4.1.3](#413)
@@ -177,6 +178,9 @@ SERVER_PORT=8080
 In older original version the worker instances' distribution always includes the leader node. So if you have many jobs or some `single instance` jobs the leader will be the heaviest node. To solve this we introduce `dynamic schedule distribution` algorithm. A shuffling on scheduling servers will be done when rescheduling.
 
 # Changelog
+## 4.1.6
+* Avoid incorrect error log from `ScheduleUtil`
+
 ## 4.1.5
 * Avoid unnecessary reloading of task items on all nodes
 

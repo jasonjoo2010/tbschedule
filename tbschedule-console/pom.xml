@@ -11,7 +11,7 @@
     <groupId>com.yoloho.schedule</groupId>
     <artifactId>tbschedule-console</artifactId>
     <name>tbschedule-console</name>
-    <version>4.1.5</version>
+    <version>4.1.6</version>
     <packaging>jar</packaging>
     <dependencies>
         <!-- tbschedule -->
