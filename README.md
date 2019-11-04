@@ -110,7 +110,7 @@ factory.shutdown();
 
 ### XML
 ```xml
-<bean id="scheduleManagerFactory" class="com.yoloho.schedule.strategy.ScheduleManagerFactory"
+<bean id="scheduleManagerFactory" class="com.yoloho.schedule.ScheduleManagerFactory"
 		init-method="init">
 	<property name="configMap">
       <map>
