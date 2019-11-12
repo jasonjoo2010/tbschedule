@@ -32,7 +32,7 @@ The necessary dependency:
 ```
 <groupId>com.yoloho.schedule</groupId>
 <artifactId>tbschedule-core</artifactId>
-<version>4.1.5</version>
+<version>4.1.6</version>
 ```
 
 If you use zookeeper as storage:
@@ -40,7 +40,7 @@ If you use zookeeper as storage:
 ```
 <groupId>com.yoloho.schedule</groupId>
 <artifactId>tbschedule-storage-zookeeper</artifactId>
-<version>4.1.5</version>
+<version>4.1.6</version>
 ```
 
 If you want use extensions like extension of task:
@@ -48,7 +48,7 @@ If you want use extensions like extension of task:
 ```
 <groupId>com.yoloho.schedule</groupId>
 <artifactId>tbschedule-extension-task</artifactId>
-<version>4.1.5</version>
+<version>4.1.6</version>
 ```
 
 See [tbschedule-demo](tbschedule-demo) for demo.
