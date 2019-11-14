@@ -55,7 +55,7 @@ public class TaskProcessorSleep<T> extends AbstractTaskProcessor<T> {
     public void run() {
         try {
             // Make threads held by group wait for all initializing works done
-            while (!processorReady) {
+            while (!processorReady && !isStopSchedule()) {
                 sleep(100);
             }
             while (true) {
