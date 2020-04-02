@@ -168,7 +168,7 @@ public abstract class AbstractTaskProcessor<T> implements ITaskProcessor, Runnab
                     addFailNum(1, this.manager.getGlobalTime() - startTime);
                 }
             }
-        } catch (Throwable ex) {
+        } catch (Exception ex) {
             if (isMulti) {
                 addFailNum(((Object[]) executeTask).length, this.manager.getGlobalTime() - startTime);
             } else {

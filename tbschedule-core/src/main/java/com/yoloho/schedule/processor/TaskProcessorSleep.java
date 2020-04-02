@@ -1,6 +1,6 @@
 package com.yoloho.schedule.processor;
 
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,7 +31,8 @@ import com.yoloho.schedule.types.StatisticsInfo;
  */
 public class TaskProcessorSleep<T> extends AbstractTaskProcessor<T> {
 	private static transient Logger logger = LoggerFactory.getLogger(TaskProcessorSleep.class);
-	private final AtomicInteger workingCount = new AtomicInteger(0);
+	
+	private final AtomicLong workingThreadCount = new AtomicLong(0);
 	private boolean processorReady = false;
 	/**
 	 * 任务管理器
@@ -52,6 +53,33 @@ public class TaskProcessorSleep<T> extends AbstractTaskProcessor<T> {
 		this.processorReady = true;
 	}
 	
+	private void waitForNotify() {
+	    synchronized (workingThreadCount) {
+	        try {
+                workingThreadCount.wait();
+            } catch (InterruptedException e) {
+            }
+        }
+	}
+	
+	private void notifyAllThreads() {
+	    synchronized (workingThreadCount) {
+	        workingThreadCount.notifyAll();
+        }
+    }
+	
+	private boolean isLastWorker() {
+	    while (true) {
+    	    long remain = workingThreadCount.get();
+    	    if (remain == 1) {
+    	        return true;
+    	    }
+    	    if (workingThreadCount.compareAndSet(remain, remain - 1)) {
+    	        return false;
+    	    }
+	    }
+	}
+	
 	@Override
     public void run() {
         try {
@@ -60,12 +88,11 @@ public class TaskProcessorSleep<T> extends AbstractTaskProcessor<T> {
                 sleep(100);
             }
             while (true) {
-                workingCount.incrementAndGet();
+                workingThreadCount.incrementAndGet();
                 Object executeTask;
                 while (true) {
                     if (isStopSchedule()) {
-                        workingCount.decrementAndGet();
-                        workingCount.notifyAll();
+                        notifyAllThreads();
                         if (releaseCurrentThread()) {
                             setStopped();
                         }
@@ -80,28 +107,30 @@ public class TaskProcessorSleep<T> extends AbstractTaskProcessor<T> {
                     executeTask(executeTask);
                 }
                 // task finished
-                if (logger.isTraceEnabled()) {
-                    logger.trace("{}: Thread count: {}", Thread.currentThread().getName(), this.workingCount.get());
-                }
-                if (workingCount.decrementAndGet() > 0) {
+                if (!isLastWorker()) {
                     // stop to wait
                     if (logger.isTraceEnabled()) {
                         logger.trace("Turn into sleeping because it's not the last one");
                     }
-                    workingCount.wait();
+                    waitForNotify();
                 } else {
-                    int num = this.loadNewData();
-                    if (num > 0) {
-                        this.workingCount.notifyAll();
-                    } else {
-                        if (isStopSchedule() || this.scheduleManager.isContinueWhenNoData() == false) {
-                            // Exit on no data or stopped flag
-                            this.workingCount.notifyAll();
+                    try {
+                        int num = this.loadNewData();
+                        if (num > 0) {
+                            notifyAllThreads();
+                        } else {
+                            if (isStopSchedule() || this.scheduleManager.isContinueWhenNoData() == false) {
+                                // Exit on no data or stopped flag
+                                notifyAllThreads();
+                            }
                         }
+                    } finally {
+                        workingThreadCount.decrementAndGet(); // -> 0
                     }
                 }
             }
         } catch (Throwable e) {
+            e.printStackTrace();
             logger.error("Server thread exit abnormally", e);
         }
     }
