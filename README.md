@@ -180,7 +180,7 @@ In older original version the worker instances' distribution always includes the
 
 # Changelog
 ## 4.1.7
-* Make `NotSleep` mode more robust
+* Make `Sleep` mode more robust
 
 ## 4.1.6
 * Avoid incorrect error log from `ScheduleUtil`
