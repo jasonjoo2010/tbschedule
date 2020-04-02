@@ -15,6 +15,7 @@ A simple non-centralizing scheduling framework.
 		- [Run](#run)
 - [Load Balancing](#load-balancing)
 - [Changelog](#changelog)
+	- [4.1.7](#417)
 	- [4.1.6](#416)
 	- [4.1.5](#415)
 	- [4.1.4](#414)
@@ -32,7 +33,7 @@ The necessary dependency:
 ```
 <groupId>com.yoloho.schedule</groupId>
 <artifactId>tbschedule-core</artifactId>
-<version>4.1.6</version>
+<version>4.1.7</version>
 ```
 
 If you use zookeeper as storage:
@@ -40,7 +41,7 @@ If you use zookeeper as storage:
 ```
 <groupId>com.yoloho.schedule</groupId>
 <artifactId>tbschedule-storage-zookeeper</artifactId>
-<version>4.1.6</version>
+<version>4.1.7</version>
 ```
 
 If you want use extensions like extension of task:
@@ -48,7 +49,7 @@ If you want use extensions like extension of task:
 ```
 <groupId>com.yoloho.schedule</groupId>
 <artifactId>tbschedule-extension-task</artifactId>
-<version>4.1.6</version>
+<version>4.1.7</version>
 ```
 
 See [tbschedule-demo](tbschedule-demo) for demo.
@@ -178,6 +179,9 @@ SERVER_PORT=8080
 In older original version the worker instances' distribution always includes the leader node. So if you have many jobs or some `single instance` jobs the leader will be the heaviest node. To solve this we introduce `dynamic schedule distribution` algorithm. A shuffling on scheduling servers will be done when rescheduling.
 
 # Changelog
+## 4.1.7
+* Make `NotSleep` mode more robust
+
 ## 4.1.6
 * Avoid incorrect error log from `ScheduleUtil`
 
