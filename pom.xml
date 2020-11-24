@@ -13,7 +13,8 @@
     <packaging>pom</packaging>
     <version>${revision}</version>
     <properties>
-        <revision>4.1.7</revision>
+        <revision>4.1.8</revision>
+        <enhanced-data.version>1.1.8</enhanced-data.version>
     </properties>
     <modules>
         <module>tbschedule-core</module>

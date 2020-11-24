@@ -11,9 +11,6 @@
     <artifactId>tbschedule-storage-jdbc</artifactId>
     <name>tbschedule-storage-jdbc</name>
     <packaging>jar</packaging>
-    <properties>
-        <enhanced-data.version>1.1.8-SNAPSHOT</enhanced-data.version>
-    </properties>
     <dependencies>
         <!-- enhanced related -->
         <dependency>
