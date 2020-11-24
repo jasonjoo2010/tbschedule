@@ -11,7 +11,7 @@ public class ZookeeperStorageTest extends IStorageTest {
     protected IStorage getStorage() {
         IStorage storage = new ZookeeperStorage();
         ScheduleConfig config = new ScheduleConfig();
-        config.setAddress("192.168.123.106:2181");
+        config.setAddress("127.0.0.1:2181");
         config.setRootPath("/test/schedule/demo");
         config.setUsername("test");
         config.setPassword("123123");

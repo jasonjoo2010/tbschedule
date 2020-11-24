@@ -108,7 +108,6 @@ public interface IStorage {
     
     /**
      * Dump the inner data as string.
-     * Different from {@link #export()}, it dump all the structure including runtime data and can be non-structural
      * 
      * @return
      * @throws Exception 
@@ -312,7 +311,7 @@ public interface IStorage {
      * 
      * @param taskName
      * @param ownSign
-     * @param uuid Server's uuid
+     * @param serverUuid Server's uuid
      * @throws Exception When failed.
      */
     void removeServer(String taskName, String ownSign, String serverUuid) throws Exception;

@@ -392,6 +392,9 @@ public class RedisStorage implements IStorage {
             result.setUpdateTime(getGlobalTime());
             result.setUuid(initializerUuid);
             redisService.set(keyTaskItemsInitializer(taskName, ownSign), result);
+            
+            redisService.unsortedSetAdd(keyRunningEntries(taskName),
+                    ScheduleUtil.runningEntryFromTaskName(taskName, ownSign));
         }
     }
     
@@ -777,13 +780,8 @@ public class RedisStorage implements IStorage {
     
     @Override
     public void unregisterFactory(ScheduleFactory factory) throws Exception {
-        List<String> names = getStrategyNames();
-        for (String strategyName : names) {
-            try (Closeable c = lockStrategyRuntime(strategyName)) {
-                redisService.hashRemove(keyStrategyRuntime(strategyName), factory.getUuid());
-            }
-        }
         try (Closeable c = lockFactory()) {
+            clearStrategiesOfFactory(factory.getUuid());
             redisService.hashRemove(keyFactory(), factory.getUuid());
         }
     }

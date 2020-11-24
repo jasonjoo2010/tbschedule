@@ -118,7 +118,7 @@ public class ZookeeperStorage implements IStorage {
             client.create()
                 .creatingParentsIfNeeded()
                 .withMode(CreateMode.PERSISTENT)
-                .forPath(path);
+                .forPath(path, "".getBytes());
         }
     }
     
@@ -420,7 +420,11 @@ public class ZookeeperStorage implements IStorage {
     
     @Override
     public void removeRunningEntry(String taskName, String ownSign) throws Exception {
-        client.delete().deletingChildrenIfNeeded().forPath(PathUtil.runningEntryPath(taskName, ownSign));
+        String path = PathUtil.runningEntryPath(taskName, ownSign);
+        if (!exist(path)) {
+            return;
+        }
+        client.delete().deletingChildrenIfNeeded().forPath(path);
     }
     
     @Override
@@ -589,6 +593,9 @@ public class ZookeeperStorage implements IStorage {
     @Override
     public long getServerSchedulingVersion(String taskName, String ownSign) throws Exception {
         String path = PathUtil.serverBasePath(taskName, ownSign);
+        if (!exist(path)) {
+            return 0;
+        }
         byte[] data = client.getData().forPath(path);
         if (data == null) {
             return 0;
@@ -600,6 +607,9 @@ public class ZookeeperStorage implements IStorage {
     public void increaseServerSchedulingVersion(String taskName, String ownSign) throws Exception {
         String path = PathUtil.serverBasePath(taskName, ownSign);
         long version = getServerSchedulingVersion(taskName, ownSign);
+        if (!exist(path)) {
+            client.create().creatingParentsIfNeeded().forPath(path);
+        }
         client.setData().forPath(path, String.valueOf(version + 1).getBytes());
     }
     
@@ -814,7 +824,12 @@ public class ZookeeperStorage implements IStorage {
     
     @Override
     public void unregisterFactory(ScheduleFactory factory) throws Exception {
-        // nothing need to be done
+        clearStrategiesOfFactory(factory.getUuid());
+        String path = PathUtil.factoryPath(factory.getUuid());
+        if (!exist(path)) {
+            return;
+        }
+        client.delete().forPath(path);
     }
     
     @Override

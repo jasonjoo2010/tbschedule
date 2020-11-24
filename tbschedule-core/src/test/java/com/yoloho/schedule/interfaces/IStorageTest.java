@@ -118,11 +118,11 @@ public abstract class IStorageTest {
     
     @Test
     public void taskItems() throws Exception {
-        this.storage.removeTask("t0");
-        this.storage.removeTask("t1");
         this.storage.emptyTaskItems("t0", null);
         this.storage.emptyTaskItems("t0", "dev");
         this.storage.emptyTaskItems("t1", "");
+        this.storage.removeTask("t0");
+        this.storage.removeTask("t1");
         
         // init tasks
         Task t0 = newTask("t0");
@@ -207,9 +207,14 @@ public abstract class IStorageTest {
     
     @Test
     public void server() throws Exception {
+        this.storage.removeTask("t0");
+        this.storage.removeTask("t1");
         this.storage.removeRunningEntry("t0", null);
         this.storage.removeRunningEntry("t0", "dev");
         this.storage.removeRunningEntry("t1", null);
+        
+        this.storage.createTask(newTask("t0"));
+        this.storage.createTask(newTask("t1"));
         
         ScheduleServer server1 = newServer("t0", null, "server1", "host1");
         ScheduleServer server2 = newServer("t0", null, "server2", "host2");
@@ -291,6 +296,8 @@ public abstract class IStorageTest {
         this.storage.removeRunningEntry("t0", null);
         this.storage.removeRunningEntry("t0", "dev");
         this.storage.removeRunningEntry("t1", null);
+        this.storage.removeTask("t0");
+        this.storage.removeTask("t1");
         
         assertNull(this.storage.getServer("t0", null, "server1"));
         assertNull(this.storage.getServer("t0", null, "server2"));
@@ -313,10 +320,6 @@ public abstract class IStorageTest {
         this.storage.removeStrategy("s0");
         
         assertEquals(Collections.emptyList(), this.storage.getFactoryUuidList());
-        
-        assertTrue(this.storage.isFactoryAllowExecute("uuid1"));
-        assertTrue(this.storage.isFactoryAllowExecute("uuid2"));
-        assertTrue(this.storage.isFactoryAllowExecute("uuid3"));
         
         Strategy strategy = newStrategy("s0", "t0");
         this.storage.createStrategy(strategy);
@@ -434,8 +437,8 @@ public abstract class IStorageTest {
         String taskName = "task1";
         
         // clear first
-        this.storage.emptyTaskItems(taskName, null);
-        this.storage.emptyTaskItems(taskName, "test");
+        this.storage.removeRunningEntry(taskName, null);
+        this.storage.removeRunningEntry(taskName, "test");
         
         // set initial result
         this.storage.updateTaskItemsInitialResult(taskName, null, "uuid1");
@@ -449,8 +452,8 @@ public abstract class IStorageTest {
         assertTrue(entryList.contains(ScheduleUtil.runningEntryFromTaskName(taskName, "test")));
         
         // clear them
-        this.storage.emptyTaskItems(taskName, null);
-        this.storage.emptyTaskItems(taskName, "test");
+        this.storage.removeRunningEntry(taskName, null);
+        this.storage.removeRunningEntry(taskName, "test");
         
         // verify
         assertEquals(Collections.emptyList(), this.storage.getRunningEntryList(taskName));
