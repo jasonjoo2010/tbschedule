@@ -11,7 +11,7 @@
     <groupId>com.yoloho.schedule</groupId>
     <artifactId>tbschedule-demo-redis</artifactId>
     <name>tbschedule-demo-redis</name>
-    <version>4.1.7</version>
+    <version>4.2.0</version>
     <packaging>jar</packaging>
     <dependencies>
         <!-- tbschedule -->
