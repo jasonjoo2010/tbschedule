@@ -6,6 +6,9 @@ A simple non-centralizing scheduling framework.
 - [Main features](#main-features)
 	- [Multiple Storages Support](#multiple-storages-support)
 		- [Local Memory Scheduling](#local-memory-scheduling)
+		- Zookeeper
+		- Redis
+		- [JDBC](tbschedule-storage/tbschedule-storage-jdbc/README.md)
 	- [XML/Annotation Support](#xmlannotation-support)
 		- [Manually(Programmatically)](#manuallyprogrammatically)
 		- [XML](#xml)
@@ -15,6 +18,7 @@ A simple non-centralizing scheduling framework.
 		- [Run](#run)
 - [Load Balancing](#load-balancing)
 - [Changelog](#changelog)
+	- [4.2.0](#420)
 	- [4.1.7](#417)
 	- [4.1.6](#416)
 	- [4.1.5](#415)
@@ -33,7 +37,7 @@ The necessary dependency:
 ```
 <groupId>com.yoloho.schedule</groupId>
 <artifactId>tbschedule-core</artifactId>
-<version>4.1.7</version>
+<version>4.2.0</version>
 ```
 
 If you use zookeeper as storage:
@@ -41,7 +45,7 @@ If you use zookeeper as storage:
 ```
 <groupId>com.yoloho.schedule</groupId>
 <artifactId>tbschedule-storage-zookeeper</artifactId>
-<version>4.1.7</version>
+<version>4.2.0</version>
 ```
 
 If you want use extensions like extension of task:
@@ -49,7 +53,7 @@ If you want use extensions like extension of task:
 ```
 <groupId>com.yoloho.schedule</groupId>
 <artifactId>tbschedule-extension-task</artifactId>
-<version>4.1.7</version>
+<version>4.2.0</version>
 ```
 
 See [tbschedule-demo](tbschedule-demo) for demo.
@@ -73,7 +77,7 @@ You would have several choises on storage option.
 * **memory**(For `local` scheduling)
 * **zookeeper**(`curator-framework`)
 * **redis**(`enhanced-cache` based on `jredis`)
-* jdbc(`enhanced-data` base on `druid`)(**Developing**)
+* **jdbc**(`enhanced-data` base on `druid`)
 
 ### Local Memory Scheduling
 It's mainly driven by annotations:
@@ -146,8 +150,8 @@ public class Launcher {
 ```
 
 And examples please refer the demo modules:  
-* tbschedule-demo-memory(**Developing**)
-* tbschedule-demo-redis(**Developing**)
+* tbschedule-demo-memory
+* tbschedule-demo-redis
 * tbschedule-demo-zookeeper
 * tbschedule-demo-jdbc(**Developing**)
 
@@ -179,6 +183,11 @@ SERVER_PORT=8080
 In older original version the worker instances' distribution always includes the leader node. So if you have many jobs or some `single instance` jobs the leader will be the heaviest node. To solve this we introduce `dynamic schedule distribution` algorithm. A shuffling on scheduling servers will be done when rescheduling.
 
 # Changelog
+
+## 4.2.0
+* Introduce JDBC storage support
+* Fine unit tests across storage implementations
+
 ## 4.1.7
 * Make `Sleep` mode more robust
 
