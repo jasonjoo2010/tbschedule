@@ -25,6 +25,7 @@ import com.google.common.base.Preconditions;
 import com.yoloho.schedule.interfaces.IScheduleTaskDeal;
 import com.yoloho.schedule.interfaces.IStorage;
 import com.yoloho.schedule.interfaces.IStrategyTask;
+import com.yoloho.schedule.interfaces.ScheduleFactory;
 import com.yoloho.schedule.processor.ScheduleManagerStatic;
 import com.yoloho.schedule.types.ScheduleConfig;
 import com.yoloho.schedule.types.Strategy;
@@ -38,7 +39,7 @@ import com.yoloho.schedule.util.ScheduleUtil;
  * @author xuannan
  * 
  */
-public class ScheduleManagerFactory implements ApplicationContextAware {
+public class ScheduleManagerFactory implements ApplicationContextAware, ScheduleFactory {
 	protected static transient Logger logger = LoggerFactory.getLogger(ScheduleManagerFactory.class);
 	
     private ScheduleConfig config;
@@ -336,7 +337,7 @@ public class ScheduleManagerFactory implements ApplicationContextAware {
     
     public IStorage getStorage() {
         if (storage == null) {
-            throw new RuntimeException("TBSchedule task factory has been stopped.");
+            throw new RuntimeException("TBSchedule task factory has already stopped.");
         }
         return storage;
     }

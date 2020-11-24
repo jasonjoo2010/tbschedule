@@ -19,8 +19,8 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
 import com.yoloho.enhanced.common.util.BeansUtil;
-import com.yoloho.schedule.ScheduleManagerFactory;
 import com.yoloho.schedule.interfaces.IStorage;
+import com.yoloho.schedule.interfaces.ScheduleFactory;
 import com.yoloho.schedule.types.InitialResult;
 import com.yoloho.schedule.types.ScheduleConfig;
 import com.yoloho.schedule.types.ScheduleServer;
@@ -92,7 +92,7 @@ public class MemoryStorage implements IStorage {
     @Override
     public void createTask(Task task) throws Exception {
         if (taskMap.containsKey(task.getName())) {
-            throw new Exception("Task [" + task.getName() + "] has been already existed.");
+            throw new Exception("Task [" + task.getName() + "] has already existed.");
         }
         taskMap.putIfAbsent(task.getName(), task);
     }
@@ -411,7 +411,7 @@ public class MemoryStorage implements IStorage {
     @Override
     public void createStrategy(Strategy strategy) throws Exception {
         if (strategyMap.containsKey(strategy.getName())) {
-            throw new Exception("Srategy [" + strategy.getName() + "] has been already existed.");
+            throw new Exception("Srategy [" + strategy.getName() + "] has already existed.");
         }
         strategyMap.put(strategy.getName(), strategy);
     }
@@ -493,7 +493,7 @@ public class MemoryStorage implements IStorage {
     }
     
     @Override
-    public List<String> registerFactory(ScheduleManagerFactory factory) throws Exception {
+    public List<String> registerFactory(ScheduleFactory factory) throws Exception {
         // register to strategy
         List<String> unregistered = new ArrayList<>();
         List<String> names = getStrategyNames();
@@ -533,7 +533,7 @@ public class MemoryStorage implements IStorage {
     }
     
     @Override
-    public void unregisterFactory(ScheduleManagerFactory factory) throws Exception {
+    public void unregisterFactory(ScheduleFactory factory) throws Exception {
         factoryAllowExecuteMap.remove(factory.getUuid());
         List<String> names = getStrategyNames();
         for (String strategyName : names) {

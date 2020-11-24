@@ -1,18 +1,19 @@
-package com.yoloho.schedule.storage.redis;
+package com.yoloho.schedule.storage.jdbc;
 
 import com.yoloho.schedule.interfaces.IStorage;
 import com.yoloho.schedule.interfaces.IStorage.OnConnected;
 import com.yoloho.schedule.interfaces.IStorageTest;
 import com.yoloho.schedule.types.ScheduleConfig;
 
-public class RedisStorageTest extends IStorageTest {
+public class JdbcStorageTest extends IStorageTest {
+    
     @Override
     protected IStorage getStorage() {
-        RedisStorage storage = new RedisStorage();
+        JdbcStorage storage = new JdbcStorage();
         ScheduleConfig config = new ScheduleConfig();
-        config.setAddress("192.168.123.3:6381");
-        config.setRootPath("/test/schedule/demo");
-        config.setUsername("");
+        config.setAddress("jdbc:mysql://127.0.0.1:3306/test?useUnicode=true&characterEncoding=utf-8&autoReconnect=true&tinyInt1isBit=false");
+        config.setRootPath("/demo");
+        config.setUsername("root");
         config.setPassword("");
         storage.init(config, new OnConnected() {
             
@@ -22,5 +23,4 @@ public class RedisStorageTest extends IStorageTest {
         });
         return storage;
     }
-    
 }

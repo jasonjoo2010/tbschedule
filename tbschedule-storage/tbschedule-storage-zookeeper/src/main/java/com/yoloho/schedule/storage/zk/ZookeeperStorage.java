@@ -31,8 +31,8 @@ import com.alibaba.fastjson.JSON;
 import com.google.common.base.Preconditions;
 import com.yoloho.enhanced.common.util.JoinerSplitters;
 import com.yoloho.enhanced.common.util.RandomUtil;
-import com.yoloho.schedule.ScheduleManagerFactory;
 import com.yoloho.schedule.interfaces.IStorage;
+import com.yoloho.schedule.interfaces.ScheduleFactory;
 import com.yoloho.schedule.storage.zk.util.PathUtil;
 import com.yoloho.schedule.types.InitialResult;
 import com.yoloho.schedule.types.ScheduleConfig;
@@ -397,7 +397,7 @@ public class ZookeeperStorage implements IStorage {
         String zkPath = PathUtil.taskPath(task.getName());
         String json = JSON.toJSONString(task);
         if (!createNode(zkPath, json)) {
-            throw new Exception("Task [" + task.getName() + "] has been already existed.");
+            throw new Exception("Task [" + task.getName() + "] has already existed.");
         }
     }
 
@@ -701,7 +701,7 @@ public class ZookeeperStorage implements IStorage {
         String path = PathUtil.strategyPath(strategy.getName());
         String json = JSON.toJSONString(strategy);
         if (!createNode(path, json)) {
-            throw new Exception("Srategy [" + strategy.getName() + "] has been already existed.");
+            throw new Exception("Srategy [" + strategy.getName() + "] has already existed.");
         }
     }
     
@@ -771,7 +771,7 @@ public class ZookeeperStorage implements IStorage {
     }
     
     @Override
-    public List<String> registerFactory(ScheduleManagerFactory factory) throws Exception {
+    public List<String> registerFactory(ScheduleFactory factory) throws Exception {
         // register to factory list
         String path = PathUtil.factoryPath(factory.getUuid());
         if (!exist(path)) {
@@ -813,7 +813,7 @@ public class ZookeeperStorage implements IStorage {
     }
     
     @Override
-    public void unregisterFactory(ScheduleManagerFactory factory) throws Exception {
+    public void unregisterFactory(ScheduleFactory factory) throws Exception {
         // nothing need to be done
     }
     

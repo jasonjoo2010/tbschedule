@@ -28,8 +28,8 @@ import com.google.common.base.Preconditions;
 import com.yoloho.enhanced.cache.config.EnableRedisTemplateConfiguration.ClientConfiguration;
 import com.yoloho.enhanced.data.cache.lock.DistributedLock;
 import com.yoloho.enhanced.data.cache.redis.RedisServiceImpl;
-import com.yoloho.schedule.ScheduleManagerFactory;
 import com.yoloho.schedule.interfaces.IStorage;
+import com.yoloho.schedule.interfaces.ScheduleFactory;
 import com.yoloho.schedule.types.InitialResult;
 import com.yoloho.schedule.types.ScheduleConfig;
 import com.yoloho.schedule.types.ScheduleServer;
@@ -302,7 +302,7 @@ public class RedisStorage implements IStorage {
         lock.lock(key, 2, TimeUnit.SECONDS);
         try {
             if (redisService.hashExists(key, task.getName())) {
-                throw new Exception("Task [" + task.getName() + "] has been already existed.");
+                throw new Exception("Task [" + task.getName() + "] has already existed.");
             }
             redisService.hashPutIfAbsent(key, task.getName(), task);
         } finally {
@@ -603,7 +603,7 @@ public class RedisStorage implements IStorage {
         lock.lock(key, 2, TimeUnit.SECONDS);
         try {
             if (redisService.hashExists(key, strategy.getName())) {
-                throw new Exception("Srategy [" + strategy.getName() + "] has been already existed.");
+                throw new Exception("Srategy [" + strategy.getName() + "] has already existed.");
             }
             redisService.hashPut(key, strategy.getName(), strategy);
         } finally {
@@ -724,7 +724,7 @@ public class RedisStorage implements IStorage {
     }
     
     @Override
-    public List<String> registerFactory(ScheduleManagerFactory factory) throws Exception {
+    public List<String> registerFactory(ScheduleFactory factory) throws Exception {
         List<String> unregistered = new ArrayList<>();
         String factoryKey = keyFactory();
         // heartbeat
@@ -776,7 +776,7 @@ public class RedisStorage implements IStorage {
     }
     
     @Override
-    public void unregisterFactory(ScheduleManagerFactory factory) throws Exception {
+    public void unregisterFactory(ScheduleFactory factory) throws Exception {
         List<String> names = getStrategyNames();
         for (String strategyName : names) {
             try (Closeable c = lockStrategyRuntime(strategyName)) {

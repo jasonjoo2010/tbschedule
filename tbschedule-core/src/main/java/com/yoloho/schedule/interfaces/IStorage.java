@@ -5,7 +5,6 @@ import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
 
-import com.yoloho.schedule.ScheduleManagerFactory;
 import com.yoloho.schedule.types.InitialResult;
 import com.yoloho.schedule.types.ScheduleConfig;
 import com.yoloho.schedule.types.ScheduleServer;
@@ -215,7 +214,7 @@ public interface IStorage {
      * @throws Exception
      *             When failed
      */
-    List<String> registerFactory(ScheduleManagerFactory factory) throws Exception;
+    List<String> registerFactory(ScheduleFactory factory) throws Exception;
     
     /**
      * Unregister a factory (When shuting down)
@@ -223,7 +222,7 @@ public interface IStorage {
      * @param factory
      * @throws Exception
      */
-    void unregisterFactory(ScheduleManagerFactory factory) throws Exception;
+    void unregisterFactory(ScheduleFactory factory) throws Exception;
     
     /**
      * Whether the factory is allowed to run.
